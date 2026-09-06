@@ -160,8 +160,11 @@ generated from one table in `assets/lab.js`, so adding a lab is one edit.
 re-renders, and three simulations whose whole lesson is time passing (the
 generation loop, the queue behind thirty-nine long prompts, the worker list
 going stale) have a "watch it happen" playback against a compressed clock.
-Everything sits behind `prefers-reduced-motion`, and outputs driven by a
-slider stand down automatically so a drag never flickers.
+The dashboard enters the same way (the hero and the lab cards stagger in, and
+the activity heatmap draws as a wave of days), and switching theme crossfades
+on every page instead of hard-cutting. Everything sits behind
+`prefers-reduced-motion`, and outputs driven by a slider stand down
+automatically so a drag never flickers.
 
 ## Labs and topics are linked
 

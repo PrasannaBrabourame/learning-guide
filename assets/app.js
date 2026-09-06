@@ -282,12 +282,13 @@ function init(topics) {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const start = new Date(today); start.setDate(start.getDate() - start.getDay() - 13 * 7);
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    let html = "";
+    let html = "", idx = 0;
     for (const d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const n = activity[key] || 0;
       const lvl = n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4;
-      html += `<i class="hcell l${lvl}" title="${n} topic${n === 1 ? "" : "s"} · ${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}"></i>`;
+      html += `<i class="hcell l${lvl}"${reduced ? "" : ` style="animation-delay:${idx * 5}ms"`} title="${n} topic${n === 1 ? "" : "s"} · ${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}"></i>`;
+      idx++;
     }
     hm.innerHTML = html;
     const streak = calcStreak();
@@ -343,7 +344,13 @@ function init(topics) {
   $("#collapse").onclick = () => document.querySelectorAll(".card").forEach(c => { c.classList.remove("open"); c.querySelector(".head").setAttribute("aria-expanded", "false") });
   $("#quiz").onclick = e => { document.body.classList.toggle("quiz"); document.querySelectorAll(".card").forEach(c => c.classList.remove("revealed")); e.target.textContent = document.body.classList.contains("quiz") ? "Exit quiz mode" : "Quiz mode" };
   if (store.get("study-theme", "light") === "dark") { document.documentElement.dataset.theme = "dark"; $("#theme").textContent = "☀️" }
-  $("#theme").onclick = () => { const d = document.documentElement.dataset.theme === "dark"; document.documentElement.dataset.theme = d ? "light" : "dark"; store.set("study-theme", d ? "light" : "dark"); $("#theme").textContent = d ? "🌙" : "☀️" };
+  /* crossfade rather than hard-cut: the class enables colour transitions on
+     everything for the duration of the switch (see styles.css) */
+  let themeFadeT = 0;
+  $("#theme").onclick = () => {
+    const root = document.documentElement, d = root.dataset.theme === "dark";
+    if (!reduced) { root.classList.add("theme-fade"); clearTimeout(themeFadeT); themeFadeT = setTimeout(() => root.classList.remove("theme-fade"), 400); }
+    root.dataset.theme = d ? "light" : "dark"; store.set("study-theme", d ? "light" : "dark"); $("#theme").textContent = d ? "🌙" : "☀️" };
   $("#print").onclick = () => { showBrowse(null); ms.value = ""; stateSel.value = "all"; filter(); setTimeout(() => window.print(), 60) };
 
   /* ============ track last-read topic ============ */
