@@ -376,3 +376,18 @@
     }
   }
 })();
+
+/* ================= MOTION GUARD =================
+   Simulation outputs animate in when they mount (see the motion block in
+   lab.css). Outputs driven by a range slider re-render on every input event,
+   and a restarting entrance animation under a drag reads as flicker, so the
+   first drag marks the enclosing card as live and the motion rules stand
+   down for it. Done here rather than in markup so every slider, present and
+   future, is covered without anyone remembering to opt out. */
+document.addEventListener('input', function(e){
+  const r = e.target;
+  if (r && r.type === 'range' && r.closest) {
+    const card = r.closest('.card');
+    if (card) card.classList.add('live');
+  }
+}, true);

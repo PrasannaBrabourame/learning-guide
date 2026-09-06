@@ -183,12 +183,26 @@ document.getElementById('sec-lmstart').innerHTML=`
     [['the',0.38],['also',0.24],['home',0.18],['one',0.12],['located',0.05]],
     [['largest',0.31],['most',0.28],['capital',0.19],['centre',0.13],['heart',0.06]]
   ];
-  let step=0;
+  let step=0, timer=0;
+  const stopAuto=()=>{ if(timer){ clearTimeout(timer); timer=0; } };
+  function autoTick(){
+    step++;
+    if(step>=STEPS.length){ stopAuto(); render(); return; }
+    render();
+    timer=setTimeout(autoTick, 1300);
+  }
   function render(){
     ctl.innerHTML='<button class="seg on" data-a="next" style="text-align:left">'+(step===0?'run the model →':step>=STEPS.length?'start again':'next token →')+'</button>'+
-      '<button class="seg" data-a="back" style="text-align:left"'+(step===0?' disabled':'')+'>← step back</button>';
+      '<button class="seg" data-a="back" style="text-align:left"'+(step===0?' disabled':'')+'>← step back</button>'+
+      '<button class="seg" data-a="auto" style="text-align:left">'+(timer?'⏸ pause':'▶ watch the whole loop')+'</button>';
     ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
       const a=b.dataset.a;
+      if(a==='auto'){
+        if(timer){ stopAuto(); render(); }
+        else { step=0; render(); timer=setTimeout(autoTick, 900); }
+        return;
+      }
+      stopAuto();
       if(a==='next') step=step>=STEPS.length?0:step+1; else step=Math.max(0,step-1);
       render(); });
     const chosen=STEPS.slice(0,step).map(d=>d[0][0]);
@@ -196,15 +210,15 @@ document.getElementById('sec-lmstart').innerHTML=`
     const cur=step<STEPS.length?STEPS[step]:null;
     out.innerHTML='<div class="dim" style="font-size:11px;margin-bottom:7px">WHAT THE MODEL READS THIS STEP '+ctx.length+' TOKENS</div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px">'+
-      ctx.map((w,i)=>'<span style="font-family:var(--mono);font-size:12px;padding:4px 8px;border-radius:6px;background:'+
+      ctx.map((w,i)=>'<span class="'+(i===ctx.length-1&&i>=PROMPT.length?'tpop':'')+'" style="font-family:var(--mono);font-size:12px;padding:4px 8px;border-radius:6px;background:'+
         (i<PROMPT.length?'var(--panel2)':'var(--n-teal)')+';border:1px solid '+(i<PROMPT.length?'var(--line2)':'var(--teal)')+'">'+w+'</span>').join('')+
-      (cur?'<span style="font-family:var(--mono);font-size:12px;padding:4px 8px;border-radius:6px;border:1px dashed var(--amber);color:var(--amber)">?</span>':'')+'</div>'+
+      (cur?'<span class="tpulse" style="font-family:var(--mono);font-size:12px;padding:4px 8px;border-radius:6px;border:1px dashed var(--amber);color:var(--amber)">?</span>':'')+'</div>'+
       (cur
         ? '<div class="dim" style="font-size:11px;margin-bottom:7px">WHAT COMES BACK, A SCORE FOR EVERY TOKEN IN THE VOCABULARY</div>'+
           cur.map(([w,p],i)=>'<div style="display:flex;gap:9px;align-items:center;margin-bottom:5px">'+
             '<span style="font-family:var(--mono);font-size:12px;min-width:74px;'+(i===0?'color:var(--green);font-weight:600':'')+'">'+w+'</span>'+
-            '<div style="flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:'+
-            (p*100)+'%;background:'+(i===0?'var(--green)':'var(--wire)')+'"></i></div>'+
+            '<div style="flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden"><i class="abar" style="display:block;height:100%;width:'+
+            (p*100)+'%;background:'+(i===0?'var(--green)':'var(--wire)')+';animation-delay:'+(i*70)+'ms"></i></div>'+
             '<span style="font-family:var(--mono);font-size:11px;color:var(--muted);min-width:36px;text-align:right">'+(p*100).toFixed(0)+'%</span></div>').join('')+
           '<div style="font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:6px">…and about 50 000 more, all with scores near zero</div>'
         : '<div class="ok" style="padding:11px 13px"><b>Six tokens generated, six full passes over the whole context.</b> The model was never told it was writing a sentence about Paris. Each step it was asked one question (what comes next) and each answer became part of the next question.</div>')+
