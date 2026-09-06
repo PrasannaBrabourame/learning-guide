@@ -358,3 +358,33 @@ a.brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;
     transition-duration:.001ms !important;scroll-behavior:auto !important}
 }
+
+/* ---- motion ----
+   The labs animate (lab.css, same language); the dashboard sat still. Three
+   additions and nothing else: the hero and the lab cards enter with a stagger,
+   the heatmap draws as a wave of days (delay set per cell in app.js), and the
+   theme toggle crossfades instead of hard-cutting. Hover polish and the
+   counter count-up already existed. All behind prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference){
+  .dwelcome>*{animation:dashIn .5s cubic-bezier(.25,.7,.3,1) both}
+  .dwelcome>*:nth-child(2){animation-delay:.06s}
+  .dwelcome>*:nth-child(3){animation-delay:.12s}
+  .dwelcome>*:nth-child(4){animation-delay:.18s}
+  .dwelcome>*:nth-child(5){animation-delay:.24s}
+  .dpanel{animation:dashIn .5s cubic-bezier(.25,.7,.3,1) .18s both}
+  .dtitle,.dnote{animation:dashIn .45s ease both}
+  .labcell{animation:dashIn .5s cubic-bezier(.25,.7,.3,1) both}
+  .labs .labcell:nth-child(2){animation-delay:.07s}
+  .labs .labcell:nth-child(3){animation-delay:.14s}
+  .labs .labcell:nth-child(4){animation-delay:.21s}
+  .labs .labcell:nth-child(5){animation-delay:.28s}
+  .labs .labcell:nth-child(6){animation-delay:.35s}
+  .labs .labcell:nth-child(7){animation-delay:.42s}
+  .hcell{animation:hpop .3s ease both}
+}
+@keyframes dashIn{from{opacity:0;transform:translateY(9px)}}
+@keyframes hpop{from{opacity:0;transform:scale(.4)}}
+/* the theme switch: one class on <html> for the duration of the fade */
+html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after{
+  transition:background-color .35s ease, color .35s ease, border-color .35s ease,
+             fill .35s ease, stroke .35s ease, box-shadow .35s ease !important}

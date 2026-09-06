@@ -488,3 +488,9 @@ div.ok{font-size:12.5px; line-height:1.65}
 .pbchips i.busy{background:var(--amber); opacity:1}
 .pbchips i.done{background:var(--green); opacity:.8}
 .pbchips i.dead{background:var(--red); opacity:1}
+
+/* the theme switch crossfades instead of hard-cutting: app code puts this
+   class on <html> for the duration of the fade, then removes it */
+html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after{
+  transition:background-color .35s ease, color .35s ease, border-color .35s ease,
+             fill .35s ease, stroke .35s ease, box-shadow .35s ease !important}

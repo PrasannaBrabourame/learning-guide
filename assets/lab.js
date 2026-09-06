@@ -20,7 +20,13 @@
   if(mode!=='dark' && mode!=='light')
     mode = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   apply(mode);
+  /* crossfade rather than hard-cut (see the theme-fade rule in lab.css) */
+  let fadeT=0;
+  const fade=()=>{ try{ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch{}
+    root.classList.add('theme-fade'); clearTimeout(fadeT);
+    fadeT=setTimeout(()=>root.classList.remove('theme-fade'), 400); };
   document.getElementById('themeBtn').onclick=()=>{
+    fade();
     mode = root.dataset.theme==='dark' ? 'light' : 'dark';
     apply(mode);
     try{ localStorage.setItem(KEY, JSON.stringify(mode)) }catch{}
