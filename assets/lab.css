@@ -450,3 +450,41 @@ div.ok{font-size:12.5px; line-height:1.65}
    and the code blocks keep the whole width, because they are read by scanning
    rather than line by line, and narrowing them would break their layout. */
 .plain-line, div.note, div.ok, .simnote{max-width:82ch}
+
+/* ---- motion ----
+   Every simulation rebuilds its output with innerHTML, so its elements mount
+   fresh on every interaction. These entrance animations run on mount, which
+   means every click gets a visible response with no per-sim JS: conclusion
+   blocks slide in, bars grow from zero, a chosen token pops into place.
+
+   Two deliberate limits. Outputs driven by a range slider re-render on every
+   input event, and a restarting entrance animation under a drag reads as
+   flicker, so those containers opt out with .live. And everything here sits
+   behind prefers-reduced-motion, because motion that teaches one reader can
+   make another one ill. */
+@media (prefers-reduced-motion: no-preference){
+  .ok,.lzbad,.lzwarn,.lzhop{animation:simIn .28s ease both}
+  .lzhop:nth-of-type(2){animation-delay:.05s}
+  .lzhop:nth-of-type(3){animation-delay:.1s}
+  .lzhop:nth-of-type(4){animation-delay:.15s}
+  .lzhop:nth-of-type(5){animation-delay:.2s}
+  .lzhop:nth-of-type(6){animation-delay:.25s}
+  .live .ok,.live .lzbad,.live .lzwarn,.live .lzhop{animation:none}
+  .abar{transform-origin:left; animation:growX .5s cubic-bezier(.25,.7,.3,1) both}
+  .tpop{animation:pop .32s cubic-bezier(.3,1.4,.5,1) both}
+  .tpulse{animation:softpulse 1.1s ease-in-out infinite}
+}
+@keyframes simIn{from{opacity:0; transform:translateY(5px)} to{opacity:1; transform:none}}
+@keyframes growX{from{transform:scaleX(0)}}
+@keyframes pop{from{transform:scale(.4); opacity:0}}
+@keyframes softpulse{0%,100%{opacity:1} 50%{opacity:.35}}
+/* the playback strip shared by the "watch it happen" modes */
+.pbclock{font-family:var(--mono); font-size:12px; color:var(--muted); display:flex;
+  justify-content:space-between; align-items:baseline; margin-bottom:8px}
+.pbclock b{font-size:16px; color:var(--text); font-variant-numeric:tabular-nums}
+.pbchips{display:flex; flex-wrap:wrap; gap:3px; margin-bottom:10px}
+.pbchips i{width:13px; height:13px; border-radius:3px; background:var(--wire); opacity:.45; transition:background .2s, opacity .2s}
+.pbchips i.you{background:var(--accent); opacity:1; outline:2px solid var(--accent); outline-offset:1px}
+.pbchips i.busy{background:var(--amber); opacity:1}
+.pbchips i.done{background:var(--green); opacity:.8}
+.pbchips i.dead{background:var(--red); opacity:1}

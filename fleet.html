@@ -331,14 +331,83 @@ document.getElementById('sec-fldisc').innerHTML=`
     {k:'scale', n:'scaling in and out',    mtbf:300,  lbl:'one leaves every five minutes'},
     {k:'spot',  n:'pre-emptible machines', mtbf:90,   lbl:'one leaves every ninety seconds'}
   ];
-  let ci=1;
+  let ci=1, pbOn=false;
   const RPS=2000, N=20;
+  const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
+
+  /* ---- run a minute: reality against the router's belief ----
+     Sixty model-seconds compressed to about seven. Deaths are scheduled, not
+     random, so two runs of the same settings tell the same story, and at
+     least one worker always dies inside the window so the mechanism is
+     visible even on a calm day. */
+  function playback(){
+    pbOn=true;
+    out.classList.add('live');   /* repainting every frame; entrance animations must stand down */
+    const s=INT[+rng.value], c=CHURN[ci];
+    const kDeaths=Math.max(1, Math.round(60*N/c.mtbf));
+    const deaths=[];                       /* [time, workerIndex] */
+    for(let j=0;j<kDeaths;j++) deaths.push([ (j+0.55)*60/kDeaths, (j*7+3)%N ]);
+    const WALL=7000, t0=Date.now();
+    let wasted=0, lastT=0;
+    function frame(){
+      if(!pbOn) return;
+      const t=Math.min(60,(Date.now()-t0)/WALL*60);
+      const lastSweep=Math.floor(t/s)*s;
+      const reality=Array(N).fill(true), belief=Array(N).fill(true);
+      for(const [dt,w] of deaths){
+        if(t>=dt) reality[w]=false;
+        if(lastSweep>=dt) belief[w]=false;   /* the router only learns at a sweep */
+      }
+      const mismatch=reality.filter((r,i)=>!r&&belief[i]).length;
+      wasted += RPS*(mismatch/N)*(t-lastT); lastT=t;
+      const sweepFlash = t>0 && (t-lastSweep)<0.6 && lastSweep>0;
+      let caption='all quiet';
+      const justDied=deaths.find(([dt])=>t>=dt && t-dt<2.5);
+      if(sweepFlash) caption='health-check sweep: the list is honest again';
+      else if(justDied && mismatch>0) caption='worker '+(justDied[1]+1)+' just died. The router does not know yet';
+      else if(mismatch>0) caption=mismatch+' worker'+(mismatch>1?'s':'')+' gone but still on the list, requests are failing';
+      const rowOf=(arr,deadCls)=>'<div class="pbchips">'+arr.map(a=>'<i class="'+(a?'done':deadCls)+'"></i>').join('')+'</div>';
+      out.innerHTML =
+        '<div class="pbclock"><span>second <b>'+t.toFixed(1)+'</b> of 60</span>'
+        +'<span>next check at '+Math.min(60,(Math.floor(t/s)+1)*s)+'s</span></div>'
+        +'<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:3px">REALITY</div>'
+        +rowOf(reality,'dead')
+        +'<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:3px">THE ROUTER&rsquo;S LIST'
+        +(sweepFlash?' <span class="tpop" style="color:var(--accent)">✓ swept</span>':'')+'</div>'
+        +rowOf(belief,'dead')
+        +'<div class="k" style="font-size:11px;color:'+(mismatch>0?'var(--red)':'var(--muted)')+';margin:8px 0 10px">'+caption+'</div>'
+        +'<div class="lzhop" style="display:block;padding:10px 12px;border-left-color:'+(wasted>1000?'var(--red)':'var(--amber)')+'">'
+        +'<b>requests sent to a machine that is not there: '+Math.round(wasted).toLocaleString('en-GB')+'</b>'
+        +'<div style="font-size:11.5px;color:var(--muted);margin-top:3px">counting only while the two rows disagree, at '+RPS.toLocaleString('en-GB')+' rps</div></div>'
+        +(t>=60
+          ? '<div class="ok" style="margin-top:10px"><b>One minute, '+Math.round(wasted).toLocaleString('en-GB')+' failed requests.</b> '
+            +'Every one of them happened in the gap between a death and the next sweep. Shorten the gap and you pay in checks; the number that actually fixes it is a worker that says goodbye before it goes.</div>'
+            +'<div style="display:flex;gap:8px;margin-top:10px">'
+            +'<button class="seg" id="flPbAgain" style="font-size:12px">▶ replay</button>'
+            +'<button class="seg" id="flPbBack" style="font-size:12px">back to the numbers</button></div>'
+          : '');
+      if(t>=60){
+        const a=document.getElementById('flPbAgain'), b=document.getElementById('flPbBack');
+        if(a) a.onclick=()=>{ playback(); };
+        if(b) b.onclick=()=>{ pbOn=false; render(); };
+        pbOn=false; return;
+      }
+      raf(frame);
+    }
+    frame();
+  }
+
   function render(){
+    pbOn=false;
+    out.classList.remove('live');
     const s=INT[+rng.value], c=CHURN[ci];
     val.textContent = s<60 ? s+'s' : '60s';
     churnCtl.innerHTML=CHURN.map((x,i)=>'<button class="seg'+(i===ci?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px">'
-      +x.n+', <span style="color:var(--dim)">'+x.lbl+'</span></button>').join('');
-    churnCtl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ci=+b.dataset.i;render();});
+      +x.n+', <span style="color:var(--dim)">'+x.lbl+'</span></button>').join('')
+      +'<button class="seg" id="flPbGo" style="text-align:left;font-size:12px;color:var(--accent)">▶ <b>run a minute</b><br>'
+      +'<span style="font-size:11px;color:var(--dim)">watch the list go stale and get swept</span></button>';
+    const go=document.getElementById('flPbGo'); if(go) go.onclick=()=>{ playback(); };
+    churnCtl.querySelectorAll('.seg[data-i]').forEach(b=>b.onclick=()=>{ci=+b.dataset.i;render();});
 
     /* A worker that dies is discovered after half a check interval on average.
        Expected dead-but-listed workers = deaths per second × mean detection lag. */

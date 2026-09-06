@@ -156,6 +156,13 @@ standing: `Under the hood · lab 2 of 4 · next: The engine, not the model`,
 so the reading order the dashboard sets survives past the front door. Both are
 generated from one table in `assets/lab.js`, so adding a lab is one edit.
 
+**Motion, only where it teaches.** Results animate in when a simulation
+re-renders, and three simulations whose whole lesson is time passing (the
+generation loop, the queue behind thirty-nine long prompts, the worker list
+going stale) have a "watch it happen" playback against a compressed clock.
+Everything sits behind `prefers-reduced-motion`, and outputs driven by a
+slider stand down automatically so a drag never flickers.
+
 ## Labs and topics are linked
 
 Each lab card carries one plain line saying what the lab lets you do, and that

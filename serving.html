@@ -415,11 +415,84 @@ document.getElementById('sec-svsched').innerHTML=`
     {k:'short',n:'shortest first',           d:'smallest prompt goes next'},
     {k:'chunk',n:'chunked prefill',          d:'long prompts split, everyone interleaves'}
   ];
-  let m=0;
+  let m=0, pbOn=false;
+  const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
+
+  /* ---- watch it happen: the same queue, replayed against a clock ----
+     Model time is compressed about 2400:1 so the 15.6 s makespan plays in
+     six and a half seconds. The numbers are the ones the static view shows;
+     only the passage of time is added. */
+  function playback(){
+    pbOn=true;
+    out.classList.add('live');   /* repainting every frame; entrance animations must stand down */
+    const mode=MODES[m].k, longEach=tPrefill(LONGTOK), shortEach=tPrefill(SHORTTOK);
+    const CH=512, rounds=Math.ceil(LONGTOK/CH), chunkEach=tPrefill(CH);
+    const makespan = mode==='chunk' ? rounds*LONG*chunkEach+shortEach : LONG*longEach+shortEach;
+    const youAt = mode==='fcfs' ? LONG*longEach+shortEach
+               : mode==='short' ? shortEach
+               : LONG*chunkEach+shortEach;
+    const WALL=6500, t0=Date.now();
+    const ms=v=>v>=1000?(v/1000).toFixed(1)+' s':Math.max(1,Math.round(v))+' ms';
+    function frame(){
+      if(!pbOn) return;
+      const t=Math.min(makespan,(Date.now()-t0)/WALL*makespan);
+      /* who has its first token out, and who is on the machine right now */
+      let caption='', chips=[];
+      for(let i=0;i<LONG;i++){
+        let start, doneAt;
+        if(mode==='fcfs'){ start=i*longEach; doneAt=start+longEach; }
+        else if(mode==='short'){ start=shortEach+i*longEach; doneAt=start+longEach; }
+        else { start=i*chunkEach; doneAt=(rounds-1)*LONG*chunkEach+shortEach+i*chunkEach+chunkEach; }
+        chips.push(t>=doneAt?'done': (mode!=='chunk'&&t>=start&&t<doneAt)?'busy':'');
+      }
+      const youDone=t>=youAt;
+      if(mode==='chunk'&&!youDone&&t<makespan){
+        const k=Math.floor((t%(LONG*chunkEach))/chunkEach);
+        if(chips[Math.min(k,LONG-1)]==='') chips[Math.min(k,LONG-1)]='busy';
+        caption='interleaving: a slice of document #'+(Math.min(k,LONG-1)+1);
+      } else if(!youDone){
+        const busy=chips.indexOf('busy');
+        caption=busy>=0?'now processing: document #'+(busy+1):'processing your 40 tokens…';
+      } else caption = t>=makespan?'everyone served':'you are answered; the documents continue';
+      const served=chips.filter(c=>c==='done').length+(youDone?1:0);
+      out.innerHTML =
+        '<div class="pbclock"><span>model time <b>'+ms(t)+'</b></span><span>'+served+' of 40 served</span></div>'
+        +'<div class="pbchips">'+chips.map(c=>'<i class="'+c+'"></i>').join('')
+        +'<i class="you'+(youDone?' done':'')+'" title="your one-line question"></i></div>'
+        +'<div class="k" style="font-size:11px;color:var(--muted);margin-bottom:10px">'+caption+'</div>'
+        +'<div style="margin-bottom:4px;font-size:12px;display:flex;justify-content:space-between"><span><b>your one-line question</b></span>'
+        +'<span class="k" style="color:'+(youDone?'var(--green)':'var(--red)')+'">'
+        +(youDone?'first token after '+ms(youAt):'waiting… '+ms(Math.min(t,youAt)))+'</span></div>'
+        +'<div style="height:10px;background:var(--panel2);border-radius:99px;overflow:hidden">'
+        +'<div style="height:100%;width:'+Math.min(100,t/youAt*100)+'%;background:'
+        +(youDone?'var(--green)':'var(--red)')+';border-radius:99px"></div></div>'
+        +'<div class="k" style="font-size:10.5px;color:var(--dim);margin-top:4px">your request needs 2 ms of actual work</div>'
+        +(t>=makespan
+          ? '<div class="ok" style="margin-top:12px"><b>That is the whole difference.</b> Same forty requests, same machine, same amount of work. The only thing the policy changed is who spent the time waiting.</div>'
+            +'<div style="display:flex;gap:8px;margin-top:10px">'
+            +'<button class="seg" id="svPbAgain" style="font-size:12px">▶ replay</button>'
+            +'<button class="seg" id="svPbBack" style="font-size:12px">back to the numbers</button></div>'
+          : '');
+      if(t>=makespan){
+        const a=document.getElementById('svPbAgain'), b=document.getElementById('svPbBack');
+        if(a) a.onclick=()=>{ playback(); };
+        if(b) b.onclick=()=>{ pbOn=false; render(); };
+        pbOn=false; return;
+      }
+      raf(frame);
+    }
+    frame();
+  }
+
   function render(){
+    pbOn=false;
+    out.classList.remove('live');
     ctl.innerHTML=MODES.map((x,i)=>'<button class="seg'+(i===m?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px">'
-      +'<b>'+x.n+'</b><br><span style="font-size:11px;color:var(--dim)">'+x.d+'</span></button>').join('');
-    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{m=+b.dataset.i;render();});
+      +'<b>'+x.n+'</b><br><span style="font-size:11px;color:var(--dim)">'+x.d+'</span></button>').join('')
+      +'<button class="seg" id="svPbGo" style="text-align:left;font-size:12px;color:var(--accent)">▶ <b>watch it happen</b><br>'
+      +'<span style="font-size:11px;color:var(--dim)">the same queue, against a clock</span></button>';
+    const go=document.getElementById('svPbGo'); if(go) go.onclick=()=>{ playback(); };
+    ctl.querySelectorAll('.seg[data-i]').forEach(b=>b.onclick=()=>{m=+b.dataset.i;render();});
     const mode=MODES[m].k;
     const longEach=tPrefill(LONGTOK), shortEach=tPrefill(SHORTTOK);
     let yourWait, longMedian, worstLong;
