@@ -64,6 +64,12 @@ gpu.html          GPU lab. The layer everything else sits on: why a GPU is
                   and arithmetic intensity, coalescing, tiling, tensor cores
                   and number formats, operator fusion and FlashAttention,
                   and Triton vs torch.compile (with graph breaks)
+train.html        Training lab: watch a model learn, live in the page. The
+                  loop (guess, measure, nudge), the learning rate's four
+                  personalities, a real network training on blobs / rings /
+                  XOR / spiral with the boundary forming, the overfitting
+                  U-curve, early stopping as a game, and why batching is a
+                  hardware decision
 llm.html          LLM internals lab, the generation loop, tokenisation and
                   BPE, embeddings and position, attention (Q/K/V, heads,
                   the attention sink), the transformer block and what breaks
@@ -108,7 +114,7 @@ assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
 data/topics.json  The 267 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 199 simulations across the thirteen labs. Every one carries a
+There are 206 simulations across the fourteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in

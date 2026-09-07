@@ -332,6 +332,7 @@
       ['cloud.html#pane-cheat', 'SAP-C02 cheatsheet'] ] },
     { name:'Under the hood', labs:[
       ['gpu.html',     'The machine underneath'],
+      ['train.html',   'Wrong, then less wrong: watch a model learn'],
       ['llm.html',     'One token at a time'],
       ['serving.html', 'The engine, not the model'],
       ['fleet.html',   'Twenty engines, one endpoint'] ] }

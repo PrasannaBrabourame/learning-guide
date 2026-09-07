@@ -526,7 +526,7 @@ document.getElementById('sec-roof').innerHTML=`
     const o=OPS.find(x=>x.k===cur);
     const att=Math.min(PEAK, o.ai*BW), pct=att/PEAK*100, bound=o.ai<RIDGE?'memory':'compute';
     /* log-log plot, x from 0.1 to 1000 FLOP/byte */
-    const X=x=>60+(Math.log10(x)+1)/4*480, Y=f=>190-(Math.log10(f)-11)/2.6*160;
+    const X=x=>60+(Math.log10(x)+1)/4*480, Y=f=>190-(Math.log10(f)-11)/3.6*160;
     let b='';
     b+='<line x1="60" y1="190" x2="556" y2="190" style="stroke:var(--wire)"/>';
     b+='<line x1="60" y1="26" x2="60" y2="190" style="stroke:var(--wire)"/>';

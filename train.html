@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training lab, watch a model become less wrong</title>
+<link rel="stylesheet" href="assets/lab.css">
+<style>
+  /* page-specific: the live training grid and the hidden-neuron minis */
+  .nnpts circle{stroke:var(--bg); stroke-width:1}
+  .nnminis{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+  .nnmini{border:1px solid var(--line2); border-radius:6px; overflow:hidden}
+  .nnmini svg{display:block}
+  .nnminicap{font-family:var(--mono); font-size:9.5px; color:var(--dim); text-align:center; padding:2px 0}
+  .nnbig{font-family:var(--mono); font-variant-numeric:tabular-nums}
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" style="fill:var(--wire)"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=train">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark (d)">&#127769; theme</button>
+      <span class="tn tn-quiet" title="Find a section on this page"><b>&#8984;K</b> find</span>
+    </nav>
+    <div class="eyebrow">loss &middot; gradient descent &middot; overfitting &middot; knowing when to stop</div>
+    <h1>Wrong, then less wrong: <span class="thin">watch a model learn</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">Every other lab in this track starts after training is finished: the GPU lab runs a trained model, the LLM lab opens one up, serving and fleet put one behind an endpoint. This lab is the missing step before all of them. A model starts wrong, measures exactly how wrong, and nudges every number it owns in the direction that makes it slightly less wrong, millions of times. Nothing on this page is a recording: the networks here train live, in this tab, while you watch.</p>
+    <div class="note" style="margin-top:14px"><b>Two neighbours.</b> The <a href="gpu.html">GPU lab</a> explains why each nudge is cheap only when you do thousands at once, and the <a href="llm.html">LLM lab</a> is what one of these looks like grown to billions of numbers. This page is the same mechanism small enough to see.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="tstart" role="tab">Start here</button>
+    <button class="tab" data-pane="tstep" role="tab">The step size</button>
+    <button class="tab" data-pane="tnet" role="tab">A real network</button>
+    <button class="tab" data-pane="tfit" role="tab">Fitting too well</button>
+    <button class="tab" data-pane="tstop" role="tab">When to stop</button>
+    <button class="tab" data-pane="tgpu" role="tab">Why the GPU cares</button>
+    <button class="tab" data-pane="texam" role="tab">Exam angle</button>
+  </div>
+
+  <section class="pane on" id="pane-tstart"><div id="sec-tstart"></div></section>
+  <section class="pane" id="pane-tstep"><div id="sec-tstep"></div></section>
+  <section class="pane" id="pane-tnet"><div id="sec-tnet"></div></section>
+  <section class="pane" id="pane-tfit"><div id="sec-tfit"></div></section>
+  <section class="pane" id="pane-tstop"><div id="sec-tstop"></div></section>
+  <section class="pane" id="pane-tgpu"><div id="sec-tgpu"></div></section>
+  <section class="pane" id="pane-texam"><div id="sec-texam"></div></section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="gpu.html">gpu lab</a> &middot; <a href="llm.html">llm lab</a> &middot; <a href="serving.html">serving lab</a> &middot; <a href="fleet.html">fleet lab</a> &middot; <a href="cloud.html">cloud lab</a> &middot; <a href="agentcore.html">agentcore lab</a> &middot; <a href="agentbuild.html">agents lab</a> &middot; <a href="adk.html">adk lab</a> &middot; <a href="evals.html">evals lab</a> &middot; <a href="gemini.html">gemini lab</a> &middot; <a href="govern.html">govern lab</a> &middot; <a href="design.html">diagram lab</a> &middot; <a href="peakweek.html">peak week lab</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* ================= DIAGRAMS ================= */
+const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:500 12px Inter,Helvetica,Arial,sans-serif";
+const D=(vb,label,body,cap)=>`<div class="diagram"><svg viewBox="${vb}" role="img" aria-label="${label}">${body}</svg><div class="diagcap"><b>How to read it:</b> ${cap}</div></div>`;
+const box=(x,y,w,hh,stroke,fill)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" style="fill:${fill||'var(--panel2)'};stroke:${stroke}"/>`;
+const t=(x,y,s,style,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${style};fill:var(--text)">${s}</text>`;
+const tm=(x,y,s,fill,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${MONO};fill:${fill||'var(--muted)'}">${s}</text>`;
+const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
+/* seeded RNG, so two visitors watch the same run */
+const mulberry32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let z=Math.imul(a^a>>>15,1|a);z=z+Math.imul(z^z>>>7,61|z)^z;return((z^z>>>14)>>>0)/4294967296;};
+const gauss=r=>Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r());
+
+/* ================= 1 · START HERE ================= */
+document.getElementById('sec-tstart').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Learning is three moves, repeated until they stop helping</h2>
+  <div class="plain-line"><b>In plain English:</b> a model is a guess with dials on it. Training is: make the guess, <b>measure exactly how wrong it was</b> (one number, called the loss), and turn every dial a tiny amount in whichever direction shrinks that number. That is the whole thing. Everything else on this page, and everything in the billion-dollar training runs, is this loop with more dials.</div>
+  ${D('0 0 660 150','The training loop: predict, measure the loss, nudge the weights, repeat.',
+   `${box(14,40,180,64,'var(--blue)')}${t(104,66,'guess',SANS)}${tm(104,86,'run the model as it is','var(--dim)')}
+    ${box(240,40,180,64,'var(--amber)')}${t(330,66,'measure',SANS)}${tm(330,86,'how wrong, as one number','var(--dim)')}
+    ${box(466,40,180,64,'var(--teal)')}${t(556,66,'nudge',SANS)}${tm(556,86,'move every weight downhill','var(--dim)')}
+    <path d="M196 72 H238" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M422 72 H464" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M556 106 V128 H104 V106" style="fill:none;stroke:var(--wire);stroke-dasharray:5 4" stroke-width="1.5" marker-end="url(#ah)"/>
+    ${tm(330,142,'repeat, thousands to billions of times','var(--dim)')}`,
+   'The dashed return edge is the loop. One pass round it is one training step, and nothing about the mechanism changes between three dials and a trillion.')}
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: fit the line yourself, then lose to the gradient</h2>
+  <div class="plain-line"><b>Try this:</b> twelve measurements, and a straight line with two dials: slope and height. Get the loss as low as you can by hand. Then press the button and watch plain gradient descent do it without ever seeing the picture: it only ever looks at the loss and which way is downhill.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Adjusting a shower with two taps by feel. You cannot see the plumbing; you only feel warmer or colder after each turn, and that is enough to get it right.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drag both sliders until the loss stops falling, remember your number, then press <b>let the gradient take over</b>.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>loss</b> how wrong the current guess is, as one number, lower is better</span><span class="sp-w"><b>slope / height</b> the two dials, the model&rsquo;s only two weights</span><span class="sp-w"><b>gradient</b> which direction each dial should turn to reduce the loss</span><span class="sp-w"><b>gradient descent</b> turning every dial slightly downhill, again and again</span><span class="sp-w"><b>residual</b> one point&rsquo;s gap between the guess and the truth</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="nnLineOut" class="live"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">slope <b id="nnWv" style="color:var(--accent)">0.00</b></label>
+      <input id="nnW" type="range" min="-1" max="2" step="0.01" value="-0.5" style="width:100%">
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:10px 0 4px">height <b id="nnBv" style="color:var(--accent)">4.00</b></label>
+      <input id="nnB" type="range" min="-2" max="6" step="0.05" value="4" style="width:100%">
+      <button class="seg" id="nnGo" style="width:100%;margin-top:12px;font-size:12px;color:var(--accent)">&#9654; <b>let the gradient take over</b></button>
+      <div id="nnLineNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: fit the line, then lose to the gradient --- */
+(function(){
+  const out=document.getElementById('nnLineOut'), note=document.getElementById('nnLineNote'),
+        sw=document.getElementById('nnW'), sb=document.getElementById('nnB'),
+        wv=document.getElementById('nnWv'), bv=document.getElementById('nnBv'),
+        go=document.getElementById('nnGo');
+  if(!out) return;
+  const r=mulberry32(7);
+  const PTS=Array.from({length:12},(_,i)=>{const x=0.4+i*0.85; return [x, 0.62*x+0.9+gauss(r)*0.55];});
+  const loss=(w,b)=>PTS.reduce((s,[x,y])=>s+(w*x+b-y)**2,0)/PTS.length;
+  let best=Infinity, animOn=false, gradLoss=null, gradSteps=0;
+  const X=x=>36+x/10.5*400, Y=y=>250-(y+1)/9*230;
+  function paint(w,b){
+    const L=loss(w,b);
+    if(!animOn) best=Math.min(best,L);
+    out.innerHTML='<svg viewBox="0 0 460 268" role="img" aria-label="Twelve points and an adjustable line, with residuals drawn to the line." style="width:100%;height:auto">'
+      +'<line x1="36" y1="250" x2="446" y2="250" style="stroke:var(--line2)"/>'
+      +'<line x1="36" y1="20" x2="36" y2="250" style="stroke:var(--line2)"/>'
+      +PTS.map(([x,y])=>{const gy=w*x+b;
+        return '<line x1="'+X(x)+'" y1="'+Y(y)+'" x2="'+X(x)+'" y2="'+Y(gy)+'" style="stroke:var(--red);stroke-dasharray:2 3;opacity:.6"/>';}).join('')
+      +'<line x1="'+X(0)+'" y1="'+Y(b)+'" x2="'+X(10.5)+'" y2="'+Y(w*10.5+b)+'" style="stroke:var(--accent);stroke-width:2.5"/>'
+      +'<g class="nnpts">'+PTS.map(([x,y])=>'<circle cx="'+X(x)+'" cy="'+Y(y)+'" r="4.5" style="fill:var(--violet)"/>').join('')+'</g>'
+      +'</svg>'
+      +'<div style="display:flex;gap:18px;align-items:baseline;margin-top:6px">'
+      +'<span class="nnbig" style="font-size:12px;color:var(--muted)">loss <b style="font-size:17px;color:'+(L<0.4?'var(--green)':L<1.2?'var(--amber)':'var(--red)')+'">'+L.toFixed(3)+'</b></span>'
+      +'<span class="nnbig" style="font-size:11px;color:var(--dim)">your best by hand: '+(best===Infinity?'n/a':best.toFixed(3))+'</span>'
+      +(gradLoss!==null?'<span class="nnbig" style="font-size:11px;color:var(--accent)">gradient: '+gradLoss.toFixed(3)+' in '+gradSteps+' steps</span>':'')
+      +'</div>';
+  }
+  function render(){
+    const w=+sw.value, b=+sb.value;
+    wv.textContent=w.toFixed(2); bv.textContent=b.toFixed(2);
+    paint(w,b);
+    if(!animOn) note.innerHTML='<div class="simnote">The dashed red stalks are the residuals, each point&rsquo;s complaint. The loss is their average squared length, which is why one far-off point shouts louder than three near ones.</div>';
+  }
+  sw.addEventListener('input',render); sb.addEventListener('input',render);
+  go.onclick=()=>{
+    if(animOn) return;
+    animOn=true; out.classList.add('live');
+    let w=+sw.value, b=+sb.value, k=0;
+    const LR=0.0085, MAX=240;
+    function step(){
+      if(!animOn) return;
+      for(let i=0;i<4 && k<MAX;i++,k++){
+        let gw=0, gb=0;
+        for(const [x,y] of PTS){ const e=w*x+b-y; gw+=2*e*x/PTS.length; gb+=2*e/PTS.length; }
+        w-=LR*gw; b-=LR*gb*4;   /* the flat direction gets a bigger step; see the note */
+      }
+      sw.value=w; sb.value=b; wv.textContent=w.toFixed(2); bv.textContent=b.toFixed(2);
+      paint(w,b);
+      note.innerHTML='<div class="ok"><b>Step '+k+'.</b> It never sees the picture. Each step it asks every point &ldquo;would a slightly steeper line make your residual bigger or smaller?&rdquo;, adds up the answers, and turns both dials a little. That sum of answers is the gradient.</div>';
+      if(k<MAX){ raf(step); return; }
+      animOn=false; out.classList.remove('live'); gradLoss=loss(w,b); gradSteps=k; paint(w,b);
+      note.innerHTML='<div class="ok"><b>Done: loss '+gradLoss.toFixed(3)+(best<Infinity?', against your '+best.toFixed(3)+' by hand':'')+'.</b> Two dials took a couple of hundred tiny steps. The same loop, unchanged, is how the dials are set when there are a billion of them, which is the only reason this page generalises to anything.</div>'
+        +'<div class="simnote" style="margin-top:10px"><b>One honest wrinkle.</b> The height dial here gets a slightly bigger step than the slope dial, because the two directions are differently steep, and equal steps would zig-zag. That mismatch is real, it is called conditioning, and it is why the exam scenario &ldquo;we normalised the inputs and it suddenly trains&rdquo; exists.</div>';
+    }
+    step();
+  };
+  render();
+})();
+
+/* ================= 2 · THE STEP SIZE ================= */
+document.getElementById('sec-tstep').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: one dial, four personalities</h2>
+  <div class="plain-line"><b>Try this:</b> the loss is a valley and training walks downhill in steps of a fixed size. Pick a step size and drop the ball. There are exactly four things that can happen, and every training run you will ever babysit is one of them.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Walking down a dark hill in steps you commit to before you feel the ground. Tiny steps get you there next week. Confident steps get you there fast. Huge steps carry you across the valley floor and up the other side, and slightly bigger ones than that carry you higher each time.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drop the ball at <b>0.05</b>, then at <b>2.2</b>, and read the step counter both times.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>learning rate</b> the fixed step size, the most important number in training</span><span class="sp-w"><b>converge</b> settle at the bottom and stop improving because there is nowhere lower</span><span class="sp-w"><b>oscillate</b> hop back and forth across the bottom, landing lower each time</span><span class="sp-w"><b>diverge</b> hop back and forth landing higher each time, until the loss is nonsense</span><span class="sp-w"><b>schedule</b> starting with big steps and shrinking them as you get close</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="nnBallOut" class="live"></div></div>
+    <div><div class="segmented" id="nnBallCtl" style="flex-direction:column;align-items:stretch"></div>
+      <div id="nnBallNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the valley and the step size --- */
+(function(){
+  const out=document.getElementById('nnBallOut'), note=document.getElementById('nnBallNote'),
+        ctl=document.getElementById('nnBallCtl');
+  if(!out) return;
+  const A=0.5, C=6;                    /* L(w) = A(w-C)^2 */
+  const L=w=>A*(w-C)*(w-C);
+  const LRS=[
+    {lr:0.05, n:'0.05, timid', end:'crawls: still short of the bottom after 100 steps', col:'var(--amber)'},
+    {lr:0.8,  n:'0.8, confident', end:'converges in a handful of steps', col:'var(--green)'},
+    {lr:1.9,  n:'1.9, reckless', end:'overshoots every step, but each hop lands lower, so it still gets there', col:'var(--amber)'},
+    {lr:2.2,  n:'2.2, doomed', end:'each hop lands HIGHER: the loss explodes and no amount of patience helps', col:'var(--red)'}
+  ];
+  let running=false, timer=0;
+  const X=w=>30+(w+2)/13*400, Y=l=>218-l/26*190;
+  function curve(){
+    let p='M';
+    for(let w=-2;w<=11.01;w+=0.25) p+=X(w).toFixed(1)+' '+Y(Math.min(26,L(w))).toFixed(1)+' L';
+    return p.slice(0,-2);
+  }
+  function paint(trail,msg,col){
+    out.innerHTML='<svg viewBox="0 0 460 238" role="img" aria-label="A loss valley with the ball&rsquo;s path drawn as steps." style="width:100%;height:auto">'
+      +'<path d="'+curve()+'" style="fill:none;stroke:var(--line2);stroke-width:2"/>'
+      +trail.map((w,i)=>{
+        const x=X(w), y=Y(Math.min(26,L(w)));
+        const nxt=trail[i+1];
+        return (nxt!==undefined?'<line x1="'+x+'" y1="'+y+'" x2="'+X(nxt)+'" y2="'+Y(Math.min(26,L(nxt)))+'" style="stroke:'+col+';opacity:.55" stroke-width="1.5"/>':'')
+          +'<circle cx="'+x+'" cy="'+y+'" r="'+(i===trail.length-1?6:3)+'" style="fill:'+col+';opacity:'+(i===trail.length-1?1:0.45)+'"/>';
+      }).join('')
+      +'<circle cx="'+X(C)+'" cy="'+Y(0)+'" r="3" style="fill:var(--green)"/>'
+      +tm(X(C),232,'the bottom','var(--green)')
+      +'</svg>'
+      +'<div class="k" style="font-size:11.5px;margin-top:6px;color:var(--muted)">'+msg+'</div>';
+  }
+  function drop(i){
+    clearTimeout(timer); running=true;
+    const {lr,n,end,col}=LRS[i];
+    let w=0.5, trail=[w], k=0;
+    function step(){
+      if(!running) return;
+      const g=2*A*(w-C); w=w-lr*g; trail.push(w); k++;
+      const l=L(w);
+      paint(trail,'step '+k+' &middot; loss '+ (l>1e4?'&#8734;':l.toFixed(3)),col);
+      const done = l<0.004 || l>1e4 || k>=100;
+      if(!done){ timer=setTimeout(step, k<12?260:60); return; }
+      running=false;
+      note.innerHTML='<div class="'+(l<0.004?'ok':'lzbad')+'"><b>'+n+': '+end+'.</b> '
+        +(i===3?'Multiply it out: each step lands 1.2&times; further from the bottom than the last. Nothing recovers from that except a smaller step.'
+        : i===2?'This is the edge people actually train at, fast but twitchy. In a real run it shows up as a loss curve that falls while visibly vibrating.'
+        : i===1?'Close to the ideal for this valley. Real losses are not tidy parabolas, so nobody gets to compute the ideal; they find it by trying.'
+        : 'Nothing is wrong except your afternoon is gone. On a billion-dial model this is the difference between days and months of cluster time.')
+        +'</div>'
+        +'<div class="simnote" style="margin-top:10px"><b>Why everyone uses a schedule.</b> Big steps early, when you are far from the bottom and direction is all that matters; small steps late, when precision is. Start at 0.8 and decay towards 0.05 and you get the best of both dials.</div>';
+    }
+    paint(trail,'dropped at w = 0.5',col);
+    note.innerHTML='<div class="simnote">Falling&hellip;</div>';
+    timer=setTimeout(step,300);
+  }
+  ctl.innerHTML=LRS.map((x,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">drop at learning rate <b>'+x.n+'</b></button>').join('');
+  ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ctl.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));b.classList.add('on');drop(+b.dataset.i);});
+  paint([0.5],'pick a step size and drop the ball','var(--wire)');
+  note.innerHTML='<div class="simnote">The valley is drawn once and never changes. Everything that differs between the four runs is the size of the step.</div>';
+})();
+
+/* ================= 3 · A REAL NETWORK ================= */
+document.getElementById('sec-tnet').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">A neuron is a weighted vote and a squash; a layer is a committee of them</h2>
+  <div class="plain-line"><b>In plain English:</b> each hidden neuron computes one weighted sum of the inputs and squashes it, which makes it a soft yes/no about one straight line through the input space. Alone, that can only split the plane in two. Stack a committee of them and let a second layer weigh the committee&rsquo;s votes, and the straight lines combine into curves, islands and spirals. Nothing else is added; depth is just votes about votes.</div>
+  ${D('0 0 660 168','Two inputs feed a hidden committee, whose votes feed a second committee, whose votes decide the class.',
+   `${box(14,54,110,60,'var(--wire)')}${t(69,80,'2 inputs',SANS)}${tm(69,100,'one point: x, y','var(--dim)')}
+    ${box(180,24,150,120,'var(--blue)')}${t(255,50,'hidden layer',SANS)}${tm(255,70,'H neurons','var(--dim)')}${tm(255,90,'each: weigh, sum,','var(--dim)')}${tm(255,106,'squash to &plusmn;1','var(--dim)')}
+    ${box(386,24,150,120,'var(--violet)')}${t(461,50,'hidden layer 2',SANS)}${tm(461,70,'H neurons','var(--dim)')}${tm(461,90,'votes about the','var(--dim)')}${tm(461,106,'first layer&rsquo;s votes','var(--dim)')}
+    ${box(576,54,70,60,'var(--teal)')}${t(611,80,'2 scores',SANS)}${tm(611,100,'red, teal','var(--dim)')}
+    <path d="M126 84 H178" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M332 84 H384" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M538 84 H574" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>`,
+   'Every arrow is a bundle of weights, and training touches all of them on every step. The scores are turned into probabilities the same way the LLM lab&rsquo;s softmax does it.')}
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: train a network, live, and watch the boundary appear</h2>
+  <div class="plain-line"><b>Try this:</b> nothing here is pre-recorded. Pick a dataset and a committee size, press train, and the network in this page starts nudging its weights thirty times per frame. The colour wash is its current opinion about every point on the plane; the dots are the truth it is being marked against. Then open <b>what each hidden neuron sees</b> and catch the committee members specialising.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Watching someone learn to sort mushrooms. At first they guess by one crude rule (big means safe). Marked wrong a few hundred times, the rules multiply and sharpen, and the final judgement is a weighted vote over all of them. Nobody wrote the rules down; the marking did.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>choose <b>spiral</b> with <b>2 neurons</b>, watch it fail honourably, then reset with <b>16</b>.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>decision boundary</b> the line where the model&rsquo;s opinion flips from one class to the other</span><span class="sp-w"><b>hidden neuron</b> one committee member: a weighted sum squashed to &plusmn;1</span><span class="sp-w"><b>weights</b> all the dials, set only by the marking, never by hand</span><span class="sp-w"><b>step</b> one loop of guess, measure, nudge on a small batch of points</span><span class="sp-w"><b>accuracy</b> the share of training points currently on the right side</span><span class="sp-w"><b>capacity</b> how bendy the boundary can get, here set by committee size</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="nnNetOut" class="live"></div><div id="nnNetAux" class="live"></div></div>
+    <div>
+      <div class="segmented" id="nnNetData" style="flex-direction:column;align-items:stretch"></div>
+      <div class="segmented" id="nnNetH" style="flex-direction:row;margin-top:10px"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="seg" id="nnNetGo" style="flex:1;font-size:12px;color:var(--accent)">&#9654; <b>train</b></button>
+        <button class="seg" id="nnNetReset" style="flex:1;font-size:12px">reset</button>
+      </div>
+      <button class="seg" id="nnNetEyes" style="width:100%;margin-top:8px;font-size:12px">show what each hidden neuron sees</button>
+      <div id="nnNetNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: the live network --- */
+(function(){
+  const out=document.getElementById('nnNetOut'), aux=document.getElementById('nnNetAux'),
+        note=document.getElementById('nnNetNote'), dEl=document.getElementById('nnNetData'),
+        hEl=document.getElementById('nnNetH'), go=document.getElementById('nnNetGo'),
+        rs=document.getElementById('nnNetReset'), eyes=document.getElementById('nnNetEyes');
+  if(!out) return;
+  const DATA=[
+    {k:'blobs', n:'two blobs', d:'linearly separable, the warm-up', gen:r=>{
+      const p=[]; for(let i=0;i<60;i++){p.push([gauss(r)*.55-1.3, gauss(r)*.55-1.0, 0]); p.push([gauss(r)*.55+1.3, gauss(r)*.55+1.0, 1]);} return p;}},
+    {k:'rings', n:'a ring around a blob', d:'no straight line works', gen:r=>{
+      const p=[]; for(let i=0;i<60;i++){ const a=r()*6.283, ri=r()*.75; p.push([Math.cos(a)*ri,Math.sin(a)*ri,0]);
+        const a2=r()*6.283, ro=1.45+r()*.7; p.push([Math.cos(a2)*ro,Math.sin(a2)*ro,1]); } return p;}},
+    {k:'xor', n:'opposite corners', d:'each class lives in two places', gen:r=>{
+      const p=[]; for(let i=0;i<120;i++){ const x=(r()*2-1)*2.2, y=(r()*2-1)*2.2;
+        if(Math.abs(x)<.25||Math.abs(y)<.25){i--;continue;} p.push([x,y,(x>0)===(y>0)?1:0]); } return p;}},
+    {k:'spiral', n:'two spiral arms', d:'the classic stress test', gen:r=>{
+      const p=[]; for(let c=0;c<2;c++) for(let i=0;i<70;i++){ const q=i/70, rad=.22+q*2.15,
+        th=q*6.1+c*Math.PI+gauss(r)*.07; p.push([Math.cos(th)*rad,Math.sin(th)*rad,c]); } return p;}}
+  ];
+  const HS=[2,6,16];
+  let di=3, hi=2, pts=[], net=null, running=false, steps=0, emaLoss=1, frame=0;
+  const rnd={r:mulberry32(1)};
+
+  function mkNet(H,r){
+    const lay=(nin,nout)=>({w:Array.from({length:nout},()=>Array.from({length:nin},()=>gauss(r)/Math.sqrt(nin))),
+                            b:Array(nout).fill(0),
+                            mw:Array.from({length:nout},()=>Array(nin).fill(0)), mb:Array(nout).fill(0)});
+    return {H, l1:lay(2,H), l2:lay(H,H), l3:lay(H,2)};
+  }
+  const fwd=(n,x,y)=>{
+    const h1=n.l1.w.map((w,i)=>Math.tanh(w[0]*x+w[1]*y+n.l1.b[i]));
+    const h2=n.l2.w.map((w,i)=>Math.tanh(w.reduce((s,v,j)=>s+v*h1[j],0)+n.l2.b[i]));
+    const o=n.l3.w.map((w,i)=>w.reduce((s,v,j)=>s+v*h2[j],0)+n.l3.b[i]);
+    const m=Math.max(o[0],o[1]), e0=Math.exp(o[0]-m), e1=Math.exp(o[1]-m);
+    return {h1,h2,p1:e1/(e0+e1)};
+  };
+  function trainSteps(k){
+    const LR=0.05, MU=0.9, B=24;
+    for(let s=0;s<k;s++){
+      /* accumulate gradients over a small batch */
+      const g={l1w:net.l1.w.map(r=>r.map(()=>0)), l1b:Array(net.H).fill(0),
+               l2w:net.l2.w.map(r=>r.map(()=>0)), l2b:Array(net.H).fill(0),
+               l3w:net.l3.w.map(r=>r.map(()=>0)), l3b:[0,0]};
+      let bl=0;
+      for(let b=0;b<B;b++){
+        const [x,y,c]=pts[(rnd.r()*pts.length)|0];
+        const f=fwd(net,x,y);
+        bl += c===1 ? -Math.log(Math.max(f.p1,1e-9)) : -Math.log(Math.max(1-f.p1,1e-9));
+        const do1 = f.p1-(c===1?1:0), do0 = -do1;   /* dL/dlogit = p - target */
+        const dh2 = net.l2.b.map((_,j)=> (net.l3.w[0][j]*do0 + net.l3.w[1][j]*do1) * (1-f.h2[j]*f.h2[j]));
+        const dh1 = net.l1.b.map((_,j)=>{ let s=0; for(let i2=0;i2<net.H;i2++) s+=net.l2.w[i2][j]*dh2[i2]; return s*(1-f.h1[j]*f.h1[j]); });
+        for(let i2=0;i2<net.H;i2++){ g.l3w[0][i2]+=do0*f.h2[i2]; g.l3w[1][i2]+=do1*f.h2[i2]; }
+        g.l3b[0]+=do0; g.l3b[1]+=do1;
+        for(let i2=0;i2<net.H;i2++){ for(let j=0;j<net.H;j++) g.l2w[i2][j]+=dh2[i2]*f.h1[j]; g.l2b[i2]+=dh2[i2]; }
+        for(let i2=0;i2<net.H;i2++){ g.l1w[i2][0]+=dh1[i2]*x; g.l1w[i2][1]+=dh1[i2]*y; g.l1b[i2]+=dh1[i2]; }
+      }
+      emaLoss = emaLoss*0.98 + (bl/B)*0.02;
+      const upd=(L,gw,gb)=>{ for(let i2=0;i2<L.w.length;i2++){ for(let j=0;j<L.w[i2].length;j++){
+          L.mw[i2][j]=MU*L.mw[i2][j]-LR*gw[i2][j]/B; L.w[i2][j]+=L.mw[i2][j]; }
+          L.mb[i2]=MU*L.mb[i2]-LR*gb[i2]/B; L.b[i2]+=L.mb[i2]; } };
+      upd(net.l1,g.l1w,g.l1b); upd(net.l2,g.l2w,g.l2b); upd(net.l3,g.l3w,g.l3b);
+      steps++;
+    }
+  }
+  const GX=30, GY=22, DOM=2.6;
+  const PX=x=>(x+DOM)/(2*DOM)*460, PY=y=>340-(y+DOM)/(2*DOM)*340;
+  function paint(){
+    let cells='';
+    for(let i=0;i<GX;i++) for(let j=0;j<GY;j++){
+      const x=-DOM+(i+0.5)*2*DOM/GX, y=-DOM+(j+0.5)*2*DOM/GY;
+      const p=fwd(net,x,y).p1, conf=Math.min(0.55,Math.abs(p-0.5)*1.5);   /* capped so the dots stay distinct from the wash */
+      cells+='<rect x="'+(i*460/GX).toFixed(1)+'" y="'+(340-(j+1)*340/GY).toFixed(1)+'" width="'+(460/GX+0.5).toFixed(1)+'" height="'+(340/GY+0.5).toFixed(1)
+        +'" style="fill:var(--'+(p>0.5?'teal':'red')+');opacity:'+conf.toFixed(2)+'"/>';
+    }
+    let acc=0; for(const [x,y,c] of pts){ if((fwd(net,x,y).p1>0.5)===(c===1)) acc++; }
+    out.innerHTML='<svg viewBox="0 0 460 340" role="img" aria-label="The training points over the network&rsquo;s current decision boundary." style="width:100%;height:auto;border-radius:9px;overflow:hidden">'
+      +'<rect x="0" y="0" width="460" height="340" style="fill:var(--panel2)"/>'+cells
+      +pts.map(([x,y,c])=>'<circle cx="'+PX(x).toFixed(1)+'" cy="'+PY(y).toFixed(1)+'" r="4" style="fill:var(--'+(c?'teal':'red')+');stroke:var(--bg);stroke-width:1.2"/>').join('')
+      +'</svg>'
+      +'<div style="display:flex;gap:16px;margin-top:6px" class="nnbig">'
+      +'<span style="font-size:12px;color:var(--muted)">steps <b style="color:var(--text)">'+steps.toLocaleString('en-GB')+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">loss <b style="color:'+(emaLoss<0.15?'var(--green)':emaLoss<0.45?'var(--amber)':'var(--red)')+'">'+emaLoss.toFixed(3)+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">accuracy <b style="color:'+(acc/pts.length>0.97?'var(--green)':'var(--text)')+'">'+Math.round(acc/pts.length*100)+'%</b></span>'
+      +'</div>';
+    if(eyesOn) paintEyes();
+  }
+  let eyesOn=false;
+  function paintEyes(){
+    const show=Math.min(net.H,8);
+    let html='<div class="nnminis">';
+    for(let ni=0;ni<show;ni++){
+      let cells='';
+      for(let i=0;i<13;i++) for(let j=0;j<10;j++){
+        const x=-DOM+(i+0.5)*2*DOM/13, y=-DOM+(j+0.5)*2*DOM/10;
+        const a=Math.tanh(net.l1.w[ni][0]*x+net.l1.w[ni][1]*y+net.l1.b[ni]);
+        cells+='<rect x="'+(i*6)+'" y="'+(60-(j+1)*6)+'" width="6.5" height="6.5" style="fill:var(--'+(a>0?'teal':'red')+');opacity:'+(Math.abs(a)*0.85).toFixed(2)+'"/>';
+      }
+      html+='<div class="nnmini"><svg viewBox="0 0 78 60" width="78" height="60">'+cells+'</svg><div class="nnminicap">neuron '+(ni+1)+'</div></div>';
+    }
+    aux.innerHTML=html+'</div>'
+      +'<div class="simnote" style="margin-top:8px">Each tile is one first-layer neuron&rsquo;s opinion over the whole plane. Every one is a straight edge, because one weighted sum can only draw a straight edge; the curves you see on the left are these edges voted together.'+(net.H>8?' Showing 8 of '+net.H+'.':'')+'</div>';
+  }
+  function reset(){
+    running=false; go.innerHTML='&#9654; <b>train</b>';
+    const seed=101+di*17+hi*3;
+    rnd.r=mulberry32(seed);
+    pts=DATA[di].gen(rnd.r);
+    net=mkNet(HS[hi],rnd.r);
+    steps=0; emaLoss=0.9; frame=0;
+    paint();
+    note.innerHTML='<div class="simnote"><b>'+DATA[di].n+', '+HS[hi]+' neurons per layer, untrained.</b> The wash you see now is the random opinion the weights were born with. Press train.</div>';
+  }
+  function loop(){
+    if(!running) return;
+    trainSteps(30);
+    if(++frame%8===0) paint();
+    raf(loop);
+  }
+  function renderCtl(){
+    dEl.innerHTML=DATA.map((x,i)=>'<button class="seg'+(i===di?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px"><b>'+x.n+'</b>, <span style="color:var(--dim)">'+x.d+'</span></button>').join('');
+    hEl.innerHTML=HS.map((h,i)=>'<button class="seg'+(i===hi?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:12px">'+h+' neurons</button>').join('');
+    dEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{di=+b.dataset.i;renderCtl();reset();});
+    hEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{hi=+b.dataset.i;renderCtl();reset();});
+  }
+  go.onclick=()=>{
+    running=!running;
+    go.innerHTML=running?'&#10074;&#10074; pause':'&#9654; <b>train</b>';
+    if(running){ note.innerHTML='<div class="ok"><b>Training.</b> Thirty steps per frame, each one the same guess-measure-nudge loop from the first tab, on a batch of 24 points. Watch the loss: it falls fastest exactly while the boundary is visibly moving.</div>'
+      +(HS[hi]===2?'<div class="simnote" style="margin-top:10px">A committee of two has almost nothing to vote with: it gets rings and corners roughly right and never finishes them, and the spiral defeats it outright. That shape of failure, doing its best with too few dials, is what an under-parameterised model looks like.</div>':'');
+      loop(); }
+  };
+  rs.onclick=reset;
+  eyes.onclick=()=>{ eyesOn=!eyesOn; eyes.textContent=eyesOn?'hide the hidden neurons':'show what each hidden neuron sees';
+    if(eyesOn) paintEyes(); else aux.innerHTML=''; };
+  renderCtl(); reset();
+})();
+
+/* ================= 4 · FITTING TOO WELL ================= */
+document.getElementById('sec-tfit').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: turn the dial until it memorises the noise</h2>
+  <div class="plain-line"><b>Try this:</b> sixteen noisy measurements to learn from, and sixteen more the model never sees, kept aside as the test. Turn up the model&rsquo;s bendiness and watch the two errors part company: training error only ever falls, test error falls and then turns around. The turn is the single most important shape in this lab.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Two students before an exam. One learns the idea behind the past papers; one memorises the past papers. On the past papers the memoriser scores higher. On the exam, which is new questions from the same idea, the memoriser is lost.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the two bars at <b>gentle curve</b>, then jump to <b>very bendy</b> and read them again.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>training error</b> how wrong the model is on the points it learned from</span><span class="sp-w"><b>test error</b> how wrong it is on points it has never seen, the one that matters</span><span class="sp-w"><b>overfitting</b> training error still falling while test error rises</span><span class="sp-w"><b>underfitting</b> both errors high because the model cannot bend enough</span><span class="sp-w"><b>capacity</b> how bendy the model is allowed to be</span><span class="sp-w"><b>generalise</b> be right about data you were not shown</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="nnFitOut" class="live"></div></div>
+    <div><div class="segmented" id="nnFitCtl" style="flex-direction:column;align-items:stretch"></div>
+      <div id="nnFitNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: capacity and the U-curve --- */
+(function(){
+  const out=document.getElementById('nnFitOut'), note=document.getElementById('nnFitNote'),
+        ctl=document.getElementById('nnFitCtl');
+  if(!out) return;
+  const r=mulberry32(23);
+  const f=x=>Math.sin(1.9*x)+0.5*x;
+  const mk=()=>Array.from({length:16},()=>{const x=r()*3; return [x, f(x)+gauss(r)*0.28];});
+  const TRAIN=mk(), TEST=mk();
+  /* closed-form least squares on scaled powers, solved by Gaussian elimination */
+  const feat=(x,d)=>Array.from({length:d+1},(_,k)=>Math.pow((x-1.5)/1.5,k));
+  function fit(d){
+    const n=d+1, A=Array.from({length:n},()=>Array(n).fill(0)), y=Array(n).fill(0);
+    for(const [x,t] of TRAIN){ const p=feat(x,d);
+      for(let i=0;i<n;i++){ y[i]+=p[i]*t; for(let j=0;j<n;j++) A[i][j]+=p[i]*p[j]; } }
+    for(let i=0;i<n;i++) A[i][i]+=1e-9;
+    for(let c=0;c<n;c++){ let piv=c;
+      for(let rw=c+1;rw<n;rw++) if(Math.abs(A[rw][c])>Math.abs(A[piv][c])) piv=rw;
+      [A[c],A[piv]]=[A[piv],A[c]]; [y[c],y[piv]]=[y[piv],y[c]];
+      for(let rw=c+1;rw<n;rw++){ const m=A[rw][c]/A[c][c];
+        for(let j=c;j<n;j++) A[rw][j]-=m*A[c][j]; y[rw]-=m*y[c]; } }
+    const w=Array(n).fill(0);
+    for(let i=n-1;i>=0;i--){ let s=y[i]; for(let j=i+1;j<n;j++) s-=A[i][j]*w[j]; w[i]=s/A[i][i]; }
+    return x=>feat(x,d).reduce((s,p,i)=>s+p*w[i],0);
+  }
+  const mse=(g,pts)=>pts.reduce((s,[x,t])=>s+(g(x)-t)**2,0)/pts.length;
+  const DEG=[{d:1,n:'a straight line'},{d:3,n:'a gentle curve'},{d:7,n:'quite bendy'},{d:13,n:'very bendy'}];
+  const U=Array.from({length:14},(_,d)=>{const g=fit(d); return [mse(g,TRAIN), mse(g,TEST)];});
+  let cur=1;
+  const X=x=>30+x/3*400, Y=v=>200-Math.max(-1.1,Math.min(3.2,v))/4.3*170-45;
+  function render(){
+    ctl.innerHTML=DEG.map((x,i)=>'<button class="seg'+(i===cur?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px"><b>'+x.n+'</b> <span style="color:var(--dim)">(degree '+x.d+')</span></button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;render();});
+    const d=DEG[cur].d, g=fit(d), tr=mse(g,TRAIN), te=mse(g,TEST);
+    let path='M';
+    for(let x=0;x<=3.001;x+=0.03) path+=X(x).toFixed(1)+' '+Y(g(x)).toFixed(1)+' L';
+    /* the U-curve inset: test error across every degree, marker on this one */
+    const maxU=Math.min(1.4,Math.max(...U.map(u=>u[1])));
+    const ux=d2=>318+d2/13*120, uy=v=>232-Math.min(v,1.4)/1.4*54;
+    out.innerHTML='<svg viewBox="0 0 460 250" role="img" aria-label="Noisy points, the fitted curve, and an inset of test error against capacity." style="width:100%;height:auto">'
+      +'<path d="'+path.slice(0,-2)+'" style="fill:none;stroke:var(--accent);stroke-width:2.2"/>'
+      +TRAIN.map(([x,y])=>'<circle cx="'+X(x)+'" cy="'+Y(y)+'" r="4" style="fill:var(--violet)"/>').join('')
+      +TEST.map(([x,y])=>'<circle cx="'+X(x)+'" cy="'+Y(y)+'" r="4" style="fill:none;stroke:var(--amber);stroke-width:1.6"/>').join('')
+      +'<rect x="302" y="168" width="150" height="74" rx="6" style="fill:var(--panel);stroke:var(--line2)"/>'
+      +'<polyline points="'+U.map((u,d2)=>ux(d2)+','+uy(u[1])).join(' ')+'" style="fill:none;stroke:var(--amber);stroke-width:1.6"/>'
+      +'<circle cx="'+ux(d)+'" cy="'+uy(te)+'" r="3.5" style="fill:var(--amber)"/>'
+      +tm(378,180,'test error vs capacity','var(--dim)')
+      +'</svg>'
+      +'<div style="display:flex;gap:14px;margin-top:8px;font-size:12px">'
+      +'<span style="color:var(--violet)">&#9679; training points</span><span style="color:var(--amber)">&#9675; test points, never shown to the fit</span></div>'
+      +'<div style="margin-top:10px">'
+      +[['training error',tr,'var(--violet)'],['test error',te,'var(--amber)']].map(([k,v,c])=>
+        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>'+k+'</span><span class="k">'+v.toFixed(3)+'</span></div>'
+        +'<div style="height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-bottom:9px"><div class="abar" style="height:100%;width:'+Math.min(100,v/1.2*100)+'%;background:'+c+';border-radius:99px"></div></div>').join('')
+      +'</div>';
+    note.innerHTML = (cur===0
+      ? '<div class="lzwarn"><b>Underfit.</b> A straight line cannot bend, so both errors are high and close together. No amount of extra training fixes this; the model needs more capacity, not more epochs.</div>'
+      : cur===1
+      ? '<div class="ok"><b>About right.</b> The curve follows the idea and shrugs at the noise. Test error is near its minimum here, and the inset shows why this is the spot: the bottom of the U.</div>'
+      : cur===2
+      ? '<div class="lzwarn"><b>The turn has begun.</b> Training error keeps falling, and the test error has started back up: the extra bend is now being spent on noise, because noise is all that is left.</div>'
+      : '<div class="lzbad"><b>Memorised.</b> The curve visits nearly every training point and swings wildly between them, so training error is almost zero while test error is the worst on the dial. The model has learned the measurement noise as if it were the idea.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The bit worth keeping.</b> Training error is a rehearsal mark; it cannot tell you about memorisation because it is measured on the memorised material. Every honest claim about a model is a claim about held-out data, which is the evals lab&rsquo;s whole subject.</div>';
+  }
+  render();
+})();
+
+/* ================= 5 · WHEN TO STOP ================= */
+document.getElementById('sec-tstop').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: press stop at the right moment</h2>
+  <div class="plain-line"><b>Try this:</b> a training run, replayed epoch by epoch, with the loss measured two ways: on the training data, and on a validation set the model never trains on. The training curve will fall forever. Your job is to press <b>stop</b> where the validation curve bottoms out, and you only get to see the past, exactly like the person babysitting the real run.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Tasting a stew as it reduces. Longer on the heat keeps concentrating the flavour, right up until the moment it starts to burn, and you cannot un-burn it. The cook&rsquo;s skill is knowing that the peak has passed while it is passing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>start the run</b>, watch the gap between the curves, and stop when the orange one turns.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>epoch</b> one full pass through the training data</span><span class="sp-w"><b>validation set</b> held-out data used during training to check for the turn</span><span class="sp-w"><b>early stopping</b> ending training at the validation minimum instead of the schedule</span><span class="sp-w"><b>the gap</b> the distance between the curves, overfitting made visible</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="nnStopOut" class="live"></div></div>
+    <div>
+      <button class="seg" id="nnStopGo" style="width:100%;font-size:12px;color:var(--accent)">&#9654; <b>start the run</b></button>
+      <button class="seg" id="nnStopNow" style="width:100%;margin-top:8px;font-size:13px" disabled>&#9209; STOP</button>
+      <div id="nnStopNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: early stopping, scored --- */
+(function(){
+  const out=document.getElementById('nnStopOut'), note=document.getElementById('nnStopNote'),
+        go=document.getElementById('nnStopGo'), stopB=document.getElementById('nnStopNow');
+  if(!out) return;
+  const r=mulberry32(41), EP=60;
+  const TRAINC=[], VALC=[];
+  for(let e=0;e<=EP;e++){
+    const base=1.9*Math.exp(-e/9)+0.30;
+    TRAINC.push(base+gauss(r)*0.012);
+    VALC.push(base+0.06+(e>24?0.0016*Math.pow(e-24,1.75):0)+gauss(r)*0.02);
+  }
+  const BEST=VALC.indexOf(Math.min(...VALC));
+  let ep=0, running=false, timer=0, stopped=null;
+  const X=e=>34+e/EP*410, Y=l=>206-(l-0.2)/2.1*180;
+  function paint(reveal){
+    const line=(arr,upto,col)=>'<polyline points="'+arr.slice(0,upto+1).map((v,e)=>X(e)+','+Y(v)).join(' ')+'" style="fill:none;stroke:'+col+';stroke-width:2"/>';
+    out.innerHTML='<svg viewBox="0 0 460 226" role="img" aria-label="Training and validation loss over epochs." style="width:100%;height:auto">'
+      +'<line x1="34" y1="206" x2="446" y2="206" style="stroke:var(--line2)"/>'
+      +line(TRAINC,ep,'var(--violet)')+line(VALC,ep,'var(--amber)')
+      +(reveal?'<line x1="'+X(BEST)+'" y1="18" x2="'+X(BEST)+'" y2="206" style="stroke:var(--green);stroke-dasharray:4 3"/>'+tm(X(BEST),14,'the true minimum, epoch '+BEST,'var(--green)'):'')
+      +(stopped!==null?'<line x1="'+X(stopped)+'" y1="18" x2="'+X(stopped)+'" y2="206" style="stroke:var(--accent)"/>'+tm(X(stopped),226,'you stopped: '+stopped,'var(--accent)'):'')
+      +tm(60,30,'validation','var(--amber)','start')+tm(60,46,'training','var(--violet)','start')
+      +'</svg>'
+      +'<div class="k" style="font-size:11.5px;color:var(--muted);margin-top:4px">epoch '+ep+' of '+EP
+      +' &middot; val loss '+VALC[Math.min(ep,EP)].toFixed(3)+'</div>';
+  }
+  function verdict(){
+    const d=stopped-BEST, v=VALC[stopped], bv=VALC[BEST];
+    const msg = Math.abs(d)<=2 ? ['ok','<b>As good as it gets.</b> You stopped within two epochs of the true minimum, which is better than most schedules manage.']
+      : d<-6 ? ['lzwarn','<b>Too early by '+(-d)+' epochs.</b> The model was still genuinely improving; you left accuracy on the table out of caution. Patience plus a rule beats nerves: wait until validation has not improved for k epochs, then keep the best checkpoint.']
+      : d<0 ? ['ok','<b>Slightly early.</b> Defensible: the curve was nearly flat, and the checkpoint you kept is within noise of the best.']
+      : d<=6 ? ['ok','<b>Slightly late, no real harm.</b> The turn had begun but barely. This is why the practical rule keeps the best checkpoint rather than the last one.']
+      : ['lzbad','<b>Too late by '+d+' epochs.</b> Everything after the turn was the model memorising its training set; the checkpoint you kept is measurably worse than one it had already produced. In a real run, this is compute spent making the model worse.'];
+    note.innerHTML='<div class="'+msg[0]+'">'+msg[1]+'</div>'
+      +'<div class="simnote" style="margin-top:10px">Your stop: val '+v.toFixed(3)+' at epoch '+stopped+'. Best possible: '+bv.toFixed(3)+' at epoch '+BEST+'. The practical version of this reflex is automated: <b>keep the best checkpoint, stop after k epochs with no improvement</b>, and the two dashed lines on this chart are exactly what that rule computes.</div>'
+      +'<div class="simnote" style="margin-top:10px"><b>Why this is free regularisation.</b> Early stopping needs no extra maths and no change to the model; it simply refuses the part of training where capacity starts being spent on noise. The fitting-too-well tab is this chart&rsquo;s U-curve, lived left to right.</div>';
+  }
+  function run(){
+    if(!running) return;
+    ep++;
+    paint(false);
+    if(ep>=EP){ running=false; stopped=EP; stopB.disabled=true; go.disabled=false; go.innerHTML='&#9654; <b>run it again</b>'; paint(true);
+      note.innerHTML='<div class="lzbad"><b>You let it run to the end.</b> The validation loss finished '+((VALC[EP]/VALC[BEST]-1)*100).toFixed(0)+'% above its own minimum: every epoch after '+BEST+' actively made the deployable model worse while the training curve kept promising progress.</div>';
+      return; }
+    timer=setTimeout(run, 95);
+  }
+  go.onclick=()=>{
+    clearTimeout(timer); ep=0; stopped=null; running=true;
+    go.disabled=true; stopB.disabled=false;
+    note.innerHTML='<div class="simnote">Watch the orange curve. The violet one is a salesman.</div>';
+    paint(false); timer=setTimeout(run, 400);
+  };
+  stopB.onclick=()=>{
+    if(!running) return;
+    running=false; clearTimeout(timer); stopped=ep; stopB.disabled=true;
+    go.disabled=false; go.innerHTML='&#9654; <b>run it again</b>';
+    paint(true); verdict();
+  };
+  paint(false);
+  note.innerHTML='<div class="simnote">The curves are pre-computed from one seeded run, so the game is fair: everyone stares down the same turn.</div>';
+})();
+
+/* ================= 6 · WHY THE GPU CARES ================= */
+document.getElementById('sec-tgpu').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: why nobody trains one example at a time</h2>
+  <div class="plain-line"><b>Try this:</b> every step on this page pushed a small batch of points through the network together. That is not a training trick, it is a hardware one: a batch turns thousands of little weighted sums into one big matrix multiply, and the GPU lab&rsquo;s whole argument is that the same weights fetched once and used many times is the only arithmetic a GPU is fast at. Move the batch size and watch the shape of the work change.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Marking exam scripts one at a time means re-reading the mark scheme for every script. Marking a stack of forty against question 1, then question 2, reads the mark scheme once per question. Same marking, different traffic to the filing cabinet.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>compare <b>1</b> with <b>256</b> and read the &ldquo;uses per fetch&rdquo; line.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>batch</b> the group of examples pushed through the network together</span><span class="sp-w"><b>matrix multiply</b> the one operation a batch turns every layer into</span><span class="sp-w"><b>uses per fetch</b> how many times a weight is used each time it is read from memory</span><span class="sp-w"><b>memory bound</b> waiting on memory rather than on arithmetic</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="nnBatchOut"></div></div>
+    <div><div class="segmented" id="nnBatchCtl" style="flex-direction:row"></div>
+      <div id="nnBatchNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the batch is a matmul --- */
+(function(){
+  const out=document.getElementById('nnBatchOut'), note=document.getElementById('nnBatchNote'),
+        ctl=document.getElementById('nnBatchCtl');
+  if(!out) return;
+  const BS=[1,8,64,512]; let bi=0;
+  function render(){
+    ctl.innerHTML=BS.map((b,i)=>'<button class="seg'+(i===bi?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:12px">'+b+'</button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{bi=+b.dataset.i;render();});
+    const B=BS[bi], H=4096;
+    const flops=2*B*H*H, bytes=H*H*2;
+    out.innerHTML=D('0 0 460 168','One layer as a matrix multiply: batch by hidden times hidden by hidden.',
+      box(20,44,110,Math.max(18,Math.min(80,8+B/8)),'var(--teal)','var(--n-teal)')
+      +t(75,36,'the batch',SANS)+tm(75,60+Math.max(0,Math.min(60,B/8))/2,B+' &times; '+H,'var(--teal)')
+      +tm(150,86,'&times;',undefined)
+      +box(170,24,120,120,'var(--violet)')+t(230,16,'the weights',SANS)+tm(230,86,H+' &times; '+H,'var(--violet)')
+      +tm(310,86,'=',undefined)
+      +box(330,44,110,Math.max(18,Math.min(80,8+B/8)),'var(--wire)')
+      +t(385,36,'the output',SANS)+tm(385,60+Math.max(0,Math.min(60,B/8))/2,B+' &times; '+H,'var(--dim)'),
+      'The weights block never changes size. Only the batch does, and every extra row reuses the same weights for free.')
+      +'<div style="margin-top:8px">'
+      +[['arithmetic in this layer',(flops/1e6).toFixed(0)+' MFLOP'],
+        ['weight bytes fetched',(bytes/1e6).toFixed(0)+' MB'],
+        ['uses per fetch',(2*B)+'&times;']].map(([k,v])=>
+        '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;padding:4px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted)">'+k+'</span><span>'+v+'</span></div>').join('')
+      +'</div>';
+    note.innerHTML=(B===1
+      ? '<div class="lzbad"><b>Batch of one: every weight is fetched, used twice, thrown away.</b> The GPU spends its life waiting on memory, which is the roofline lab&rsquo;s memory-bound regime, and why single-example training wastes a supercomputer.</div>'
+      : '<div class="ok"><b>Batch of '+B+': each fetched weight now does '+(2*B)+' operations.</b> Same weights, same memory traffic, '+B+'&times; the arithmetic. This is the single reason batching exists, and it is a property of the hardware, not of the learning.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The learning does push back.</b> Very large batches average so many examples per step that the gradient loses its useful noise, and the learning rate has to be rescaled to compensate: an exam-drill scenario below. The batch size every real run uses is a negotiation between the hardware wanting big and the optimisation wanting small.</div>';
+  }
+  render();
+})();
+
+/* ================= 7 · EXAM ANGLE ================= */
+document.getElementById('sec-texam').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: drill the scenarios instead of reading them</h2>
+  <div class="plain-line"><b>Try this:</b> the same scenarios as below, one at a time, with the answer hidden. The alternatives are real answers to <em>other</em> scenarios here.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Flashcards versus a revision guide. Recognising an answer and producing one are different skills.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way an exam or an interviewer would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is a real answer to something else</span></span></div></div>
+  <div id="drillHost"></div>
+</div>
+
+<div class="card">
+  <h2 class="sec">The scenarios</h2>
+  <div class="exam-line"><b>&ldquo;Ten steps in, the loss went to NaN.&rdquo;</b> &rarr; The learning rate is too high: each step lands further from the minimum than the last, the weights explode, and the arithmetic overflows. Divide the learning rate by ten and it will train; then find the edge properly with a short sweep.</div>
+  <div class="exam-line"><b>&ldquo;Training accuracy is 99%, live accuracy is 62%.&rdquo;</b> &rarr; Overfitting: the model memorised the training set. More data, a smaller or regularised model, and early stopping all attack it; retraining longer makes it worse, because longer is more memorising.</div>
+  <div class="exam-line"><b>&ldquo;Training and validation are both bad, and more epochs did nothing.&rdquo;</b> &rarr; Underfitting. The model cannot represent the pattern, so patience is wasted; it needs more capacity or better features. The two-neuron committee on the spiral is this failure, live.</div>
+  <div class="exam-line"><b>&ldquo;Validation loss started rising while training loss kept falling.&rdquo;</b> &rarr; The turn. Stop, and keep the checkpoint from the validation minimum, not the last one. Everything after the turn is capacity being spent on noise.</div>
+  <div class="exam-line"><b>&ldquo;We tuned hyperparameters until the test score looked great.&rdquo;</b> &rarr; The test set has leaked into training decisions and its score is no longer a forecast. You need three splits: train to fit, validation to choose, test touched once at the end.</div>
+  <div class="exam-line"><b>&ldquo;The loss curve falls but vibrates violently the whole way.&rdquo;</b> &rarr; Training at the reckless edge: converging with a step size near the limit. It works, but a schedule that decays the rate late in the run buys back precision for free.</div>
+  <div class="exam-line"><b>&ldquo;We normalised the inputs and it suddenly trains ten times faster.&rdquo;</b> &rarr; Conditioning. Features on wildly different scales stretch the loss valley into a canyon, and one shared step size cannot suit both directions; normalising makes the valley round, so the same step works everywhere.</div>
+  <div class="exam-line"><b>&ldquo;We went from batch 8 to batch 1024 and quality dropped.&rdquo;</b> &rarr; The averaged gradient lost its useful noise and the effective step changed. Rescale the learning rate with the batch and consider a warmup; the hardware wanted the big batch, the optimisation has to be paid for it.</div>
+  <div class="exam-line"><b>&ldquo;Same code, same data, different final model each run.&rdquo;</b> &rarr; Different random starting weights land in different minima. Expected, not a bug; if it alarms the business, fix the seed for reproducibility or ensemble the runs for quality.</div>
+  <div class="exam-line"><b>&ldquo;The loss is falling but accuracy has not moved for an hour.&rdquo;</b> &rarr; Loss is continuous, accuracy is a threshold. The model is becoming less wrong about its probabilities before any argmax flips; on imbalanced or hard data the loss moves first. Watch both, trust the loss for progress and the metric for value.</div>
+</div>`;
+
+</script>
+<script src="assets/lab.js" defer></script>
+</body>
+</html>
