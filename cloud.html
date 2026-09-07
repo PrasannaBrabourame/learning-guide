@@ -218,7 +218,7 @@
 
     <div class="card" style="margin-bottom:16px">
       <h2 class="sec">Try it: trace your own lab request through the stack</h2>
-      <div class="plain-line"><b>Try this:</b> a real command against a real machine, <span class="code">curl http://35.244.40.212/</span>. Step down the stack watching each layer add its own wrapper, then step back up the other side watching each one strip its wrapper off, until Apache sees nothing but the HTTP request. The last step explains why your firewall rule is written the way it is.</div>
+      <div class="plain-line"><b>Try this:</b> one concrete request, <span class="code">curl http://203.0.113.7/</span>, followed all the way down and back. Step down the stack watching each layer add its own wrapper, then step back up the other side watching each one strip its wrapper off, until Apache sees nothing but the HTTP request. The last step explains why your firewall rule is written the way it is.</div>
       <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Packing a parcel inside a box, inside a sack, onto a lorry, then the same in reverse at the other end. Nobody along the way unpacks more than their own layer.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>send</b> and step all the way down, then keep going. The return journey is where it clicks.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>curl</b> a command that fetches a web page from the terminal</span><span class="sp-w"><b>segment / packet / frame</b> what the message is called at layers 4, 3 and 2</span><span class="sp-w"><b>port</b> the number saying which program on the machine should get it</span><span class="sp-w"><b>MAC address</b> the name of one network card, used for a single hop</span></span></div></div>
       <div class="sim-layout">
         <div><div id="osiTraceOut"></div></div>
@@ -2275,7 +2275,7 @@ const OSI=[
  test:'nc -vz host 443'},
 {n:3,name:'Network',sub:'addresses and routes',
  unit:'packet', unitLong:'a packet', carry:'Each segment is wrapped into a <b>packet</b>, with a source and destination IP address and a hop limit on the outside. Routers read that wrapper and nothing else, which is why a router can forward your traffic without being able to read it.',
- q:'Which machine, across networks?', met:'IP addresses and routers, 35.244.40.212',
+ q:'Which machine, across networks?', met:'IP addresses and routers, 203.0.113.7',
  plain:'Where things live and how to get there: IP addresses, CIDR blocks, subnets and the routes between them. Almost all cloud networking design happens here.',
  touch:'VPC and subnet CIDRs, route tables, internet and NAT gateways, peering, transit, private endpoints.',
  aws:'VPC · subnets · route tables · IGW · NAT gateway · Transit Gateway · VPC peering · PrivateLink',
@@ -2427,7 +2427,7 @@ document.getElementById('encapDiagram').innerHTML=(()=>{
     {l:4,t:'You put it in an envelope and send it registered', d:'Pages numbered so they can be put back in order, and a receipt so you are told if it goes missing.',
      w:'Did all of it arrive, in the right order, and which pigeonhole at the far end is it for?', net:'TCP, port 80, retransmission of anything lost.'},
     {l:3,t:'You write the destination address', d:'The full address of the house, anywhere in the world. This does not change during the journey.',
-     w:'Which building, across any number of countries and postal systems.', net:'IP addresses and routers, <span class="k">35.244.40.212</span>.'},
+     w:'Which building, across any number of countries and postal systems.', net:'IP addresses and routers, <span class="k">203.0.113.7</span>.'},
     {l:2,t:'The local office bags it for the next leg', d:'A sack labelled &ldquo;to the airport&rdquo;. At the airport it goes into a different sack with a different label.',
      w:'Just this one hop, to the next neighbour along. <b>This label is rewritten at every stage of the journey.</b>', net:'MAC addresses, Ethernet, Wi-Fi, switches.'},
     {l:1,t:'A lorry physically carries the sack', d:'Wheels, roads, an aeroplane. Something actually moves.',
@@ -2478,9 +2478,9 @@ document.getElementById('encapDiagram').innerHTML=(()=>{
   const ctl=document.getElementById('osiTraceCtl'), out=document.getElementById('osiTraceOut'), note=document.getElementById('osiTraceNote');
   if(!ctl) return;
   const DOWN=[
-    {l:7,n:'curl composes the request',c:'GET / HTTP/1.1\nHost: 35.244.40.212',adds:'Nothing wraps it yet. This is the cargo.'},
+    {l:7,n:'curl composes the request',c:'GET / HTTP/1.1\nHost: 203.0.113.7',adds:'Nothing wraps it yet. This is the cargo.'},
     {l:4,n:'TCP wraps it',c:'[TCP dst=80 seq=1] GET / HTTP/1.1 …',adds:'Stamps destination <b>port 80</b>, and numbers the segments so the far end can put them back in order and notice if one is missing.'},
-    {l:3,n:'IP wraps that',c:'[IP dst=35.244.40.212] [TCP dst=80] GET / …',adds:'Stamps the destination <b>address</b>. This is what every router between here and there will read.'},
+    {l:3,n:'IP wraps that',c:'[IP dst=203.0.113.7] [TCP dst=80] GET / …',adds:'Stamps the destination <b>address</b>. This is what every router between here and there will read.'},
     {l:2,n:'Ethernet wraps that',c:'[Eth dst=MAC of your router] [IP …] [TCP …] GET / …',adds:'Adds the <b>MAC address of the next hop only</b>, your own router. This gets rewritten at every hop along the way.'},
     {l:1,n:'Bits go out on the wire',c:'10110100 01101110 11010010 …',adds:'No meaning left at all. Just voltage, light or radio.'}
   ];
@@ -2514,7 +2514,7 @@ document.getElementById('encapDiagram').innerHTML=(()=>{
         '<div class="ok" style="margin-top:12px;padding:11px 13px"><b>That is why the rule reads the way it does.</b> A cloud firewall rule is layer 3 and layer 4 written on one line, addresses and ports. Notice what it cannot say: nothing about URLs, methods or headers, because those live at layer 7 and this thing never opens the envelope.</div>';
     } else if(i===0){
       h='<div class="dim" style="font-size:11px;margin-bottom:8px">READY</div>'+
-        '<div class="cmd">curl http://35.244.40.212/</div>'+
+        '<div class="cmd">curl http://203.0.113.7/</div>'+
         '<div class="note" style="margin-top:12px">One command, one machine. Press <b>send the request</b> and watch what happens to it on the way down.</div>';
     } else if(i<=DOWN.length){
       const done=DOWN.slice(0,i);

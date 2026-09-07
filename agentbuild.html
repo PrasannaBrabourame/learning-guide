@@ -60,7 +60,7 @@
     <div class="eyebrow">using agents to build agents</div>
     <h1>You describe it, the agent writes it: <span class="thin">then it runs somewhere you can defend</span></h1>
     <p class="track" id="trackLine"></p>
-    <p class="sub">Two halves of one idea. First, a coding agent that turns your design into working agent code, which only works if you give it a proper specification and the right domain knowledge, or it confidently writes against the wrong API. Second, a managed runtime that starts from a locked-down sandbox and lets you add capability on top, so &ldquo;where does our data go and what can this reach&rdquo; has an answer before anything ships. Nine sections, eight simulations, every trap the courses warn about.</p>
+    <p class="sub">Two halves of one idea. First, a coding agent that turns your design into working agent code, which only works if you give it a proper specification and the right domain knowledge, or it confidently writes against the wrong API. Second, a managed runtime that starts from a locked-down sandbox and lets you add capability on top, so &ldquo;where does our data go and what can this reach&rdquo; has an answer before anything ships. Nine sections, eight simulations, every trap that catches people in practice.</p>
   </header>
 
   <div class="tabs" role="tablist">
@@ -178,8 +178,8 @@ document.getElementById('sec-start').innerHTML=`
 </div>
 
 <div class="card">
-  <h2 class="sec">The task both courses build toward</h2>
-  <table class="osi"><thead><tr><th>Course</th><th>The agent it builds</th><th>Why that example</th></tr></thead><tbody>
+  <h2 class="sec">The two builds this lab walks through</h2>
+  <table class="osi"><thead><tr><th>Toolchain</th><th>The agent it builds</th><th>Why that example</th></tr></thead><tbody>
   <tr><td><b>Antigravity + agents-cli</b></td><td>An <b>ambient expense-approval agent</b>. Under $100 auto-approves with no model call at all; $100 or more goes to a model for risk analysis, then pauses for a human</td><td><b>Ambient</b> means it runs on events, not chat, in the background, involving a person only when it must. It needs deterministic routing, a security screen before the model, and a human pause: three things that are awkward to prompt and easy to get subtly wrong</td></tr>
   <tr><td><b>Managed Agents API</b></td><td>A <b>retail merchandising analyst</b>: umbrella sales fell 18% last quarter, pull Q3 sales, find the five worst decliners, check live inventory, and say whether it is a demand problem or a stock problem</td><td>Every step depends on the one before, and each is a security question: where the data sits, what the agent may touch, what it may reach on the network</td></tr>
   </tbody></table>
@@ -407,7 +407,7 @@ uv --version         # any recent version
 node --version       # 18 or higher, used by the skills installer
 
 # missing uv?
-curl -LsSf https://astral.sh/uv/install.sh | sh   # then restart your shell
+brew install uv    # or pipx install uv, then restart your shell
 
 # one command does everything
 uvx google-agents-cli setup

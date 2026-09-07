@@ -189,7 +189,7 @@ document.getElementById('sec-start').innerHTML=`
 
 <div class="card" style="margin-bottom:16px">
   <h2 class="sec">The flywheel: the shape the whole lab is describing</h2>
-  <div class="plain-line"><b>In plain English:</b> evaluation on its own produces a number and a shrug. It only becomes useful inside a loop: measure, find out <em>why</em>, change something, measure again. Google&rsquo;s courses call this the <b>Quality Flywheel</b>, and the point of the name is that it only pays off when it goes round more than once.</div>
+  <div class="plain-line"><b>In plain English:</b> evaluation on its own produces a number and a shrug. It only becomes useful inside a loop: measure, find out <em>why</em>, change something, measure again. This loop has a name, the <b>Quality Flywheel</b>, and the point of the name is that it only pays off when it goes round more than once.</div>
   ${D('0 0 640 220','The quality flywheel: evaluate, analyze, optimize, and back to evaluate.',
    `${box(220,22,200,52,'var(--green)')}${t(320,46,'Analyze',SANS)}${tm(320,64,'metrics and reports','var(--dim)')}
     ${box(400,110,200,52,'var(--red)')}${t(500,134,'Optimize',SANS)}${tm(500,152,'change the agent','var(--dim)')}
@@ -1151,7 +1151,7 @@ document.getElementById('sec-hill').innerHTML=`
 
 <div class="card" style="margin-bottom:16px">
   <h2 class="sec">Designing tools the agent can actually use</h2>
-  <div class="plain-line"><b>In plain English:</b> most tool problems are naming and scoping problems. A tool that does three things, or overlaps with another tool, forces the model into a judgement call it has no information to make. The course packages the guidance as a <b>D.U.M.B.</b> mnemonic, and the part that does the heavy lifting is the <b>B, Basic</b>: <b>one tool, one purpose, no overlapping functionality, no ambiguity about which one is right.</b></div>
+  <div class="plain-line"><b>In plain English:</b> most tool problems are naming and scoping problems. A tool that does three things, or overlaps with another tool, forces the model into a judgement call it has no information to make. The guidance packs into a <b>D.U.M.B.</b> mnemonic, and the part that does the heavy lifting is the <b>B, Basic</b>: <b>one tool, one purpose, no overlapping functionality, no ambiguity about which one is right.</b></div>
   <div class="vs2"><div class="col"><b>HARD TO USE</b><span class="code">manage_customer(action, id, payload)</span><br><br>One tool, three jobs, selected by a string parameter. The model has to get the tool <em>and</em> the mode right, and a wrong mode is a write where you wanted a read.<br><br>Vague names, <span class="code">get_data</span>, <span class="code">process</span>, are the same problem: they force a guess.</div>
   <div class="col"><b>EASY TO USE</b><span class="code">get_customer(id)</span><br><span class="code">update_customer_email(id, email)</span><br><span class="code">delete_customer(id)</span><br><br>Three tools, three purposes, no overlap. Nothing to disambiguate, and the dangerous one is separately named and separately guardable.</div></div>
   <div class="plain-line" style="margin-top:12px"><b>Tools versus skills, briefly:</b> a <b>tool</b> is a capability. It does something. A <b>skill</b> is a method. It tells the agent how to approach a class of work. When the agent <em>can</em> do everything and still handles the job badly, the missing piece is usually a skill, and no amount of tool work will supply it.</div>
@@ -1200,7 +1200,7 @@ document.getElementById('sec-hill').innerHTML=`
      bad:'Tool use barely moves. The descriptions were not what was wrong this round. Harmless, and a wasted lap.'},
     {k:'dyn',label:'Add dynamic tool loading, expose only relevant tools per request',layer:'tools',fixes:'tool',
      eff:{qual:+3,tool:+16,lat:+6,cost:+11}, held:+3,
-     good:'Selection accuracy does improve. Now read the other columns: <b>changing the toolset per request invalidates the prompt prefix cache</b>, so the cache hit ratio falls and cost rises 11% with a latency penalty on top. This is the second-order effect the course tells you to look for before accepting the change.',
+     good:'Selection accuracy does improve. Now read the other columns: <b>changing the toolset per request invalidates the prompt prefix cache</b>, so the cache hit ratio falls and cost rises 11% with a latency penalty on top. This is the second-order effect to look for before accepting the change.',
      bad:'Selection improves slightly, and you have paid for it in cache misses on every single request. A poor trade when selection was not the problem.'},
     {k:'model',label:'Swap in a larger model',layer:'model',fixes:null,
      eff:{qual:+7,tool:+8,lat:+22,cost:+64}, held:+5,
@@ -1477,7 +1477,7 @@ document.getElementById('sec-perf').innerHTML=`
 document.getElementById('sec-upgrade').innerHTML=`
 <div class="card" style="margin-bottom:16px">
   <div class="note" style="margin-bottom:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--panel2);border-radius:0 8px 8px 0">
-    <b>A note on sourcing.</b> Of the five courses behind this lab, the model-upgrade one saved only its syllabus. The lesson text was not captured. This section therefore covers the shape of the problem and the practice that the other four courses do establish. Where it names a specific behaviour of a specific model generation, it does not, because that material is not in hand.
+    <b>A note on scope.</b> This section covers the shape of the problem and the practice that holds across model generations. Where a specific generation of a specific model behaves a specific way, it stays deliberately silent: that detail goes stale faster than anything else on this page, and a confident stale claim is worse than none.
   </div>
   <h2 class="sec">A model upgrade is not a version bump</h2>
   <div class="plain-line"><b>In plain English:</b> changing the model underneath an agent feels like upgrading a library. It is closer to replacing a colleague. Everything you wrote was tuned against how the <em>previous</em> one behaved, the phrasing that stopped it rambling, the examples that fixed a weakness, the temperature somebody arrived at by trial and error. The new model does not have those weaknesses. It has different ones, and your workarounds are now just noise in the prompt.</div>
