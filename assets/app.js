@@ -344,6 +344,14 @@ function init(topics) {
   $("#expand").onclick = () => document.querySelectorAll(".card:not([hidden])").forEach(c => { c.classList.add("open"); c.querySelector(".head").setAttribute("aria-expanded", "true") });
   $("#collapse").onclick = () => document.querySelectorAll(".card").forEach(c => { c.classList.remove("open"); c.querySelector(".head").setAttribute("aria-expanded", "false") });
   $("#quiz").onclick = e => { document.body.classList.toggle("quiz"); document.querySelectorAll(".card").forEach(c => c.classList.remove("revealed")); e.target.textContent = document.body.classList.contains("quiz") ? "Exit quiz mode" : "Quiz mode" };
+  /* the version line: stamped at deploy, "dev" on a local checkout */
+  if (typeof GUIDE_VERSION !== "undefined") {
+    const vf = document.querySelector(".foot");
+    if (vf && vf.insertAdjacentHTML) vf.insertAdjacentHTML("beforeend",
+      '<br><span class="ver"' + (GUIDE_VERSION.sha ? ' title="commit ' + GUIDE_VERSION.sha + '"' : '') + '>' +
+      (GUIDE_VERSION.v === "dev" ? "local dev build" : "version " + GUIDE_VERSION.v +
+       (GUIDE_VERSION.sha ? " \u00b7 " + GUIDE_VERSION.sha : "")) + "</span>");
+  }
   if (store.get("study-theme", "light") === "dark") { document.documentElement.dataset.theme = "dark"; $("#theme").textContent = "☀️" }
   /* crossfade rather than hard-cut: the class enables colour transitions on
      everything for the duration of the switch (see styles.css) */
