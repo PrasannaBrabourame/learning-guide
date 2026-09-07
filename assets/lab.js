@@ -398,3 +398,14 @@ document.addEventListener('input', function(e){
     if (card) card.classList.add('live');
   }
 }, true);
+
+/* ================= VERSION =================
+   Stamped at deploy into assets/version.js; a local checkout says "dev". */
+(function(){
+  if (typeof GUIDE_VERSION === 'undefined') return;
+  const f = document.querySelector('.lab-foot');
+  if (!f || !f.insertAdjacentHTML) return;
+  f.insertAdjacentHTML('beforeend',
+    ' \u00b7 <span class="ver"' + (GUIDE_VERSION.sha ? ' title="commit ' + GUIDE_VERSION.sha + '"' : '') + '>' +
+    (GUIDE_VERSION.v === 'dev' ? 'local dev build' : GUIDE_VERSION.v) + '</span>');
+})();

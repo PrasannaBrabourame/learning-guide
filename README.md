@@ -206,6 +206,14 @@ Each lab still carries its own `<style>` after `lab.css`, holding only the rules
 that lab actually needs, and its own inline `<script>` before `lab.js`, which
 reads what that script rendered.
 
+## Versioning
+
+Every footer shows the site's version, stamped by the deploy workflow from the
+deployed commit: calendar date, commit count, short SHA (for example
+`v2026.09.07.94 · abdd3dc`). Nothing is bumped by hand, and there is still no
+build step: the checked-in `assets/version.js` says `dev`, so a local checkout
+honestly shows `local dev build`.
+
 ## View locally
 
 The page fetches `data/topics.json`, which browsers block over `file://`,

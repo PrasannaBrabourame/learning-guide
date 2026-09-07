@@ -24,6 +24,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history: the version includes the commit count
+
+      - name: Stamp version
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          SHA=$(git rev-parse --short HEAD)
+          DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d' HEAD)
+          ISO=$(git show -s --format=%cI HEAD)
+          cat > assets/version.js <<VEOF
+          /* Stamped by the deploy workflow. The checked-in copy says "dev". */
+          var GUIDE_VERSION = { v: 'v${DATE}.${COUNT}', sha: '${SHA}', date: '${ISO}' };
+          VEOF
+          cat assets/version.js
 
       - name: Validate topic data
         run: |
