@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metrics lab, the number to trust when a miss costs more than a false alarm</title>
+<link rel="stylesheet" href="assets/lab.css">
+<style>
+  /* page-specific: the class grid, the ranked list, and verdict chips */
+  .mxgrid{display:grid; grid-template-columns:repeat(5,1fr); gap:7px}
+  .mxkid{cursor:pointer; border:1.5px solid var(--line2); border-radius:9px; padding:8px 6px 7px; text-align:center;
+    background:var(--panel); font-family:var(--mono); font-size:11px; transition:border-color .15s, background .15s; user-select:none}
+  .mxkid small{display:block; font-size:9px; color:var(--dim); margin-top:3px; letter-spacing:.04em}
+  .mxkid.flag{border-color:var(--amber); background:var(--sel)}
+  .mxkid.need.flag{border-color:var(--green); background:var(--accent-soft)}
+  .mxkid.need:not(.flag){border-color:var(--red); border-style:dashed}
+  .mxkid:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .mxrank{display:flex; align-items:center; gap:9px; padding:6px 9px; border-radius:8px; font-family:var(--mono); font-size:12px}
+  .mxrank.above{background:var(--accent-soft)}
+  .mxrank .sc{min-width:44px; text-align:right; color:var(--muted)}
+  .mxrank .nm{min-width:64px}
+  .mxbig{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .mxchip{display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.05em; padding:2px 8px;
+    border-radius:99px; border:1px solid var(--line2)}
+  .mxchip.ok{color:var(--green); border-color:var(--green)}
+  .mxchip.bad{color:var(--red); border-color:var(--red)}
+  .mxchip.warn{color:var(--amber); border-color:var(--amber)}
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" style="fill:var(--wire)"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=metrics">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark (d)">&#127769; theme</button>
+      <span class="tn tn-quiet" title="Find a section on this page"><b>&#8984;K</b> find</span>
+    </nav>
+    <div class="eyebrow">precision &middot; recall &middot; ranking &middot; drift &middot; the judge</div>
+    <h1>The number to trust: <span class="thin">evaluation metrics when a miss costs more than a false alarm</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">One story runs through this whole lab. A chain of learning centres uses an AI screener that reads teachers&rsquo; observation notes and drafts reports for parents, flagging which learners need reading support. Miss a learner and they lose a term of help; flag the wrong one and a teacher loses twenty minutes. Every metric decision on this page falls out of that one asymmetry, and every simulation uses the same class of twenty so the numbers line up across tabs. Nothing here needs machine-learning background: if you can read a school report, you can run this lab.</p>
+    <div class="note" style="margin-top:14px"><b>One neighbour.</b> The <a href="evals.html">evaluation lab</a> teaches the process: rubrics, judges, golden sets, the improvement loop. This lab teaches the numbers themselves, which one answers which question, and the traps between them. Either order works.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="mstart" role="tab">Start here</button>
+    <button class="tab" data-pane="mmap" role="tab">What just happened</button>
+    <button class="tab" data-pane="mflag" role="tab">Found vs flagged</button>
+    <button class="tab" data-pane="mrank" role="tab">The ranked list</button>
+    <button class="tab" data-pane="mband" role="tab">How wrong, how often</button>
+    <button class="tab" data-pane="msame" role="tab">Same words twice</button>
+    <button class="tab" data-pane="mret" role="tab">The retrieval ceiling</button>
+    <button class="tab" data-pane="mgate" role="tab">Gates that never flake</button>
+    <button class="tab" data-pane="mwatch" role="tab">Watching the watchers</button>
+    <button class="tab" data-pane="mexam" role="tab">Exam angle</button>
+  </div>
+
+  <section class="pane on" id="pane-mstart"><div id="sec-mstart"></div></section>
+  <section class="pane" id="pane-mmap"><div id="sec-mmap"></div></section>
+  <section class="pane" id="pane-mflag"><div id="sec-mflag"></div></section>
+  <section class="pane" id="pane-mrank"><div id="sec-mrank"></div></section>
+  <section class="pane" id="pane-mband"><div id="sec-mband"></div></section>
+  <section class="pane" id="pane-msame"><div id="sec-msame"></div></section>
+  <section class="pane" id="pane-mret"><div id="sec-mret"></div></section>
+  <section class="pane" id="pane-mgate"><div id="sec-mgate"></div></section>
+  <section class="pane" id="pane-mwatch"><div id="sec-mwatch"></div></section>
+  <section class="pane" id="pane-mexam"><div id="sec-mexam"></div></section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="evals.html">evals lab</a> &middot; <a href="train.html">training lab</a> &middot; <a href="llm.html">llm lab</a> &middot; <a href="serving.html">serving lab</a> &middot; <a href="fleet.html">fleet lab</a> &middot; <a href="gpu.html">gpu lab</a> &middot; <a href="cloud.html">cloud lab</a> &middot; <a href="agentcore.html">agentcore lab</a> &middot; <a href="agentbuild.html">agents lab</a> &middot; <a href="adk.html">adk lab</a> &middot; <a href="gemini.html">gemini lab</a> &middot; <a href="govern.html">govern lab</a> &middot; <a href="design.html">diagram lab</a> &middot; <a href="peakweek.html">peak week lab</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* ================= DIAGRAMS ================= */
+const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:500 12px Inter,Helvetica,Arial,sans-serif";
+const D=(vb,label,body,cap)=>`<div class="diagram"><svg viewBox="${vb}" role="img" aria-label="${label}">${body}</svg><div class="diagcap"><b>How to read it:</b> ${cap}</div></div>`;
+const box=(x,y,w,hh,stroke,fill)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" style="fill:${fill||'var(--panel2)'};stroke:${stroke}"/>`;
+const t=(x,y,s,style,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${style};fill:var(--text)">${s}</text>`;
+const tm=(x,y,s,fill,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${MONO};fill:${fill||'var(--muted)'}">${s}</text>`;
+const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
+/* ================= 10 · EXAM ANGLE ================= */
+document.getElementById('sec-mexam').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: drill the scenarios instead of reading them</h2>
+  <div class="plain-line"><b>Try this:</b> the same scenarios as below, one at a time, with the answer hidden. The alternatives are real answers to <em>other</em> scenarios here.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Flashcards versus a revision guide. Recognising an answer and producing one are different skills.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way an exam or an interviewer would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is a real answer to something else</span></span></div></div>
+  <div id="drillHost"></div>
+</div>
+
+<div class="card">
+  <h2 class="sec">The scenarios</h2>
+  <div class="exam-line"><b>&ldquo;Our screening model has 94% accuracy.&rdquo;</b> &rarr; On a class where 16 of 20 need nothing, saying &ldquo;nobody needs help&rdquo; scores 80% accuracy while missing every single learner who needed it. On lopsided problems, accuracy mostly measures the size of the bigger group. Ask first how many of the small group who needed help were actually found.</div>
+  <div class="exam-line"><b>&ldquo;Which is worse here, a false positive or a false negative?&rdquo;</b> &rarr; The only correct first answer is a question: what does each error cost? A missed learner loses a term of help; a false flag costs a teacher twenty minutes. When costs differ that much, precision and recall must be reported separately, and recall leads.</div>
+  <div class="exam-line"><b>&ldquo;Leadership wants one number. Which one?&rdquo;</b> &rarr; Not F1, because it hides the asymmetry. Offer F2, where a miss visibly counts four times a false alarm, and still show the pair underneath. If the audience is non-technical, the mean absolute error in bands (&ldquo;we are on average a third of a band out&rdquo;) is a sentence they can act on.</div>
+  <div class="exam-line"><b>&ldquo;F1 held steady across our prompt change, so nothing regressed.&rdquo;</b> &rarr; The trap this lab exists for. Precision 0.60 / recall 0.75 and precision 1.00 / recall 0.50 give the same F1 to three decimal places, and the second one misses twice as many people. Track the pair; use a composite only to raise an eyebrow, never to set policy.</div>
+  <div class="exam-line"><b>&ldquo;The model outputs low, med or high. How should we evaluate it?&rdquo;</b> &rarr; Ask whether it also produces a score underneath the label. If it does, evaluate the score with a precision-recall curve and choose your own operating point; the model&rsquo;s banding is a default threshold somebody else picked, not a fact about the world.</div>
+  <div class="exam-line"><b>&ldquo;Two systems have the same average error. Are they equally good?&rdquo;</b> &rarr; Not on an ordinal scale. Two one-band slips and a single two-band catastrophe produce the same mean absolute error on the same five learners, and only a quadratic weighting, or the full table of predicted band against real band, shows the difference. On anything where a big miss matters more, look at both.</div>
+  <div class="exam-line"><b>&ldquo;How do we know the LLM judge can be trusted?&rdquo;</b> &rarr; Agreement with humans on a labelled sample, measured before anything is built on it. This is the one place a plain F1 is exactly right, because the judge&rsquo;s two error types cost the same. Below about 0.6 agreement, every rubric score inherits the judge&rsquo;s noise. Pin the judge&rsquo;s version, and never let the generator judge its own output.</div>
+  <div class="exam-line"><b>&ldquo;Retrieval quality is fine, the reports read well.&rdquo;</b> &rarr; Fluency is not grounding. If the right passage is ranked just below the context window cutoff, the report is confidently grounded in the wrong evidence, and no downstream judge can see it, because the output is consistent with what it was given. Recall@k on a small labelled query set is the ceiling on everything downstream.</div>
+  <div class="exam-line"><b>&ldquo;Nothing changed this week, so we did not run anything.&rdquo;</b> &rarr; Distribution drift needs no labels and no changes on your side to appear: the share of high-support calls can triple because the cohort, the upstream model, or the retrieved evidence changed underneath you. A population-stability check against a frozen baseline is the cheapest alarm that exists.</div>
+  <div class="exam-line"><b>&ldquo;Our overall recall is 0.62, which we can defend.&rdquo;</b> &rarr; Sliced by centre it is 0.75, 0.75 and 0.40, and the 0.40 means a learner needing help at that centre is half as likely to be found. Aggregates never prompt the question; slices are the fairness check you can run with data you already hold.</div>
+  <div class="exam-line"><b>&ldquo;We have eight labelled examples. What can we conclude?&rdquo;</b> &rarr; At 95% confidence the margin of error is about &plusmn;35 points, so a measured 0.82 is honestly &ldquo;somewhere between half and perfect&rdquo;. Use tiny sets to find bugs, not to measure quality, and spend the scarce labelling time where no labels are needed at all: the deterministic checks that are exact on a single document.</div>
+</div>`;
+/* ================= 6 · SAME WORDS TWICE ================= */
+document.getElementById('sec-msame').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: one computation, two directions</h2>
+  <div class="plain-line"><b>Try this:</b> two questions that sound the same and are opposites. Did the model say <em>the same thing</em> about the same learner twice (it should)? And did it say <em>the same thing</em> about two different learners (it must not)? Pick a measuring stick for each and watch two of the three sticks lie to you.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Two witnesses describing one event in different words are agreeing. Two reports that share whole sentences about two different people are not personal reports at all. Same test, opposite verdicts, depending on who is being compared.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>exact match</b> on the re-run pair, then press <b>meaning</b> and compare verdicts.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>re-run</b> the same learner, same notes, generated twice</span><span class="sp-w"><b>exact match</b> are the two texts character-for-character identical</span><span class="sp-w"><b>n-gram overlap</b> how many short word sequences the two texts share</span><span class="sp-w"><b>semantic similarity</b> do the two texts make the same claim, scored by meaning</span><span class="sp-w"><b>boilerplate</b> one template wearing different names</span><span class="sp-w"><b>stability</b> whether a single run can be trusted to represent the model</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxSameOut"></div></div>
+    <div>
+      <div class="segmented" id="mxSamePair" style="flex-direction:column;align-items:stretch"></div>
+      <div class="segmented" id="mxSameM" style="flex-direction:row;margin-top:10px"></div>
+      <div id="mxSameNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: stability one way, boilerplate the other --- */
+(function(){
+  const out=document.getElementById('mxSameOut'), note=document.getElementById('mxSameNote'),
+        pairEl=document.getElementById('mxSamePair'), mEl=document.getElementById('mxSameM');
+  if(!out) return;
+  const PAIRS=[
+    {k:'rerun', n:'the re-run', d:'Mira, generated twice from the same notes',
+     a:'Mira is beginning to blend two-letter sounds and often recognises her own name in print.',
+     b:'Mira has started blending simple sounds and frequently identifies her name when written.',
+     exact:0.00, ngram:0.31, sem:0.94, wantHigh:true,
+     verdict:'The two runs make the same claim in different words. That IS stability: below about 0.85 on meaning, the model is not consistent enough for any single run to be trusted.'},
+    {k:'boiler', n:'two different learners', d:'Mira and Kai, same class, same term',
+     a:'Mira benefits from daily shared reading and opportunities to hear rhyming patterns in familiar stories.',
+     b:'Kai benefits from daily shared reading and opportunities to hear rhyming patterns in familiar stories.',
+     exact:0.00, ngram:0.97, sem:0.98, wantHigh:false,
+     verdict:'Two different learners received one report with two names on it. A scorer reading each report alone finds both perfectly reasonable; only comparing across learners exposes the template.'}
+  ];
+  const METHODS=[
+    {k:'exact', n:'exact match', get:p=>p.exact,
+     how:'character-for-character comparison'},
+    {k:'ngram', n:'shared phrases', get:p=>p.ngram,
+     how:'how many short word runs the two texts share'},
+    {k:'sem', n:'meaning', get:p=>p.sem,
+     how:'do the texts make the same claim, however worded'}
+  ];
+  let pi=0, mi=0;
+  function render(){
+    pairEl.innerHTML=PAIRS.map((p,i)=>'<button class="seg'+(i===pi?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px"><b>'+p.n+'</b>, <span style="color:var(--dim)">'+p.d+'</span></button>').join('');
+    mEl.innerHTML=METHODS.map((m,i)=>'<button class="seg'+(i===mi?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:12px">'+m.n+'</button>').join('');
+    pairEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{pi=+b.dataset.i;render();});
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mi=+b.dataset.i;render();});
+    const p=PAIRS[pi], m=METHODS[mi], v=m.get(p);
+    /* is this score GOOD news? depends entirely on the direction of the question */
+    const good = p.wantHigh ? v>=0.85 : v<0.35;
+    out.innerHTML =
+      '<div class="lzhop" style="display:block;padding:11px 13px;margin-bottom:8px;border-left-color:var(--violet)">'
+      +'<div class="k" style="font-size:10px;color:var(--dim);margin-bottom:4px">TEXT ONE</div>'
+      +'<div style="font-size:13px;line-height:1.6">&ldquo;'+p.a+'&rdquo;</div></div>'
+      +'<div class="lzhop" style="display:block;padding:11px 13px;margin-bottom:12px;border-left-color:var(--violet)">'
+      +'<div class="k" style="font-size:10px;color:var(--dim);margin-bottom:4px">TEXT TWO</div>'
+      +'<div style="font-size:13px;line-height:1.6">&ldquo;'+p.b+'&rdquo;</div></div>'
+      +'<div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">'
+      +'<span class="mxbig" style="font-size:12px;color:var(--muted)">'+m.n+' <b style="font-size:22px;color:'
+      +(good?'var(--green)':'var(--red)')+'">'+v.toFixed(2)+'</b></span>'
+      +'<span class="mxchip '+(good?'ok':'bad')+'">'+(p.wantHigh
+        ? (v>=0.85?'stable enough to trust one run':'reads as disagreement')
+        : (v<0.35?'personal reports':'BOILERPLATE, one template, two names'))+'</span></div>'
+      +'<div class="simnote" style="margin-top:8px">'+m.how
+      +(p.wantHigh?' &middot; for a re-run, HIGH is what you want':' &middot; across two learners, HIGH is the failure')+'</div>'
+      +'<div style="margin-top:12px">'+METHODS.map(mm=>{
+        const vv=mm.get(p);
+        return '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;padding:4px 0;border-bottom:1px solid var(--line)">'
+          +'<span style="color:var(--muted)">'+mm.n+'</span><span'+(mm.k===m.k?' style="font-weight:600"':'')+'>'+vv.toFixed(2)+'</span></div>';}).join('')+'</div>';
+    note.innerHTML =
+      (pi===0
+        ? (mi===0
+          ? '<div class="lzbad"><b>Exact match says 0.00, and it is useless here.</b> No model repeats itself word for word, so this stick calls every healthy re-run a failure. It cannot tell rephrasing from contradiction.</div>'
+          : mi===1
+          ? '<div class="lzwarn"><b>Shared phrases say 0.31, which understates the agreement.</b> The two runs share almost no exact wording, so a phrase-counting stick reads them as disagreeing when a teacher would say they match.</div>'
+          : '<div class="ok"><b>Meaning says 0.94: same claim, different words.</b> This is the only stick that measures what you actually asked. '+PAIRS[0].verdict+'</div>')
+        : (mi===2
+          ? '<div class="lzwarn"><b>Meaning says 0.98, and here that is the alarm, not the reassurance.</b> '+PAIRS[1].verdict+'</div>'
+          : mi===1
+          ? '<div class="lzbad"><b>Shared phrases say 0.97 across two different learners: fail.</b> '+PAIRS[1].verdict+'</div>'
+          : '<div class="simnote"><b>Exact match says 0.00 because one word differs: the name.</b> A stick this strict misses a template that is 97% identical. Try shared phrases on this pair.</div>'))
+      +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> The same overlap computation is a reward when you compare a learner with themselves and a penalty when you compare them with a classmate. A metric is not good or bad; it is good or bad <em>for a direction of comparison</em>.</div>';
+  }
+  render();
+})();
+
+/* ================= 7 · THE RETRIEVAL CEILING ================= */
+document.getElementById('sec-mret').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: the right evidence is at rank four, and your window takes three</h2>
+  <div class="plain-line"><b>Try this:</b> before the model writes a word about Mira, a search step fetches curriculum passages to ground the report in. Slide how many retrieved passages the prompt is allowed to carry, and read what the report ends up grounded in. Then find the number that would have caught it.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A clerk fetches three files for a case worker who writes the assessment. If the right file is fourth in the pile, the assessment is written from the wrong files, beautifully. The case worker is not the problem and cannot see it.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set the window to <b>top 3</b> and read the verdict, then widen to <b>top 5</b>.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>retrieval</b> the search step that fetches evidence before the model writes</span><span class="sp-w"><b>Recall@k</b> was the right passage anywhere in the top k results</span><span class="sp-w"><b>nDCG</b> credit for ranking the right passage near the top, not just finding it</span><span class="sp-w"><b>chunk</b> one fetched piece of a document</span><span class="sp-w"><b>chunk health</b> the share of fetched chunks that are real content, not page furniture</span><span class="sp-w"><b>grounded</b> every claim traceable to something that was actually fetched</span><span class="sp-w"><b>judge</b> a model asked to score the report against what was fetched</span><span class="sp-w"><b>context window</b> the fixed amount of text the model can be handed at once</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxRetOut"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">context window takes the top <b id="mxRetKv" style="color:var(--accent)">3</b></label>
+      <input id="mxRetK" type="range" min="1" max="5" step="1" value="3" style="width:100%">
+      <div id="mxRetNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: Recall@k, nDCG, chunk health --- */
+(function(){
+  const out=document.getElementById('mxRetOut'), note=document.getElementById('mxRetNote'),
+        kEl=document.getElementById('mxRetK'), kv=document.getElementById('mxRetKv');
+  if(!out) return;
+  /* the query is built from Mira's profile: early blending, reading domain */
+  const HITS=[
+    {n:'Letter recognition (reading, unit 1)', rel:false, noise:false, about:'letter recognition'},
+    {n:'&#9472;&#9472;&#9472; | &#9472;&#9472;&#9472; | &#9472;&#9472;&#9472;', rel:false, noise:true, about:'a table separator row'},
+    {n:'Letter formation (writing, unit 3)', rel:false, noise:false, about:'letter formation'},
+    {n:'Blending sounds (reading, unit 2)', rel:true, noise:false, about:'blending'},
+    {n:'Listening comprehension (oral, unit 1)', rel:false, noise:false, about:'listening'}
+  ];
+  function render(){
+    const k=+kEl.value; kv.textContent=k;
+    const win=HITS.slice(0,k);
+    const found=win.some(h=>h.rel);
+    const relRank=HITS.findIndex(h=>h.rel)+1;
+    const ndcg=relRank<=k ? (1/Math.log2(relRank+1)).toFixed(2) : '0.00';
+    const health=win.filter(h=>!h.noise).length+'/'+k;
+    const grounded=win.filter(h=>!h.noise).map(h=>h.about).filter(a=>a!=='blending');
+    out.innerHTML =
+      '<div class="simnote" style="margin-bottom:8px">What the search returned for Mira, best first. Her teacher&rsquo;s notes are about <b>blending sounds</b>.</div>'
+      +HITS.map((h,i)=>'<div class="mxrank'+(i<k?' above':'')+'" style="margin-bottom:5px'+(i>=k?';opacity:.45':'')+'">'
+        +'<span class="sc">'+(i+1)+'</span>'
+        +'<span style="flex:1'+(h.noise?';color:var(--dim)':'')+'">'+h.n+'</span>'
+        +(h.rel?'<span class="mxchip ok">the right one</span>':h.noise?'<span class="mxchip warn">noise</span>':'')
+        +(i<k?'<span class="k" style="font-size:10px;color:var(--accent)">in the prompt</span>':'')
+        +'</div>').join('')
+      +'<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px" class="mxbig">'
+      +'<span style="font-size:12px;color:var(--muted)">Recall@'+k+' <b style="font-size:18px;color:'+(found?'var(--green)':'var(--red)')+'">'+(found?'1.00':'0.00')+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">nDCG@'+k+' <b style="font-size:18px;color:'+(relRank<=k&&relRank>2?'var(--amber)':found?'var(--green)':'var(--red)')+'">'+ndcg+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">chunk health <b style="font-size:18px;color:'+(win.some(h=>h.noise)?'var(--amber)':'var(--green)')+'">'+health+'</b></span></div>'
+      +'<div class="lzhop" style="display:block;padding:11px 13px;margin-top:12px;border-left-color:'+(found?'var(--green)':'var(--red)')+'">'
+      +'<b>What Mira&rsquo;s report is grounded in:</b> '
+      +(found?'blending, the thing her notes are actually about'+(win.some(h=>h.noise)?', plus one chunk of table furniture it paid for the space to carry':'')
+             :grounded.join(' and ')+'. Fluent, confident, and about the wrong thing.')+'</div>'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-top:9px">'
+      +'<span class="mxchip ok">groundedness judge: PASS</span>'
+      +'<span class="k" style="font-size:11px;color:'+(found?'var(--dim)':'var(--red)')+'">'
+      +(found?'and this time it deserves to':'the judge grades the report against what it was given, and the report matches it perfectly')+'</span></div>';
+    note.innerHTML =
+      (found
+        ? '<div class="ok"><b>Found, barely.</b> Recall@'+k+' is 1.00 but nDCG says '+ndcg+': the right passage was fourth, so three wrong ones outranked it. A ranking that only just works is one search-index rebuild away from not working.</div>'
+        : '<div class="lzbad"><b>The report is now grounded in '+grounded.join(' and ')+'.</b> Every downstream check will pass: the prose is fluent, consistent with what it was given, and the judge scores what it was given. No judge can see evidence that was never fetched. Retrieval is the ceiling on everything after it.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The number nobody was watching.</b> The chunk-health line needs no labels at all: it just counts fetched chunks that are page furniture. Without it, this failure mode gets found the slow way: a person reading fetched chunks one at a time. The count flags it automatically, before anyone has to.</div>'
+      +'<div class="simnote" style="margin-top:10px"><b>Building the query set.</b> About fifty real profiles, each with the passage a specialist says is correct, is one afternoon of expert time, needs no per-learner labels, and unblocks the one layer nothing else can see into.</div>';
+  }
+  kEl.addEventListener('input',render);
+  render();
+})();
+
+/* ================= 1 · START HERE ================= */
+document.getElementById('sec-mstart').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Before any metric: what your sample size lets you say</h2>
+  <div class="plain-line"><b>In plain English:</b> every score in this lab is measured on some number of learners, and that number decides whether the score means anything. A pilot has eight learners reachable. Eight is enough to find bugs; it is nowhere near enough to measure quality, and no clever metric can fix that. The honest move is to put the uncertainty on screen next to every number, from day one.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: ship on eight learners, then look at what you knew</h2>
+  <div class="plain-line"><b>Try this:</b> the screener scored <b>0.82</b> on a pilot, and the committee&rsquo;s ship line is 0.80. Looks done. Drag the sample size and watch what that 0.82 was actually allowed to promise, then try the one kind of check that has no sample-size problem at all.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Judging a whole school by chatting to eight students picked at random at the gate. They might be the keen ones, they might be the lost ones. You have not met the school yet.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>leave the slider at <b>8</b> and press <b>ship it</b>, then drag to 400 and watch the band.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>sample size</b> how many learners the score was measured on</span><span class="sp-w"><b>margin of error</b> how far the true value could sit from the measured one</span><span class="sp-w"><b>confidence band</b> the range the truth plausibly lives in, drawn around the score</span><span class="sp-w"><b>deterministic check</b> a mechanical rule, like a text pattern that either matches or does not, exactly right or wrong on one document</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxSizeOut" class="live"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">learners measured: <b id="mxSizeNv" style="color:var(--accent)">8</b></label>
+      <input id="mxSizeN" type="range" min="0" max="3" step="1" value="0" style="width:100%">
+      <button class="seg" id="mxSizeShip" style="width:100%;margin-top:12px;font-size:12px;color:var(--accent)">&#9654; <b>ship it</b> (0.82 &gt; 0.80, surely)</button>
+      <button class="seg" id="mxSizeDet" style="width:100%;margin-top:8px;font-size:12px">make it a deterministic check instead</button>
+      <div id="mxSizeNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: the confidence you did not buy --- */
+(function(){
+  const out=document.getElementById('mxSizeOut'), note=document.getElementById('mxSizeNote'),
+        nEl=document.getElementById('mxSizeN'), nv=document.getElementById('mxSizeNv'),
+        ship=document.getElementById('mxSizeShip'), det=document.getElementById('mxSizeDet');
+  if(!out) return;
+  const NS=[8,30,100,400], SCORE=0.82, LINE=0.80;
+  const WHAT=['find bugs, not measure quality','a smoke test: catches gross failures only',
+              'a go / no-go on one model; comparisons still shaky','can separate two models more than 10 points apart'];
+  let detOn=false, shipped=false;
+  const X=v=>30+v*400;
+  function moe(n){ return 1.96*Math.sqrt(0.25/n); }
+  function render(){
+    const n=NS[+nEl.value]; nv.textContent=n;
+    const m=detOn?0:moe(n);
+    const lo=Math.max(0,SCORE-m), hi=Math.min(1,SCORE+m);
+    out.innerHTML='<svg viewBox="0 0 460 120" role="img" aria-label="A score of 0.82 with its confidence band, against the ship line at 0.80." style="width:100%;height:auto">'
+      +'<line x1="30" y1="70" x2="430" y2="70" style="stroke:var(--line2);stroke-width:2"/>'
+      +[0,0.25,0.5,0.75,1].map(v=>tm(X(v),92,v.toFixed(2),'var(--dim)')).join('')
+      +'<line x1="'+X(LINE)+'" y1="24" x2="'+X(LINE)+'" y2="78" style="stroke:var(--red);stroke-dasharray:4 3"/>'
+      +tm(X(LINE),16,'ship line 0.80','var(--red)')
+      +(detOn?''
+        :'<rect x="'+X(lo)+'" y="58" width="'+(X(hi)-X(lo))+'" height="24" rx="6" style="fill:var(--accent-soft);stroke:var(--accent-line)"/>')
+      +'<circle cx="'+X(SCORE)+'" cy="70" r="6" style="fill:var(--accent)"/>'
+      +tm(X(SCORE),46,'measured 0.82','var(--accent)')
+      +(detOn?tm(X(SCORE),110,'a mechanical rule is right or wrong per document: no band','var(--green)')
+             :tm(X(lo),110,lo.toFixed(2),'var(--muted)')+tm(X(hi),110,hi.toFixed(2),'var(--muted)'))
+      +'</svg>'
+      +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px" class="mxbig">'
+      +'<span style="font-size:12px;color:var(--muted)">margin of error <b style="font-size:18px;color:'
+      +(detOn?'var(--green)':m>0.15?'var(--red)':m>0.07?'var(--amber)':'var(--green)')+'">'
+      +(detOn?'none':'&plusmn;'+(m*100).toFixed(0)+' pts')+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">what '+n+' learners is enough for: <b style="color:var(--text)">'+WHAT[+nEl.value]+'</b></span></div>';
+    if(shipped && !detOn){
+      note.innerHTML = '<div class="lzbad"><b>You shipped inside your own confidence band.</b> With '+n+' learners measured, the truth lives anywhere between '+lo.toFixed(2)+' and '+hi.toFixed(2)+'. That range contains a screener that finds nearly every learner who needs help, and one that misses most of them. The 0.82 cannot tell you which one you deployed.</div>'
+        +(n===400?'<div class="simnote" style="margin-top:10px"><b>Even 400 does not settle this one.</b> The band tightened to &plusmn;5 points, but the score sits only 2 points above the line, and a band wider than the gap can never clear it. Certifying a call this close needs roughly 2,400 learners: the sample you need depends on the size of the margin you are trying to prove, not just on wanting &ldquo;more data&rdquo;.</div>':'')
+        +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> A metric without a sample size is a vibe with a decimal point. Report the band next to every score, from the first one, so a bare 0.82 never invites a decision it cannot support.</div>';
+    } else if(detOn){
+      note.innerHTML='<div class="ok"><b>No band, at any n.</b> A rule like &ldquo;no internal codes in the text&rdquo; is exactly right or wrong on each single document. That is why the deterministic checks in the gates tab come first: they are the only numbers an eight-learner pilot can fully trust.</div>'
+        +'<div class="simnote" style="margin-top:10px">Everything statistical needs learners; everything mechanical does not. Spend scarce labelling time accordingly.</div>';
+    } else {
+      note.innerHTML='<div class="simnote">The dot never moves. Only what it is allowed to promise does.</div>';
+    }
+  }
+  nEl.addEventListener('input',()=>{detOn=false;render();});
+  ship.onclick=()=>{shipped=true;render();};
+  det.onclick=()=>{detOn=!detOn;det.textContent=detOn?'back to the measured score':'make it a deterministic check instead';render();};
+  render();
+})();
+
+/* ================= 2 · WHAT JUST HAPPENED ================= */
+document.getElementById('sec-mmap').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: something just happened, pick the first thing you look at</h2>
+  <div class="plain-line"><b>Try this:</b> seven moments from one week at the North centre. For each, pick the first check you would run. Exactly one is right per moment, the wrong ones explain themselves, and one instrument on the board is never the answer for anything.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>The triage chart on a clinic wall. No nurse asks &ldquo;which instrument is best&rdquo;; they ask what just happened to the patient, and the chart says what to check first.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>take the first moment and resist the instrument that sounds most official.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>golden set</b> a fixed set of cases you re-run so two versions can be compared line by line</span><span class="sp-w"><b>paired run</b> the same inputs through both candidates, scored by one judge</span><span class="sp-w"><b>judge</b> a model asked to score another model&rsquo;s output</span><span class="sp-w"><b>pinned</b> held at a fixed version so it cannot move mid-comparison</span><span class="sp-w"><b>taxonomy</b> rejection reasons coded into a fixed list so they can be counted</span><span class="sp-w"><b>drift</b> this week&rsquo;s inputs no longer looking like the baseline&rsquo;s</span><span class="sp-w"><b>deterministic gates</b> the exact per-document checks from the gates tab</span><span class="sp-w"><b>Recall@k</b> was the right passage anywhere in the top k fetched</span><span class="sp-w"><b>groundedness</b> is every claim traceable to a fetched passage</span><span class="sp-w"><b>enum</b> a field only allowed to hold values from a fixed list</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxMapOut"></div></div>
+    <div><div id="mxMapCtl"></div>
+      <div id="mxMapNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the triage desk --- */
+(function(){
+  const out=document.getElementById('mxMapOut'), note=document.getElementById('mxMapNote'),
+        ctl=document.getElementById('mxMapCtl');
+  if(!out) return;
+  const CHECKS=[
+    {k:'golden', n:'golden-set diff'},
+    {k:'paired', n:'paired run, judge pinned'},
+    {k:'taxo',   n:'rejection reasons, coded'},
+    {k:'drift',  n:'drift check against baseline'},
+    {k:'recall', n:'Recall@k, then groundedness'},
+    {k:'schema', n:'enum validity and required fields'},
+    {k:'gates',  n:'the four deterministic gates'},
+    {k:'acc',    n:'re-run overall accuracy'}
+  ];
+  const EVENTS=[
+    {e:'Someone reworded the screener&rsquo;s prompt last night', a:'golden',
+     why:'Prompt edits are the highest-frequency change and the least reviewable. Diff the scores on a fixed set, not the prose.'},
+    {e:'The underlying model is being swapped next month', a:'paired',
+     why:'Vary one thing. If the judge moves with the model being tested, you measured two changes and can attribute neither.'},
+    {e:'A teacher bounced Kai&rsquo;s report back with a note', a:'taxo',
+     why:'A qualified educator labelled an output unfit, in writing, for free. Code the reason and count it: the single highest-value signal you have.'},
+    {e:'A quiet week: nothing changed on your side', a:'drift',
+     why:'Nothing changed on your side does not mean nothing changed. The cohort, the upstream model, or the evidence can all move without you.'},
+    {e:'The curriculum passages were re-split and the search index rebuilt', a:'recall',
+     why:'Retrieval first: if the right passage stops coming back, every downstream score is grounded in the wrong evidence. Then check groundedness.'},
+    {e:'A new field was added to the output format', a:'schema',
+     why:'Deterministic, blocking, and cheap. A drifted output format is caught in milliseconds or discovered by a teacher staring at a blank section.'},
+    {e:'Tomorrow morning this batch reaches parents', a:'gates',
+     why:'Parents are the one audience with no professional filter in between. The exact per-document gates run on every report, every time.'}
+  ];
+  let cur=0, score=0, accGrabs=0, answered=false, results=[];
+  function render(){
+    if(cur>=EVENTS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+EVENTS.length+' first moves right'
+        +(accGrabs?', and you reached for &ldquo;overall accuracy&rdquo; '+accGrabs+' time'+(accGrabs>1?'s':'')+'':'')
+        +'.</b> The full routing table:</div>'
+        +'<div style="margin-top:10px">'+EVENTS.map((ev,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+          +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+          +'<span style="flex:1">'+ev.e+'</span><span class="k" style="color:var(--accent)">'+CHECKS.find(c=>c.k===ev.a).n+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="mxMapAgain" style="width:100%;font-size:12px">&#9654; run the week again</button>';
+      document.getElementById('mxMapAgain').onclick=()=>{cur=0;score=0;accGrabs=0;results=[];answered=false;render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> The exam question is never &ldquo;which metric is best&rdquo;. It is &ldquo;something happened, what do you look at first&rdquo;. Routing is the skill'
+        +(accGrabs===0?', and you never once grabbed the instrument that sounds safest and answers nothing.':': and &ldquo;overall accuracy&rdquo; felt safe precisely because it answers no specific question at all.')+'</div>';
+      return;
+    }
+    const ev=EVENTS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">MOMENT '+(cur+1)+' OF '+EVENTS.length+'</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet)"><b style="font-size:14px">'+ev.e+'</b></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">score so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">FIRST CHECK TO RUN</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +CHECKS.map(c=>'<button class="seg" data-k="'+c.k+'" style="text-align:left;font-size:12px">'+c.n+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(answered) return;
+      answered=true;
+      const pick=b.dataset.k, right=pick===ev.a;
+      if(pick==='acc') accGrabs++;
+      if(right) score++;
+      results.push(right);
+      b.classList.add('on');
+      note.innerHTML=(right
+        ? '<div class="ok"><b>Yes.</b> '+ev.why+'</div>'
+        : '<div class="lzbad"><b>Not first.</b> '+(pick==='acc'
+            ? 'Overall accuracy is the instrument that always sounds safe and never answers the question: on an imbalanced class it mostly measures how many learners are typical.'
+            : 'That check answers a different moment.')+' The first move here: <b>'+CHECKS.find(c=>c.k===ev.a).n+'</b>. '+ev.why+'</div>')
+        +'<button class="seg" id="mxMapNext" style="width:100%;margin-top:10px;font-size:12px">next moment &rarr;</button>';
+      document.getElementById('mxMapNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+    });
+  }
+  render();
+})();
+
+/* ================= 3 · FOUND VS FLAGGED ================= */
+document.getElementById('sec-mflag').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: two screeners, one identical F1</h2>
+  <div class="plain-line"><b>Try this:</b> the class of twenty. Gold rings mark the four learners their teacher says genuinely need high support. Compare the two screener versions, vote on which one ships, and then look at what the scoreboard did and did not see. You can also click any learner to build your own flag set.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A smoke alarm. A false alarm costs two minutes of waving a tea towel; a missed fire costs the house. No sane person averages those two costs into one number, yet that is exactly what F1 does.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>v1</b>, then <b>v2</b>, and watch the F1 readout while the missed count doubles.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>flagged</b> the model says this learner needs high support</span><span class="sp-w"><b>precision</b> of those we flagged, how many actually needed it</span><span class="sp-w"><b>recall</b> of those who needed it, how many we found</span><span class="sp-w"><b>F1</b> one number that averages the two, weighting both mistakes equally</span><span class="sp-w"><b>F2</b> the same idea, but a miss counts four times a false alarm</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxFlagOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="mxFlagCtl" style="flex-direction:row"></div>
+      <div id="mxFlagStats"></div>
+      <div id="mxFlagNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: the class grid and the F1 tie --- */
+(function(){
+  const out=document.getElementById('mxFlagOut'), note=document.getElementById('mxFlagNote'),
+        ctl=document.getElementById('mxFlagCtl'), stats=document.getElementById('mxFlagStats');
+  if(!out) return;
+  const KIDS=['Mira','Ben','Lena','Noor','Kai','Tara','Ravi','Suki','Tom','Ana','Leo','Zara','Josh','Emma','Priya','Sam','Ivy','Dan','Yuki','Rosa'];
+  const NEED=new Set(['Mira','Ben','Lena','Noor']);
+  const V1=new Set(['Mira','Ben','Lena','Kai','Tara']), V2=new Set(['Mira','Ben']);
+  let flags=new Set(V1), mode='v1';
+  const f=(p,r,b)=>(p+r===0)?0:(1+b*b)*p*r/(b*b*p+r);
+  function render(){
+    ctl.innerHTML=[['v1','screener v1'],['v2','screener v2 (cautious)'],['own','your own']]
+      .map(([k,n])=>'<button class="seg'+(mode===k?' on':'')+'" data-k="'+k+'" style="flex:1;font-size:12px">'+n+'</button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      mode=b.dataset.k;
+      if(mode==='v1') flags=new Set(V1);
+      if(mode==='v2') flags=new Set(V2);
+      render();});
+    out.innerHTML='<div class="mxgrid">'+KIDS.map(k=>{
+      const need=NEED.has(k), fl=flags.has(k);
+      return '<button type="button" class="mxkid'+(need?' need':'')+(fl?' flag':'')+'" data-k="'+k+'">'
+        +k+'<small>'+(need?(fl?'found':'MISSED'):(fl?'false flag':'&nbsp;'))+'</small></button>';
+    }).join('')+'</div>'
+    +'<div class="k" style="font-size:10.5px;color:var(--dim);margin-top:8px">gold ring = the teacher says high support is genuinely needed &middot; filled = the model flagged them &middot; click any learner to change the flags</div>';
+    out.querySelectorAll('.mxkid').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.k;
+      flags.has(k)?flags.delete(k):flags.add(k);
+      mode='own'; render();});
+    const TP=[...flags].filter(k=>NEED.has(k)).length, FP=flags.size-TP, FN=NEED.size-TP;
+    const P=flags.size?TP/flags.size:0, R=TP/NEED.size;
+    const missed=[...NEED].filter(k=>!flags.has(k));
+    stats.innerHTML='<div style="margin-top:12px">'
+      +[['precision',P,'of '+(flags.size||0)+' flagged, '+TP+' right'],
+        ['recall',R,'of 4 needing help, '+TP+' found'],
+        ['F1',f(P,R,1),'both mistakes priced the same'],
+        ['F2',f(P,R,2),'a miss counts 4x a false alarm']].map(([k,v,d])=>
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11.5px;padding:5px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:var(--muted)">'+k+'</span><span><b style="font-size:15px">'+v.toFixed(3)+'</b> <span style="font-size:10px;color:var(--dim)">'+d+'</span></span></div>').join('')
+      +'</div>'
+      +'<div class="lzhop" style="display:block;padding:9px 12px;margin-top:10px;border-left-color:'+(FN?'var(--red)':'var(--green)')+'">'
+      +'<span style="font-size:12px"><b>the bill:</b> '+(FN?FN+' term'+(FN>1?'s':'')+' of help lost ('+missed.join(', ')+')':'no one missed')
+      +' &middot; '+(FP?FP*20+' teacher minutes on false flags':'no teacher time wasted')+'</span></div>';
+    note.innerHTML = mode==='v2'
+      ? '<div class="lzbad"><b>Look at F1: 0.667, identical to v1 to three decimals, while the missed count doubled.</b> Lena joined Noor on the missed list, two terms of help lost instead of one, and the scoreboard that prices both mistakes equally registered nothing. F2 is the only headline that fell: 0.714 to 0.556.</div>'
+        +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> F1 is not neutral. Averaging the two mistakes evenly is a cost decision somebody made for you. Say the costs out loud, then choose the weighting: for screening, F2 makes &ldquo;a miss hurts more&rdquo; visible in the metric itself.</div>'
+      : mode==='v1'
+      ? '<div class="ok"><b>v1: precision 0.60, recall 0.75.</b> Two conversations, not one: recall 0.75 means Noor gets no help this term. Precision 0.60 means two of the five follow-ups were unnecessary. One is a learner, the other is forty minutes. Now press v2, which a colleague tuned to stop embarrassing itself with false flags.</div>'
+      : '<div class="simnote"><b>Your own screener.</b> Watch which numbers move as you click. Getting precision up is easy: flag less. Getting recall up is easy: flag everyone. The whole discipline is that neither is free, and F2 keeps the expensive mistake expensive.</div>';
+  }
+  render();
+})();
+
+/* ================= 4 · THE RANKED LIST ================= */
+document.getElementById('sec-mrank').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: the curve belongs to the model, the cut belongs to you</h2>
+  <div class="plain-line"><b>Try this:</b> underneath its low/med/high labels the screener has a score for every learner, which means it has a ranking, which means the threshold is a choice. Drag the cut line through the ranked class. Two things to find: a free improvement over the model&rsquo;s own default, and the exact price of reaching Noor.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A lifeguard walking down a line of swimmers the binoculars have ranked by worry. The binoculars did their job by ordering the line; how far down it you walk is the lifeguard&rsquo;s call, not the binoculars&rsquo;.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drag the cut from the model&rsquo;s default (after rank 5) up one row, and watch precision.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>score</b> the model&rsquo;s raw number for each learner, before any label</span><span class="sp-w"><b>threshold</b> the score above which a learner is flagged; also called the cut or operating point</span><span class="sp-w"><b>banding</b> the default thresholds that turned scores into low/med/high</span><span class="sp-w"><b>PR curve</b> every possible threshold&rsquo;s precision and recall, drawn as one line</span><span class="sp-w"><b>average precision (AP)</b> the area under that curve: one threshold-free number for comparing models</span><span class="sp-w"><b>precision</b> of those flagged, how many needed it</span><span class="sp-w"><b>recall</b> of those needing help, how many were found</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxRankOut" class="live"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">flag the top <b id="mxRankKv" style="color:var(--accent)">5</b> of 12</label>
+      <input id="mxRankK" type="range" min="1" max="12" step="1" value="5" style="width:100%">
+      <div id="mxRankCurve"></div>
+      <div id="mxRankNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: drag the operating point --- */
+(function(){
+  const out=document.getElementById('mxRankOut'), note=document.getElementById('mxRankNote'),
+        kEl=document.getElementById('mxRankK'), kv=document.getElementById('mxRankKv'),
+        curve=document.getElementById('mxRankCurve');
+  if(!out) return;
+  const ROWS=[['Mira',0.91,1],['Ben',0.88,1],['Kai',0.86,0],['Lena',0.79,1],['Tara',0.71,0],
+              ['Ravi',0.66,0],['Suki',0.62,0],['Tom',0.58,0],['Ana',0.55,0],['Leo',0.51,0],
+              ['Zara',0.47,0],['Noor',0.44,1]];
+  const POS=ROWS.filter(r=>r[2]).length;
+  /* average precision: mean of precision at each relevant rank */
+  let ap=0, tpc=0;
+  ROWS.forEach((r,i)=>{ if(r[2]){ tpc++; ap+=tpc/(i+1); } });
+  ap/=POS;
+  function pr(k){ const tp=ROWS.slice(0,k).filter(r=>r[2]).length; return [tp/k, tp/POS]; }
+  function render(){
+    const k=+kEl.value; kv.textContent=k;
+    const [P,R]=pr(k);
+    const missed=ROWS.slice(k).filter(r=>r[2]).map(r=>r[0]);
+    out.innerHTML=ROWS.map((r,i)=>{
+      const above=i<k;
+      return '<div class="mxrank'+(above?' above':'')+'" style="margin-bottom:4px'+(above?'':';opacity:.55')+'">'
+        +'<span class="sc">'+r[1].toFixed(2)+'</span>'
+        +'<span class="nm"'+(r[2]?' style="font-weight:600"':'')+'>'+r[0]+(r[2]?' &#9678;':'')+'</span>'
+        +'<div style="flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden">'
+        +'<div style="height:100%;width:'+(r[1]*100)+'%;background:'+(r[2]?'var(--accent)':'var(--wire)')+';border-radius:99px"></div></div>'
+        +(above?'<span class="mxchip '+(r[2]?'ok':'warn')+'">'+(r[2]?'found':'false flag')+'</span>':'')
+        +'</div>'
+        +(i===4?'<div class="k" style="font-size:10px;color:var(--violet);margin:2px 0 6px 53px">&#9650; the model&rsquo;s own banding cut here</div>':'');
+    }).join('')
+    +'<div class="k" style="font-size:10.5px;color:var(--dim);margin-top:6px">&#9678; = genuinely needs high support (4 of 12 in this view)</div>';
+    /* PR curve with the moving dot */
+    const px=r=>18+r*120, py=p=>92-p*76;
+    let path='', prev=null;
+    for(let kk=1;kk<=12;kk++){ const [pp,rr]=pr(kk); path+=(kk===1?'M':' L')+px(rr)+' '+py(pp); }
+    curve.innerHTML='<svg viewBox="0 0 160 112" role="img" aria-label="The precision-recall curve with the current threshold as a moving dot." style="width:100%;height:auto;margin-top:10px">'
+      +'<line x1="18" y1="92" x2="150" y2="92" style="stroke:var(--line2)"/>'
+      +'<line x1="18" y1="16" x2="18" y2="92" style="stroke:var(--line2)"/>'
+      +'<path d="'+path+'" style="fill:none;stroke:var(--accent);stroke-width:1.8"/>'
+      +'<circle cx="'+px(R)+'" cy="'+py(P)+'" r="4.5" style="fill:var(--amber)"/>'
+      +tm(84,104,'recall &rarr;','var(--dim)')+tm(10,54,'P','var(--dim)')
+      +tm(84,12,'AP '+ap.toFixed(2)+': never moves','var(--dim)')
+      +'</svg>';
+    note.innerHTML =
+      (k===5
+        ? '<div class="simnote"><b>The default: precision '+P.toFixed(2)+', recall '+R.toFixed(2)+'.</b> This is where the model&rsquo;s banding drew the line. Drag up one.</div>'
+        : k===4
+        ? '<div class="ok"><b>Same recall, better precision: 0.75 and 0.75.</b> One row up from the shipped default, Tara&rsquo;s false flag disappears and nobody new is missed. The model&rsquo;s own cut was strictly beatable, which is the whole argument for evaluating the score rather than trusting the label.</div>'
+        : k===12
+        ? '<div class="lzwarn"><b>Recall 1.00, at last: Noor is found. Price: precision 0.33.</b> Eight false flags, 160 teacher minutes, to stop one learner losing a term of help. Whether that trade is right is a question about learners and budgets, and it belongs to people. &ldquo;Recall at least 0.9, and tell me what precision that costs&rdquo; is a decision a committee can actually take.</div>'
+        : missed.length===0
+        ? '<div class="ok"><b>Everyone found at k='+k+'.</b> Precision '+P.toFixed(2)+': read the false-flag chips to see who is paying for it.</div>'
+        : '<div class="simnote"><b>Precision '+P.toFixed(2)+', recall '+R.toFixed(2)+'.</b> Still missed: '+missed.join(', ')+'.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>Watch the shaded fact.</b> Through every drag, average precision stayed at '+ap.toFixed(2)+'. The curve is the model&rsquo;s property and is how you compare model A with model B; the dot on it is your policy. The curve belongs to the model, the cut belongs to the committee.</div>';
+  }
+  kEl.addEventListener('input',render);
+  render();
+})();
+
+/* ================= 5 · HOW WRONG, HOW OFTEN ================= */
+document.getElementById('sec-mband').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: one big miss is not two small ones</h2>
+  <div class="plain-line"><b>Try this:</b> the screener places each learner in a band: low, med or high support. Bands are ordered, so being one band out is a small miss and two bands out is a catastrophe. Load the two preset worlds, watch one scoreboard refuse to tell them apart, then build the worst world you can without moving that scoreboard at all.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A pharmacy&rsquo;s error log. Five tiny rounding slips are not the same as one patient given a tenth of their dose, even if the average error comes out identical.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>case A</b>, then <b>case B</b>, and watch the left readout not move.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>band</b> low, med or high support, scored 0, 1, 2 because the order matters</span><span class="sp-w"><b>MAE</b> mean absolute error: the average number of bands the model is out by</span><span class="sp-w"><b>quadratic penalty</b> errors squared before averaging, so a two-band miss costs four, not two</span><span class="sp-w"><b>ordinal</b> categories with an order, where distance between them means something</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxBandOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="mxBandCtl" style="flex-direction:row"></div>
+      <div id="mxBandStats"></div>
+      <div id="mxBandNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: MAE vs the quadratic penalty --- */
+(function(){
+  const out=document.getElementById('mxBandOut'), note=document.getElementById('mxBandNote'),
+        ctl=document.getElementById('mxBandCtl'), stats=document.getElementById('mxBandStats');
+  if(!out) return;
+  const BANDS=['low','med','high'];
+  const TRUTH={Mira:1, Kai:0, Tara:1, Ben:2, Lena:0};
+  const CASEA={Mira:2, Kai:1, Tara:1, Ben:2, Lena:0};   /* two one-band misses */
+  const CASEB={Mira:1, Kai:0, Tara:1, Ben:0, Lena:0};   /* one two-band miss on Ben */
+  let pred={...CASEA}, mode='A';
+  function render(){
+    ctl.innerHTML=[['A','case A: small misses'],['B','case B: one big miss'],['own','build your own']]
+      .map(([k,n])=>'<button class="seg'+(mode===k?' on':'')+'" data-k="'+k+'" style="flex:1;font-size:11.5px">'+n+'</button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      mode=b.dataset.k;
+      if(mode==='A') pred={...CASEA};
+      if(mode==='B') pred={...CASEB};
+      render();});
+    const names=Object.keys(TRUTH);
+    out.innerHTML='<div class="simnote" style="margin-bottom:8px">Grey dot: the teacher&rsquo;s band. Coloured dot: the model&rsquo;s. Click a learner&rsquo;s coloured dot to cycle it.</div>'
+      +names.map(n=>{
+        const t=TRUTH[n], p=pred[n], d=Math.abs(t-p);
+        const X=b=>90+b*150;
+        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px'+(d===2?';background:var(--accent-soft);border-radius:8px;padding:2px 4px':'')+'">'
+          +'<span class="k" style="min-width:44px;font-size:12px'+(d===2?';color:var(--red);font-weight:600':'')+'">'+n+'</span>'
+          +'<svg viewBox="0 0 480 30" style="flex:1;height:26px">'
+          +'<line x1="90" y1="15" x2="390" y2="15" style="stroke:var(--line2)"/>'
+          +BANDS.map((b,i)=>tm(X(i),27,b,'var(--dim)')).join('')
+          +(d>0?'<line x1="'+X(t)+'" y1="15" x2="'+X(p)+'" y2="15" style="stroke:'+(d===2?'var(--red)':'var(--amber)')+';stroke-width:2.5" marker-end="url(#ah)"/>':'')
+          +'<circle cx="'+X(t)+'" cy="15" r="6" style="fill:var(--wire)"/>'
+          +'<circle class="mxcy" data-n="'+n+'" cx="'+X(p)+'" cy="15" r="7" style="fill:'+(d===0?'var(--green)':d===1?'var(--amber)':'var(--red)')+';cursor:pointer"/>'
+          +'</svg>'
+          +'<span class="k" style="min-width:70px;font-size:10.5px;color:var(--dim)">off by '+d+' &middot; sq '+(d*d)+'</span></div>';
+      }).join('');
+    out.querySelectorAll('.mxcy').forEach(c=>c.addEventListener('click',()=>{
+      const n=c.dataset.n; pred[n]=(pred[n]+1)%3; mode='own'; render();}));
+    const errs=names.map(n=>Math.abs(TRUTH[n]-pred[n]));
+    const mae=errs.reduce((a,b)=>a+b,0)/names.length;
+    const quad=errs.reduce((a,b)=>a+b*b,0);
+    stats.innerHTML='<div style="display:flex;gap:18px;margin-top:12px" class="mxbig">'
+      +'<span style="font-size:12px;color:var(--muted)">MAE <b style="font-size:22px;color:'+(mae<=0.4?'var(--amber)':'var(--red)')+'">'+mae.toFixed(2)+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">quadratic penalty <b style="font-size:22px;color:'+(quad<=2?'var(--amber)':'var(--red)')+'">'+quad+'</b></span></div>';
+    const ben2=Math.abs(TRUTH.Ben-pred.Ben)===2;
+    note.innerHTML =
+      (mode==='A'
+        ? '<div class="simnote"><b>Two learners each one band out: MAE 0.40, quadratic penalty 2.</b> Annoying, survivable: both misses are near misses. Now press case B.</div>'
+        : mode==='B'
+        ? '<div class="lzbad"><b>MAE still says 0.40. Nothing moved.</b> But this world contains Ben, a learner who needs the most help, being sent home with a &ldquo;doing fine&rdquo; report: the exact error that costs a term. Only the quadratic penalty sees the difference: 2 became 4, because 2 squared is 4.</div>'
+        : '<div class="simnote"><b>Your world: MAE '+mae.toFixed(2)+', quadratic '+quad+'.</b> Challenge: keep MAE at exactly 0.40 while making the quadratic penalty as bad as you can. (Best possible: one two-band miss, quadratic 4.)'+(ben2?' You found it: '+'Ben at two bands out is the whole difference.':'')+'</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> MAE is the sentence you say to a committee: &ldquo;we are on average 0.4 of a band out&rdquo;. The quadratic weighting is the number you decide with, because it knows one catastrophe is not the same as two slips. Report both, and always look at which learners sit in the corner of the error table.</div>';
+  }
+  render();
+})();
+
+/* ================= 8 · GATES THAT NEVER FLAKE ================= */
+document.getElementById('sec-mgate').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: four locks, zero opinions, and a deadband</h2>
+  <div class="plain-line"><b>Try this:</b> a draft report for Ben, about to go to his parents, with four faults planted in it. Each gate is a plain mechanical rule: no model, no labels, no sample-size problem. Fix the faults by clicking them, try to unlock the door, then re-run the gates a hundred times and see what never happens. Below that: two learners split by 0.0007, and the slider that stops the dashboard lying.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Airport security. The metal detector does not sample five percent of passengers, has no opinion, and beeps the same way every single time. You still want detectives, just not for belt buckles.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>click the highlighted faults in the report, one at a time, and watch the lamps.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>deterministic</b> the same input always gives the same verdict: right or wrong on one document</span><span class="sp-w"><b>gate</b> a check that blocks publication when it trips, rather than scoring</span><span class="sp-w"><b>enum</b> a field only allowed to hold values from a fixed list</span><span class="sp-w"><b>roster</b> the class list, used to spot other learners&rsquo; names in a report</span><span class="sp-w"><b>deadband</b> a small zone around zero treated as &ldquo;no change&rdquo; so decimal noise cannot flip a label</span><span class="sp-w"><b>flake</b> a check that passes and fails on different runs of the same thing</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxGateOut"></div></div>
+    <div><div id="mxGateLamps"></div>
+      <button class="seg" id="mxGateHundred" style="width:100%;margin-top:10px;font-size:12px">re-run the gates &times;100</button>
+      <div id="mxGateNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+
+  <div style="border-top:1px solid var(--line);margin-top:18px;padding-top:16px">
+  <h2 class="sec">The deadband: 0.0007 apart, opposite columns</h2>
+  <div class="sim-layout">
+    <div><div id="mxDeadOut" class="live"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">deadband: treat &plusmn;<b id="mxDeadV" style="color:var(--accent)">0.000</b> as no change</label>
+      <input id="mxDeadR" type="range" min="0" max="10" step="1" value="0" style="width:100%">
+      <div id="mxDeadNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+  </div>
+</div>`;
+
+/* --- SIM: the four gates --- */
+(function(){
+  const out=document.getElementById('mxGateOut'), note=document.getElementById('mxGateNote'),
+        lampsEl=document.getElementById('mxGateLamps'), hundred=document.getElementById('mxGateHundred');
+  if(!out) return;
+  const FAULTS={code:true, roster:true, enume:true, band:true};
+  const GATES=[
+    {k:'code',  n:'internal-code scan', how:'a regex over the text', msg:'found &ldquo;L3.2&rdquo;: internal curriculum codes mean nothing to a parent'},
+    {k:'roster',n:'roster cross-check', how:'class list minus Ben', msg:'found &ldquo;Kai&rdquo; in Ben&rsquo;s report: a privacy incident, not a quality issue'},
+    {k:'enume', n:'enum validity', how:'band must be in {low, med, high}', msg:'&ldquo;medium&rdquo; is not in the allowed list; a strict reader downstream would show a blank'},
+    {k:'band',  n:'score-band consistency', how:'a score of 0.70 or above must carry band &ldquo;high&rdquo;', msg:'reading score 0.85 labelled &ldquo;low&rdquo;: the number and the label contradict'}
+  ];
+  function render(runs){
+    const seg=(k,txt,fixed)=>FAULTS[k]
+      ? '<b class="mxfault" data-k="'+k+'" style="color:var(--red);cursor:pointer;border-bottom:2px dashed var(--red)" title="click to fix">'+txt+'</b>'
+      : '<span style="color:var(--green)">'+fixed+'</span>';
+    out.innerHTML='<div class="lzhop" style="display:block;padding:13px 15px;border-left-color:var(--violet);font-size:13.5px;line-height:1.75">'
+      +'<div class="k" style="font-size:10px;color:var(--dim);margin-bottom:6px">DRAFT &middot; PARENT REPORT &middot; BEN</div>'
+      +'Ben has grown in confidence this term. He is beginning to sound out longer words '
+      +seg('code','(code L3.2)','')+' and enjoys reading with a partner, '
+      +seg('roster','like his classmate Kai','showing patience with tricky pages')+'. '
+      +'His writing band is '+seg('enume','&ldquo;medium&rdquo;','&ldquo;med&rdquo;')+', and his reading is '
+      +seg('band','(score 0.85, band low)','(score 0.85, band high)')+'. '
+      +'At home, ten minutes of shared reading before bed would help most.</div>'
+      +'<div class="k" style="font-size:10.5px;color:var(--dim);margin-top:8px">click a dashed red fault to fix it</div>';
+    out.querySelectorAll('.mxfault').forEach(f=>f.onclick=()=>{FAULTS[f.dataset.k]=false;render();});
+    const tripped=GATES.filter(g=>FAULTS[g.k]);
+    lampsEl.innerHTML=GATES.map(g=>'<div class="lzhop" style="display:block;padding:9px 11px;margin-bottom:7px;border-left-color:'+(FAULTS[g.k]?'var(--red)':'var(--green)')+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:12px">'+g.n+'</b>'
+      +'<span class="mxchip '+(FAULTS[g.k]?'bad':'ok')+'">'+(FAULTS[g.k]?'BLOCKED':'clear')+'</span></div>'
+      +'<div class="k" style="font-size:10.5px;color:var(--muted);margin-top:3px">'+g.how+'</div>'
+      +(FAULTS[g.k]?'<div style="font-size:11.5px;color:var(--red);margin-top:4px">'+g.msg+'</div>':'')
+      +'</div>').join('')
+      +'<div class="lzhop" style="display:block;padding:10px 12px;border-left-color:'+(tripped.length?'var(--red)':'var(--green)')+'">'
+      +'<b style="font-size:12.5px">'+(tripped.length?'&#128274; held: '+tripped.length+' gate'+(tripped.length>1?'s':'')+' tripped':'&#128275; released to parents')+'</b></div>';
+    note.innerHTML=(runs
+      ? '<div class="ok"><b>100 runs, 100 identical verdicts, 0 flakes, sample size needed: 1 document.</b> No judge has an off day here because there is no judgement: each rule is exactly right or wrong about each report. This is why gates run on every single report while statistical checks run on samples.</div>'
+      : tripped.length===0
+      ? '<div class="ok"><b>Released.</b> Notice what fixing felt like: mechanical. Nothing was scored, weighed, or sampled. The roster check deserves its different label: another learner&rsquo;s name in a parent report is not a quality problem, it is a disclosure, and it is caught with data you already hold.</div>'
+      : '<div class="simnote">Every lamp is a rule a first-year programmer could write in an afternoon, and together they catch the worst failures this system can produce. Model graders and scorecards come after this door, never instead of it.</div>')
+      +(runs||tripped.length===0?'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> Before anything reaches a parent, run the checks that cannot flake. Gates first, judgement later.</div>':'');
+  }
+  hundred.onclick=()=>render(true);
+  render();
+})();
+
+/* --- SIM: the deadband --- */
+(function(){
+  const out=document.getElementById('mxDeadOut'), note=document.getElementById('mxDeadNote'),
+        r=document.getElementById('mxDeadR'), v=document.getElementById('mxDeadV');
+  if(!out) return;
+  const KIDS=[['Kai',0.0004],['Lena',-0.0003],['Tara',-0.31],['Mira',0.28]];
+  function col(d,band){ return Math.abs(d)<=band ? 'No Change' : d>0 ? 'Improving' : 'Needs Attention'; }
+  function render(){
+    const band=(+r.value)*0.01;
+    v.textContent=band.toFixed(2);
+    out.innerHTML='<div class="simnote" style="margin-bottom:8px">Each learner&rsquo;s term-on-term change is an average of at most four domain scores. The dashboard columns split on its sign.</div>'
+      +KIDS.map(([n,d])=>{
+        const c=col(d,band);
+        const flip=Math.abs(d)<0.01;
+        return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:7px">'
+          +'<span class="k" style="min-width:44px;font-size:12px">'+n+'</span>'
+          +'<span class="k" style="min-width:74px;font-size:11.5px;color:var(--muted)">'+(d>=0?'+':'')+d.toFixed(4)+'</span>'
+          +'<span class="mxchip '+(c==='Needs Attention'?'bad':c==='Improving'?'ok':'')+'"'+(flip&&band===0?' style="outline:2px solid var(--red);outline-offset:2px"':'')+'>'+c+'</span>'
+          +(flip?'<span class="k" style="font-size:10.5px;color:'+(band>=0.0007?'var(--green)':'var(--red)')+'">'
+            +(band>=0.0007?'':'0.0007 from the opposite column')+'</span>':'')
+          +'</div>';
+      }).join('');
+    note.innerHTML = (+r.value)===0
+      ? '<div class="lzbad"><b>Kai and Lena differ by 0.0007, and sit in opposite columns.</b> One of those columns asks a teacher to intervene and starts a worried conversation at home. The split is on the exact sign of a tiny decimal average: this is not the screener being wrong, it is a boundary with no tolerance measuring noise.</div>'
+      : (+r.value)>=5
+      ? '<div class="ok"><b>Both No Change.</b> With a &plusmn;'+ (band).toFixed(2)+' deadband, a difference no teacher could observe no longer flips a label. Tara and Mira still move columns, because their changes are real. Fix the boundary before you measure the screener: otherwise the &ldquo;Needs Attention&rdquo; numbers are mostly measuring decimal noise.</div>'
+      : '<div class="simnote">Widen it. The deadband needed here is tiny: &plusmn;0.05 is enough to stop the noise flipping labels while leaving real changes untouched.</div>';
+  }
+  r.addEventListener('input',render);
+  render();
+})();
+
+/* ================= 9 · WATCHING THE WATCHERS ================= */
+document.getElementById('sec-mwatch').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: grade the examiner first</h2>
+  <div class="plain-line"><b>Try this:</b> most numbers in this lab were scored by an LLM judge. Nothing so far established that the judge itself can be trusted. An educator has labelled fifty sentences from real reports; run the judge over the same fifty, grade the grader, and then drag its quality down and watch what happens to every dashboard built on top of it.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Before a new marker touches real exam scripts, the head teacher quietly hands them fifty already-marked ones and compares. Nobody grades unsupervised on day one.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>run the judge on the fifty</b>, then drag the what-if handle below 0.6.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>judge</b> a model asked to score another model&rsquo;s output</span><span class="sp-w"><b>unsupported</b> a sentence making a claim the learner&rsquo;s notes do not back: a fabrication</span><span class="sp-w"><b>rubric</b> the scoring checklist a judge applies</span><span class="sp-w"><b>precision</b> when the judge cries foul, how often it is right</span><span class="sp-w"><b>recall</b> of the real fabrications, how many it catches</span><span class="sp-w"><b>agreement</b> how often the judge and the educator label a sentence the same way</span><span class="sp-w"><b>symmetric costs</b> both error directions hurt equally, which is the one case where F1 is the right summary</span><span class="sp-w"><b>position bias</b> judges favour whichever answer they read first</span><span class="sp-w"><b>self-preference</b> judges favour text written by their own model family</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxJudgeOut" class="live"></div></div>
+    <div>
+      <button class="seg" id="mxJudgeRun" style="width:100%;font-size:12px;color:var(--accent)">&#9654; <b>run the judge on the fifty</b></button>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:12px 0 4px">what if the judge&rsquo;s F1 against the educator were <b id="mxJudgeQv" style="color:var(--accent)">0.76</b></label>
+      <input id="mxJudgeQ" type="range" min="40" max="95" step="1" value="76" style="width:100%" disabled>
+      <div class="segmented" id="mxJudgeBias" style="flex-direction:column;align-items:stretch;margin-top:12px"></div>
+      <div id="mxJudgeNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: the alarm that needs no labels</h2>
+  <div class="plain-line"><b>Try this:</b> nothing changed on your side this week: no prompt edits, no model swap, no new chunks. Drag this week&rsquo;s intake mix away from the baseline and watch the one alarm that fires anyway, then ask it what happened and listen carefully to what it refuses to say.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A shop&rsquo;s door counter. It cannot tell you why footfall tripled overnight, but you want that alarm long before the stockroom finds out the hard way.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drag the share of high-support learners from 0.11 towards 0.35 and watch the gauge cross 0.25.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>baseline</b> a frozen snapshot of what the inputs used to look like</span><span class="sp-w"><b>distribution</b> the shares of learners at each support level</span><span class="sp-w"><b>drift</b> this week&rsquo;s distribution no longer matching the baseline&rsquo;s</span><span class="sp-w"><b>PSI</b> population stability index: one number for how far the mix has moved</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxDriftOut" class="live"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">share of high-support learners this week: <b id="mxDriftV" style="color:var(--accent)">0.11</b></label>
+      <input id="mxDriftR" type="range" min="0" max="24" step="1" value="0" style="width:100%">
+      <div class="segmented" id="mxDriftWhy" style="flex-direction:column;align-items:stretch;margin-top:12px"></div>
+      <div id="mxDriftNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: an average is a place to hide</h2>
+  <div class="plain-line"><b>Try this:</b> across the whole chain, thirteen learners genuinely needed support and the screener found eight. Recall 0.62: defensible, almost respectable. Split it by centre, then run a two-click experiment the aggregate cannot tell apart.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A city&rsquo;s average ambulance response time can look fine while one district quietly waits twice as long. Nobody lives at the average.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>split by centre</b>, then click one hollow dot at North and one at River and compare.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>slice</b> the same metric computed separately per group</span><span class="sp-w"><b>aggregate</b> the one number computed over everybody at once</span><span class="sp-w"><b>equal-opportunity difference</b> the gap between the best and worst group&rsquo;s recall</span><span class="sp-w"><b>found</b> a learner who needed support and was flagged by the screener</span><span class="sp-w"><b>recall</b> the share of needy learners the screener found</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxFairOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="mxFairCtl" style="flex-direction:row"></div>
+      <button class="seg" id="mxFairReset" style="width:100%;margin-top:10px;font-size:12px">reset the experiment</button>
+      <div id="mxFairNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: grade the grader --- */
+(function(){
+  const out=document.getElementById('mxJudgeOut'), note=document.getElementById('mxJudgeNote'),
+        run=document.getElementById('mxJudgeRun'), q=document.getElementById('mxJudgeQ'),
+        qv=document.getElementById('mxJudgeQv'), biasEl=document.getElementById('mxJudgeBias');
+  if(!out) return;
+  /* educator truth: 10 unsupported, 40 supported. judge: TP 8, FN 2, FP 3, TN 37 */
+  let ran=false, bias=null;
+  const BIASES=[
+    {k:'pos', n:'swap the answer order', r:'The judge&rsquo;s winner flips when A and B trade places. Fix: score both orders and average, or you are measuring layout.'},
+    {k:'len', n:'pad one answer with forty words of fluff', r:'The longer answer&rsquo;s score creeps up with zero new facts. Judges reward length; cap it or normalise for it.'},
+    {k:'self', n:'let the generator mark its own work', r:'The score jumps. Rule with no exceptions: never let the model mark its own homework. Keep the generator and the judge on separate, pinned versions.'}
+  ];
+  function render(){
+    const cells=[];
+    for(let i=0;i<50;i++){
+      const unsupported=i<10;
+      let cls='ok', title='supported, judge agrees';
+      if(ran){
+        if(unsupported && i<8){cls='ok'; title='fabrication, caught';}
+        else if(unsupported){cls='bad'; title='fabrication, MISSED by the judge';}
+        else if(i>=10&&i<13){cls='warn'; title='supported, wrongly accused';}
+        else {cls=''; title='supported, judge agrees';}
+      } else { cls=unsupported?'bad':''; title=unsupported?'educator: unsupported':'educator: supported'; }
+      cells.push('<span title="'+title+'" style="display:inline-block;width:15px;height:15px;margin:2px;border-radius:4px;background:'
+        +(cls==='ok'?'var(--green)':cls==='bad'?'var(--red)':cls==='warn'?'var(--amber)':'var(--panel2)')
+        +';border:1px solid var(--line2)"></span>');
+    }
+    const agree=(+q.value)/100;
+    const fog=agree<0.6;
+    out.innerHTML='<div class="simnote" style="margin-bottom:6px">'
+      +(ran?'Green: fabrication caught (8). Red: fabrication missed (2). Amber: wrongly accused (3). Plain: agreed supported (37).'
+           :'Fifty sentences. Red: the educator marked the claim unsupported (10). Plain: supported (40).')+'</div>'
+      +'<div style="margin-bottom:10px">'+cells.join('')+'</div>'
+      +(ran?'<div style="display:flex;gap:14px;flex-wrap:wrap" class="mxbig">'
+        +'<span style="font-size:12px;color:var(--muted)">precision <b style="font-size:18px">0.73</b></span>'
+        +'<span style="font-size:12px;color:var(--muted)">recall <b style="font-size:18px">0.80</b></span>'
+        +'<span style="font-size:12px;color:var(--muted)">F1 <b style="font-size:18px;color:var(--green)">0.76</b> <span class="k" style="font-size:10px;color:var(--dim)">floor: 0.60</span></span></div>':'')
+      +(ran?'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">every rubric number downstream inherits this judge:</div>'
+        +'<div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">'
+        +[['groundedness','0.88'],['tone','0.91'],['completeness','0.84']].map(([n,v])=>
+          '<div style="border:1px solid var(--line2);border-radius:9px;padding:8px 12px;'+(fog?'opacity:.3;filter:blur(1px)':'')+'">'
+          +'<div class="k" style="font-size:10px;color:var(--dim)">'+n+'</div><b class="mxbig" style="font-size:16px">'+v+'</b></div>').join('')
+        +'</div>'+(fog?'<div class="k" style="font-size:11px;color:var(--red);margin-top:6px">built on a judge below the floor: decoration, not measurement</div>':''):'');
+    biasEl.innerHTML=ran?BIASES.map(b=>'<button class="seg'+(bias===b.k?' on':'')+'" data-k="'+b.k+'" style="text-align:left;font-size:12px">'+b.n+'</button>').join(''):'';
+    biasEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{bias=b.dataset.k;render();});
+    note.innerHTML = !ran
+      ? '<div class="simnote">The educator&rsquo;s labels are the answer key here. The judge is about to be the student.</div>'
+      : bias
+      ? '<div class="lzwarn"><b>'+BIASES.find(b=>b.k===bias).n+'.</b> '+BIASES.find(b=>b.k===bias).r+'</div>'
+        +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> Using a judge does not skip measurement; it moves it one level up. Grade the grader on fifty before it grades five thousand.</div>'
+      : fog
+      ? '<div class="lzbad"><b>Below an F1 of 0.60 against the educator, the fog is the honest rendering.</b> If the judge is wrong the same way every time, every metric built on it looks stable while being wrong. The dashboard did not get worse; your knowledge of it did.</div>'
+      : '<div class="ok"><b>F1 0.76, and F1 is exactly right here, for once.</b> A judge that cries fabrication at supported sentences wastes an educator&rsquo;s re-check; one that misses real fabrications is worthless. Both mistakes cost the same thing, so the even-handed average finally fits. Compare the screener itself, where a miss costs a term: same formula, wrong tool there, right tool here.</div>'
+        +'<div class="simnote" style="margin-top:10px">Also standard practice: pin the judge&rsquo;s version (a judge upgrade silently rescores history), prefer &ldquo;is A better than B&rdquo; over &ldquo;score A out of ten&rdquo; for comparisons, and try the three probes below.</div>';
+  }
+  run.onclick=()=>{ran=true;q.disabled=false;render();};
+  q.addEventListener('input',()=>{qv.textContent=((+q.value)/100).toFixed(2);render();});
+  render();
+})();
+
+/* --- SIM: drift, PSI, and the refusal --- */
+(function(){
+  const out=document.getElementById('mxDriftOut'), note=document.getElementById('mxDriftNote'),
+        r=document.getElementById('mxDriftR'), v=document.getElementById('mxDriftV'),
+        why=document.getElementById('mxDriftWhy');
+  if(!out) return;
+  const BASE=[0.45,0.44,0.11];              /* low, med, high */
+  const END=[0.197,0.453,0.35];             /* lands PSI on 0.487 */
+  const CAUSES=[
+    'a new intake of learners arrived',
+    'teachers changed how they write notes',
+    'the model was updated underneath you'
+  ];
+  let asked=null;
+  function mix(t){ return BASE.map((b,i)=>b+(END[i]-b)*t); }
+  function psi(cur){ return cur.reduce((s,c,i)=>s+(c-BASE[i])*Math.log(c/BASE[i]),0); }
+  function render(){
+    const t=(+r.value)/24, cur=mix(t), p=psi(cur);
+    v.textContent=cur[2].toFixed(2);
+    const LBL=['low','med','high'];
+    const bars=(arr,name)=>'<div style="flex:1"><div class="k" style="font-size:10px;color:var(--dim);margin-bottom:4px">'+name+'</div>'
+      +arr.map((x,i)=>'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+        +'<span class="k" style="font-size:10px;min-width:28px;color:var(--muted)">'+LBL[i]+'</span>'
+        +'<div style="flex:1;height:12px;background:var(--panel2);border-radius:99px;overflow:hidden">'
+        +'<div style="height:100%;width:'+(x*100)+'%;background:'+(i===2?'var(--accent)':'var(--wire)')+';border-radius:99px"></div></div>'
+        +'<span class="k" style="font-size:10px;min-width:30px">'+x.toFixed(2)+'</span></div>').join('')+'</div>';
+    const zone=p<0.10?['steady','var(--green)']:p<0.25?['watch','var(--amber)']:['INVESTIGATE','var(--red)'];
+    out.innerHTML='<div style="display:flex;gap:16px">'+bars(BASE,'BASELINE (frozen)')+bars(cur,'THIS WEEK')+'</div>'
+      +'<div style="display:flex;gap:14px;align-items:baseline;margin-top:12px" class="mxbig">'
+      +'<span style="font-size:12px;color:var(--muted)">PSI <b style="font-size:22px;color:'+zone[1]+'">'+p.toFixed(3)+'</b></span>'
+      +'<span class="mxchip" style="color:'+zone[1]+';border-color:'+zone[1]+'">'+zone[0]+'</span>'
+      +'<span class="k" style="font-size:10.5px;color:var(--dim)">zones: &lt;0.10 steady &middot; 0.10&ndash;0.25 watch &middot; &gt;0.25 investigate</span></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:8px">labels used: <b style="color:var(--green)">none</b> &middot; changes on your side this week: <b style="color:var(--green)">none</b></div>';
+    why.innerHTML=p>0.25?'<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:4px">ASK THE ALARM WHY</div>'
+      +CAUSES.map((c,i)=>'<button class="seg'+(asked===i?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px">was it: '+c+'?</button>').join(''):'';
+    why.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{asked=+b.dataset.i;render();});
+    note.innerHTML = p<0.10
+      ? '<div class="simnote">This week looks like the baseline. Drag the share and watch the gauge: the share of high-support calls is about to triple with no change on your side.</div>'
+      : asked!==null && p>0.25
+      ? '<div class="lzwarn"><b>Plausible. PSI cannot tell you that.</b> Every cause you can click is consistent with the same number. The alarm knows exactly one thing, and it is enough to act on: this week is not last week, go and look. The three causes you just clicked are the investigation checklist.</div>'
+        +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> Drift is a smoke alarm, not a fire report. Its power is that it needs no labels; its limit is that it names no cause. Have it before the labelled set exists.</div>'
+      : p>0.25
+      ? '<div class="lzbad"><b>PSI '+p.toFixed(3)+', deep in the red, and your change log is empty.</b> High-support calls went from 0.11 to '+cur[2].toFixed(2)+' of the intake. Either the cohort changed, the model changed underneath you, or the evidence being retrieved changed. Ask the alarm which, using the buttons.</div>'
+      : '<div class="simnote">Crossing into the watch zone. Alert on the step change, not the absolute value.</div>';
+  }
+  r.addEventListener('input',()=>{asked=null;render();});
+  render();
+})();
+
+/* --- SIM: the aggregate and the slice --- */
+(function(){
+  const out=document.getElementById('mxFairOut'), note=document.getElementById('mxFairNote'),
+        ctl=document.getElementById('mxFairCtl'), reset=document.getElementById('mxFairReset');
+  if(!out) return;
+  /* 13 needy learners: North 4 (3 found), River 5 (2 found), Hill 4 (3 found) */
+  const mk=()=>({North:[1,1,1,0], River:[1,1,0,0,0], Hill:[1,1,1,0]});
+  let found=mk(), split=false, clicks=[];
+  const rec=a=>a.reduce((s,x)=>s+x,0)/a.length;
+  function agg(){ const all=[...found.North,...found.River,...found.Hill]; return rec(all); }
+  function render(){
+    ctl.innerHTML=[['pool','one number'],['split','split by centre']].map(([k,n])=>
+      '<button class="seg'+((split?'split':'pool')===k?' on':'')+'" data-k="'+k+'" style="flex:1;font-size:12px">'+n+'</button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{split=b.dataset.k==='split';render();});
+    const A=agg();
+    if(!split){
+      out.innerHTML='<div class="simnote" style="margin-bottom:8px">The dashboard number the committee sees.</div>'
+        +'<div style="display:flex;align-items:baseline;gap:12px" class="mxbig">'
+        +'<span style="font-size:13px;color:var(--muted)">recall, whole chain</span>'
+        +'<b style="font-size:34px;color:var(--amber)">'+A.toFixed(2)+'</b></div>'
+        +'<div style="height:16px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:8px">'
+        +'<div class="abar" style="height:100%;width:'+(A*100)+'%;background:var(--amber);border-radius:99px"></div></div>'
+        +'<div class="simnote" style="margin-top:8px">Of the learners who genuinely needed support, the screener found '+Math.round(A*100)+'%. Acceptable?</div>';
+      note.innerHTML='<div class="simnote">Before you answer, press <b>split by centre</b>.</div>';
+      return;
+    }
+    const rows=Object.entries(found).map(([c,a])=>{
+      const R=rec(a);
+      return '<div style="margin-bottom:12px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">'
+        +'<b>'+c+'</b><span class="k" style="color:'+(R<0.5?'var(--red)':'var(--green)')+'">recall '+R.toFixed(2)+'</span></div>'
+        +'<div style="display:flex;gap:5px">'+a.map((x,i)=>'<button type="button" class="mxdot" data-c="'+c+'" data-i="'+i+'" '
+          +'style="width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid '+(x?'var(--green)':'var(--red)')+';'
+          +'background:'+(x?'var(--green)':'transparent')+'" title="'+(x?'found':'missed: click to invest in finding this learner')+'"></button>').join('')+'</div></div>';
+    }).join('');
+    const rN=rec(found.North), rR=rec(found.River), rH=rec(found.Hill);
+    const eod=Math.max(rN,rR,rH)-Math.min(rN,rR,rH);
+    out.innerHTML='<div class="simnote" style="margin-bottom:8px">Filled dot: found. Hollow: missed. Click a hollow dot to invest in finding that learner.</div>'
+      +rows
+      +'<div style="display:flex;gap:16px;margin-top:4px" class="mxbig">'
+      +'<span style="font-size:12px;color:var(--muted)">aggregate <b style="font-size:18px">'+A.toFixed(2)+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">largest gap <b style="font-size:18px;color:'+(eod>0.2?'var(--red)':'var(--green)')+'">'+eod.toFixed(2)+'</b></span></div>';
+    out.querySelectorAll('.mxdot').forEach(d=>d.onclick=()=>{
+      const c=d.dataset.c, i=+d.dataset.i;
+      if(found[c][i]===0){ found[c][i]=1; clicks.push(c); render(); }});
+    note.innerHTML = clicks.length===0
+      ? '<div class="lzbad"><b>0.75, 0.40, 0.75.</b> A learner needing support at River is roughly half as likely to be found as one at North, and the 0.62 never once prompted the question. The gap has a name: equal-opportunity difference, 0.35. Now the experiment: click one hollow dot at North, note both numbers, reset, and click one at River instead.</div>'
+      : '<div class="'+(clicks[clicks.length-1]==='River'?'ok':'lzwarn')+'"><b>Aggregate '+A.toFixed(2)+', gap '+ (Math.max(rec(found.North),rec(found.River),rec(found.Hill))-Math.min(rec(found.North),rec(found.River),rec(found.Hill))).toFixed(2)+'.</b> '
+        +(clicks[clicks.length-1]==='River'
+          ? 'Investing at River moved the aggregate exactly as much as investing anywhere else, and it is the only investment that closes the gap. The aggregate cannot tell those two worlds apart; the slice can.'
+          : 'The aggregate went up, and the gap got worse. To the committee&rsquo;s one number, this improvement and a River improvement are indistinguishable.')
+        +'</div>'
+        +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> Never leave a metric unsplit. After &ldquo;how good?&rdquo; the next question is always &ldquo;good for whom?&rdquo;, sliced by whatever you already hold: centre, level, term.</div>';
+  }
+  reset.onclick=()=>{found=mk();clicks=[];render();};
+  render();
+})();
+
+
+</script>
+<script src="assets/version.js" defer></script>
+<script src="assets/lab.js" defer></script>
+</body>
+</html>

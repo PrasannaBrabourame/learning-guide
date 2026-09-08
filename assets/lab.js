@@ -322,6 +322,7 @@
       ['agentcore.html', 'AgentCore. An agent you can trust'],
       ['agentbuild.html','Agents building agents'],
       ['evals.html',     'Evaluation, how do you know it got better?'],
+      ['metrics.html',   'The number to trust: metrics for asymmetric mistakes'],
       ['govern.html',    'Govern and secure an estate of agents'],
       ['gemini.html',    'Rolling it out to a whole company'],
       ['peakweek.html',  'Peak Week, one agent, all the way through'] ] },
