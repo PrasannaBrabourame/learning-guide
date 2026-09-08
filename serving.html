@@ -415,7 +415,7 @@ document.getElementById('sec-svsched').innerHTML=`
     {k:'short',n:'shortest first',           d:'smallest prompt goes next'},
     {k:'chunk',n:'chunked prefill',          d:'long prompts split, everyone interleaves'}
   ];
-  let m=0, pbOn=false;
+  let m=0, pbOn=false, pbRun=0;   /* run token: a second start invalidates the loop before it */
   const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
 
   /* ---- watch it happen: the same queue, replayed against a clock ----
@@ -424,6 +424,7 @@ document.getElementById('sec-svsched').innerHTML=`
      only the passage of time is added. */
   function playback(){
     pbOn=true;
+    const myRun=++pbRun;
     out.classList.add('live');   /* repainting every frame; entrance animations must stand down */
     const mode=MODES[m].k, longEach=tPrefill(LONGTOK), shortEach=tPrefill(SHORTTOK);
     const CH=512, rounds=Math.ceil(LONGTOK/CH), chunkEach=tPrefill(CH);
@@ -434,7 +435,7 @@ document.getElementById('sec-svsched').innerHTML=`
     const WALL=6500, t0=Date.now();
     const ms=v=>v>=1000?(v/1000).toFixed(1)+' s':Math.max(1,Math.round(v))+' ms';
     function frame(){
-      if(!pbOn) return;
+      if(!pbOn || myRun!==pbRun) return;
       const t=Math.min(makespan,(Date.now()-t0)/WALL*makespan);
       /* who has its first token out, and who is on the machine right now */
       let caption='', chips=[];
