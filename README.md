@@ -57,7 +57,7 @@ metrics.html      Metrics lab: which number to trust when a miss costs more
                   point, MAE against the quadratic penalty, stability and the
                   boilerplate detector, the retrieval ceiling, deterministic
                   gates and the deadband, judging the judge, drift, fairness
-                  by slice
+                  by slice, and the toolbox of off-the-shelf eval frameworks
 gemini.html       Gemini Enterprise lab, architecture and provisioning, the
                   identity decision, Workforce Identity Federation, networking,
                   data stores and connectors, agents, Model Armor, search
@@ -122,7 +122,7 @@ assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
 data/topics.json  The 267 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 218 simulations across the fifteen labs. Every one carries a
+There are 219 simulations across the fifteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in

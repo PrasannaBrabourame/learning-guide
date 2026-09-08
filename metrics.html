@@ -62,6 +62,7 @@
     <button class="tab" data-pane="mret" role="tab">The retrieval ceiling</button>
     <button class="tab" data-pane="mgate" role="tab">Gates that never flake</button>
     <button class="tab" data-pane="mwatch" role="tab">Watching the watchers</button>
+    <button class="tab" data-pane="mtool" role="tab">The toolbox</button>
     <button class="tab" data-pane="mexam" role="tab">Exam angle</button>
   </div>
 
@@ -74,6 +75,7 @@
   <section class="pane" id="pane-mret"><div id="sec-mret"></div></section>
   <section class="pane" id="pane-mgate"><div id="sec-mgate"></div></section>
   <section class="pane" id="pane-mwatch"><div id="sec-mwatch"></div></section>
+  <section class="pane" id="pane-mtool"><div id="sec-mtool"></div></section>
   <section class="pane" id="pane-mexam"><div id="sec-mexam"></div></section>
 
   <footer class="lab-foot">
@@ -98,7 +100,97 @@ const box=(x,y,w,hh,stroke,fill)=>`<rect x="${x}" y="${y}" width="${w}" height="
 const t=(x,y,s,style,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${style};fill:var(--text)">${s}</text>`;
 const tm=(x,y,s,fill,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${MONO};fill:${fill||'var(--muted)'}">${s}</text>`;
 const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
-/* ================= 10 · EXAM ANGLE ================= */
+/* ================= 10 · THE TOOLBOX ================= */
+document.getElementById('sec-mtool').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">You do not have to write the harness</h2>
+  <div class="plain-line"><b>In plain English:</b> everything this lab taught (faithfulness against fetched evidence, assertion gates in a build pipeline, pairwise judging, retrieval scores, drift) exists as an off-the-shelf tool. The frameworks below are the ones worth knowing by name. The list changes every year; the metric families they implement are the nine tabs you just did, and those do not.</div>
+  <div style="overflow-x:auto"><table class="osi"><thead><tr><th>Framework</th><th>What it is</th><th>Its signature idea</th><th>It automates, from this lab</th></tr></thead><tbody>
+    <tr><td><b>RAGAS</b></td><td>Open-source Python library for scoring RAG pipelines</td><td>Reference-free RAG metrics: faithfulness, answer relevance, context precision and recall, scored by an LLM judge without hand-written model answers</td><td>The retrieval ceiling, plus groundedness from the triage map</td></tr>
+    <tr><td><b>TruLens</b></td><td>Open-source tracing and evaluation for LLM apps</td><td>Feedback functions attached to a traced run, so every step of the app carries its own scores; home of the &ldquo;RAG triad&rdquo; framing</td><td>Groundedness, context relevance and answer relevance, measured per step rather than per output</td></tr>
+    <tr><td><b>DeepEval</b></td><td>Open-source testing framework that treats LLM checks like unit tests</td><td>Pytest-style assertions: a metric below threshold fails the build, exactly like a broken test</td><td>The gates tab&rsquo;s discipline applied to statistical metrics; golden-set regression from the triage map</td></tr>
+    <tr><td><b>Promptfoo</b></td><td>Open-source CLI for prompt and model comparison in CI</td><td>A YAML file declaring prompts &times; models &times; assertions, plus red-team probes, no application code needed</td><td>The prompt-edit and model-swap rows of the triage map, and adversarial suites</td></tr>
+    <tr><td><b>LangSmith</b></td><td>Managed platform for datasets, experiments and traces</td><td>Curated datasets run as experiments with LLM-as-judge and pairwise comparison, results shared in a team UI</td><td>Judging the judge&rsquo;s pairwise-over-pointwise advice, run at team scale</td></tr>
+    <tr><td><b>Arize Phoenix</b></td><td>Open-source observability with built-in evals</td><td>Traces first, evaluations layered onto the traces, drift and embedding monitoring alongside</td><td>The drift alarm, plus watching production with no labels</td></tr>
+    <tr><td><b>The cloud&rsquo;s own</b></td><td>Managed evaluation services inside AWS, Azure and Google Cloud</td><td>Pointwise and pairwise evaluation jobs, computation-based and judge-based metrics, run next to where the model already runs, with IAM and audit attached</td><td>Most of the lab as a managed job, when staying inside one cloud matters more than tool choice</td></tr>
+  </tbody></table></div>
+  <div class="simnote" style="margin-top:10px">Names to recognise, not endorsements: pick whichever implements the family you need with the least new infrastructure. The deterministic gates are the exception, and stay yours: a regex over your own roster is not worth a framework.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: six jobs, pick the tool</h2>
+  <div class="plain-line"><b>Try this:</b> six evaluation jobs from the screener&rsquo;s roadmap. Each has one best tool on the shelf, and every wrong option is the right answer to a different job. The skill being drilled is reading the distinguishing requirement, not memorising logos.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A hardware shop. Six fasteners, six drivers. Every driver turns every screw a little, which is exactly why people strip threads: the skill is matching the head, not gripping harder.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read job one&rsquo;s requirement twice, then pick. The give-away word is usually in the middle.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool / framework</b> an off-the-shelf package that implements evaluation metrics for you</span><span class="sp-w"><b>CI</b> the pipeline that runs checks automatically on every code change</span><span class="sp-w"><b>assertion</b> a pass-or-fail rule a pipeline can act on</span><span class="sp-w"><b>tracing</b> recording every step an app took, so scores can attach to steps</span><span class="sp-w"><b>reference-free</b> scored without a hand-written model answer to compare against</span><span class="sp-w"><b>pairwise</b> judging &ldquo;is A better than B&rdquo; instead of scoring A alone</span><span class="sp-w"><b>managed</b> run by the cloud provider inside your existing account and permissions</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxToolOut"></div></div>
+    <div><div id="mxToolCtl"></div>
+      <div id="mxToolNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: six jobs, pick the tool --- */
+(function(){
+  const out=document.getElementById('mxToolOut'), note=document.getElementById('mxToolNote'),
+        ctl=document.getElementById('mxToolCtl');
+  if(!out) return;
+  const TOOLS=['RAGAS','TruLens','DeepEval','Promptfoo','LangSmith','Arize Phoenix','the cloud&rsquo;s own'];
+  const JOBS=[
+    {j:'Score faithfulness and context precision on the retrieval pipeline, in Python, with no hand-written model answers', a:0,
+     key:'reference-free RAG metrics in Python',
+     why:'Reference-free RAG scoring is the one job this library was built around: the retrieval-ceiling tab as a pip install.'},
+    {j:'Attach groundedness and relevance scores to every step of a traced run, so a bad report can be blamed on the step that caused it', a:1,
+     key:'scores attached to a trace, per step',
+     why:'Feedback functions on traces is the signature: the score lives on the step, not just the final output.'},
+    {j:'Make the golden set a unit-test suite: any metric under threshold fails the build like a broken test', a:2,
+     key:'pytest-style, fails the build',
+     why:'Treating LLM checks as unit tests is the whole design. The gates discipline, extended to statistical metrics.'},
+    {j:'Compare two prompts across two models with assertions and a folder of injection probes, from a YAML file, in CI, touching no application code', a:3,
+     key:'declarative YAML, prompts &times; models, red-team probes',
+     why:'A config file declaring the whole comparison matrix plus adversarial probes, runnable by CI with no code, is this tool&rsquo;s exact shape.'},
+    {j:'Let the whole team curate the labelled datasets, run pairwise experiments between model versions, and read the results in one shared UI', a:4,
+     key:'datasets, experiments, a team UI',
+     why:'Dataset curation plus experiment tracking plus pairwise judging in a shared interface is the managed-platform job.'},
+    {j:'Stay inside the existing cloud account: evaluation as a managed job, with the same permissions and audit trail as everything else', a:6,
+     key:'managed, inside the account, IAM and audit attached',
+     why:'When governance beats tool choice, the provider&rsquo;s own evaluation service wins: it inherits the identity, network and audit story the estate already has.'}
+  ];
+  let cur=0, score=0, answered=false, results=[];
+  function render(){
+    if(cur>=JOBS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+JOBS.length+'.</b> The routing:</div>'
+        +'<div style="margin-top:10px">'+JOBS.map((jb,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+        +'<span style="flex:1">'+jb.key+'</span><span class="k" style="color:var(--accent)">'+TOOLS[jb.a]+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="mxToolAgain" style="width:100%;font-size:12px">&#9654; shuffle back to job one</button>';
+      document.getElementById('mxToolAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Every tool on the shelf implements families from the nine tabs before this one. Learn the families and the shelf reorganising itself every year stops mattering; learn only the logos and it never stops.</div>';
+      return;
+    }
+    const jb=JOBS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">JOB '+(cur+1)+' OF '+JOBS.length+'</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet)"><b style="font-size:13.5px">'+jb.j+'</b></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE SHELF</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +TOOLS.map((t,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+t+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(answered) return;
+      answered=true;
+      const pick=+b.dataset.i, right=pick===jb.a;
+      if(right) score++;
+      results.push(right);
+      b.classList.add('on');
+      note.innerHTML=(right
+        ? '<div class="ok"><b>Yes: '+TOOLS[jb.a]+'.</b> '+jb.why+'</div>'
+        : '<div class="lzbad"><b>Closer to a different job.</b> The give-away here was <em>'+jb.key+'</em>, which points at <b>'+TOOLS[jb.a]+'</b>. '+jb.why+'</div>')
+        +'<button class="seg" id="mxToolNext" style="width:100%;margin-top:10px;font-size:12px">next job &rarr;</button>';
+      document.getElementById('mxToolNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+    });
+  }
+  render();
+})();
+
+/* ================= 11 · EXAM ANGLE ================= */
 document.getElementById('sec-mexam').innerHTML=`
 <div class="card" style="margin-bottom:16px">
   <h2 class="sec">Try it: drill the scenarios instead of reading them</h2>
@@ -119,6 +211,7 @@ document.getElementById('sec-mexam').innerHTML=`
   <div class="exam-line"><b>&ldquo;Retrieval quality is fine, the reports read well.&rdquo;</b> &rarr; Fluency is not grounding. If the right passage is ranked just below the context window cutoff, the report is confidently grounded in the wrong evidence, and no downstream judge can see it, because the output is consistent with what it was given. Recall@k on a small labelled query set is the ceiling on everything downstream.</div>
   <div class="exam-line"><b>&ldquo;Nothing changed this week, so we did not run anything.&rdquo;</b> &rarr; Distribution drift needs no labels and no changes on your side to appear: the share of high-support calls can triple because the cohort, the upstream model, or the retrieved evidence changed underneath you. A population-stability check against a frozen baseline is the cheapest alarm that exists.</div>
   <div class="exam-line"><b>&ldquo;Our overall recall is 0.62, which we can defend.&rdquo;</b> &rarr; Sliced by centre it is 0.75, 0.75 and 0.40, and the 0.40 means a learner needing help at that centre is half as likely to be found. Aggregates never prompt the question; slices are the fairness check you can run with data you already hold.</div>
+  <div class="exam-line"><b>&ldquo;Which evaluation framework should we adopt?&rdquo;</b> &rarr; Name the job first. Reference-free RAG scoring in Python points one way, pytest-style build gates another, declarative CI comparisons another, traced per-step scores another, team-scale datasets and pairwise experiments another, and staying inside the cloud account overrides all of them when governance leads. Every framework implements the same metric families; the requirement picks the tool.</div>
   <div class="exam-line"><b>&ldquo;We have eight labelled examples. What can we conclude?&rdquo;</b> &rarr; At 95% confidence the margin of error is about &plusmn;35 points, so a measured 0.82 is honestly &ldquo;somewhere between half and perfect&rdquo;. Use tiny sets to find bugs, not to measure quality, and spend the scarce labelling time where no labels are needed at all: the deterministic checks that are exact on a single document.</div>
 </div>`;
 /* ================= 6 · SAME WORDS TWICE ================= */
