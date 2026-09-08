@@ -199,7 +199,7 @@ document.getElementById('sec-lmstart').innerHTML=`
       const a=b.dataset.a;
       if(a==='auto'){
         if(timer){ stopAuto(); render(); }
-        else { step=0; render(); timer=setTimeout(autoTick, 900); }
+        else { step=0; timer=setTimeout(autoTick, 900); render(); }
         return;
       }
       stopAuto();

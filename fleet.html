@@ -331,7 +331,7 @@ document.getElementById('sec-fldisc').innerHTML=`
     {k:'scale', n:'scaling in and out',    mtbf:300,  lbl:'one leaves every five minutes'},
     {k:'spot',  n:'pre-emptible machines', mtbf:90,   lbl:'one leaves every ninety seconds'}
   ];
-  let ci=1, pbOn=false;
+  let ci=1, pbOn=false, pbRun=0;   /* run token: a second start invalidates the loop before it */
   const RPS=2000, N=20;
   const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
 
@@ -342,15 +342,22 @@ document.getElementById('sec-fldisc').innerHTML=`
      visible even on a calm day. */
   function playback(){
     pbOn=true;
+    const myRun=++pbRun;
     out.classList.add('live');   /* repainting every frame; entrance animations must stand down */
     const s=INT[+rng.value], c=CHURN[ci];
     const kDeaths=Math.max(1, Math.round(60*N/c.mtbf));
     const deaths=[];                       /* [time, workerIndex] */
     for(let j=0;j<kDeaths;j++) deaths.push([ (j+0.55)*60/kDeaths, (j*7+3)%N ]);
     const WALL=7000, t0=Date.now();
-    let wasted=0, lastT=0;
+    /* wasted requests as a pure function of t: deaths and sweeps are
+       deterministic, so nothing is accumulated frame to frame, and a stalled
+       tab (rAF does not fire while hidden) cannot corrupt the total */
+    const wastedAt=t=>deaths.reduce((W,[dt])=>{
+      const disc=Math.min(60, Math.ceil(dt/s)*s);
+      return W + Math.max(0, Math.min(t,disc)-dt);
+    },0)*RPS/N;
     function frame(){
-      if(!pbOn) return;
+      if(!pbOn || myRun!==pbRun) return;
       const t=Math.min(60,(Date.now()-t0)/WALL*60);
       const lastSweep=Math.floor(t/s)*s;
       const reality=Array(N).fill(true), belief=Array(N).fill(true);
@@ -359,7 +366,7 @@ document.getElementById('sec-fldisc').innerHTML=`
         if(lastSweep>=dt) belief[w]=false;   /* the router only learns at a sweep */
       }
       const mismatch=reality.filter((r,i)=>!r&&belief[i]).length;
-      wasted += RPS*(mismatch/N)*(t-lastT); lastT=t;
+      const wasted=wastedAt(t);
       const sweepFlash = t>0 && (t-lastSweep)<0.6 && lastSweep>0;
       let caption='all quiet';
       const justDied=deaths.find(([dt])=>t>=dt && t-dt<2.5);

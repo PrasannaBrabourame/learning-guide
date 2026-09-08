@@ -131,7 +131,7 @@ document.getElementById('sec-tstart').innerHTML=`
   const X=x=>36+x/10.5*400, Y=y=>250-(y+1)/9*230;
   function paint(w,b){
     const L=loss(w,b);
-    if(!animOn) best=Math.min(best,L);
+    if(!animOn && gradLoss===null) best=Math.min(best,L);   /* hand-best freezes once the gradient has run */
     out.innerHTML='<svg viewBox="0 0 460 268" role="img" aria-label="Twelve points and an adjustable line, with residuals drawn to the line." style="width:100%;height:auto">'
       +'<line x1="36" y1="250" x2="446" y2="250" style="stroke:var(--line2)"/>'
       +'<line x1="36" y1="20" x2="36" y2="250" style="stroke:var(--line2)"/>'
@@ -169,7 +169,7 @@ document.getElementById('sec-tstart').innerHTML=`
       paint(w,b);
       note.innerHTML='<div class="ok"><b>Step '+k+'.</b> It never sees the picture. Each step it asks every point &ldquo;would a slightly steeper line make your residual bigger or smaller?&rdquo;, adds up the answers, and turns both dials a little. That sum of answers is the gradient.</div>';
       if(k<MAX){ raf(step); return; }
-      animOn=false; out.classList.remove('live'); gradLoss=loss(w,b); gradSteps=k; paint(w,b);
+      gradLoss=loss(w,b); gradSteps=k; animOn=false; out.classList.remove('live'); paint(w,b);
       note.innerHTML='<div class="ok"><b>Done: loss '+gradLoss.toFixed(3)+(best<Infinity?', against your '+best.toFixed(3)+' by hand':'')+'.</b> Two dials took a couple of hundred tiny steps. The same loop, unchanged, is how the dials are set when there are a billion of them, which is the only reason this page generalises to anything.</div>'
         +'<div class="simnote" style="margin-top:10px"><b>One honest wrinkle.</b> The height dial here gets a slightly bigger step than the slope dial, because the two directions are differently steep, and equal steps would zig-zag. That mismatch is real, it is called conditioning, and it is why the exam scenario &ldquo;we normalised the inputs and it suddenly trains&rdquo; exists.</div>';
     }

@@ -405,6 +405,7 @@ document.getElementById('sec-mstart').innerHTML=`
   function moe(n){ return 1.96*Math.sqrt(0.25/n); }
   function render(){
     const n=NS[+nEl.value]; nv.textContent=n;
+    det.textContent=detOn?'back to the measured score':'make it a deterministic check instead';
     const m=detOn?0:moe(n);
     const lo=Math.max(0,SCORE-m), hi=Math.min(1,SCORE+m);
     out.innerHTML='<svg viewBox="0 0 460 120" role="img" aria-label="A score of 0.82 with its confidence band, against the ship line at 0.80." style="width:100%;height:auto">'
@@ -436,8 +437,8 @@ document.getElementById('sec-mstart').innerHTML=`
     }
   }
   nEl.addEventListener('input',()=>{detOn=false;render();});
-  ship.onclick=()=>{shipped=true;render();};
-  det.onclick=()=>{detOn=!detOn;det.textContent=detOn?'back to the measured score':'make it a deterministic check instead';render();};
+  ship.onclick=()=>{shipped=true;detOn=false;render();};
+  det.onclick=()=>{detOn=!detOn;render();};
   render();
 })();
 
@@ -495,7 +496,7 @@ document.getElementById('sec-mmap').innerHTML=`
           +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
           +'<span style="flex:1">'+ev.e+'</span><span class="k" style="color:var(--accent)">'+CHECKS.find(c=>c.k===ev.a).n+'</span></div>').join('')+'</div>';
       ctl.innerHTML='<button class="seg" id="mxMapAgain" style="width:100%;font-size:12px">&#9654; run the week again</button>';
-      document.getElementById('mxMapAgain').onclick=()=>{cur=0;score=0;accGrabs=0;results=[];answered=false;render();};
+      document.getElementById('mxMapAgain').onclick=()=>{cur=0;score=0;accGrabs=0;results=[];answered=false;note.innerHTML='';render();};
       note.innerHTML='<div class="simnote"><b>The keeper.</b> The exam question is never &ldquo;which metric is best&rdquo;. It is &ldquo;something happened, what do you look at first&rdquo;. Routing is the skill'
         +(accGrabs===0?', and you never once grabbed the instrument that sounds safest and answers nothing.':': and &ldquo;overall accuracy&rdquo; felt safe precisely because it answers no specific question at all.')+'</div>';
       return;
