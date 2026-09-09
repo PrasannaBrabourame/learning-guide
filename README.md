@@ -1,6 +1,6 @@
 # Learning Guide
 
-A static learning guide for Technical Lead & AI Engineer topics, covering 270 topics. No build step, no dependencies, no external requests, just serve the folder.
+A static learning guide for Technical Lead & AI Engineer topics, covering 272 topics. No build step, no dependencies, no external requests, just serve the folder.
 
 Each topic is broken down into:
 - 🧠 Technical answer
@@ -76,8 +76,10 @@ train.html        Training lab: watch a model learn, live in the page. The
                   loop (guess, measure, nudge), the learning rate's four
                   personalities, a real network training on blobs / rings /
                   XOR / spiral with the boundary forming, the overfitting
-                  U-curve, early stopping as a game, and why batching is a
-                  hardware decision
+                  U-curve, early stopping as a game, why batching is a
+                  hardware decision, and adapting a foundation model: prompt
+                  vs RAG vs fine-tuning, LoRA arithmetic on a 7B shape, and
+                  catastrophic forgetting live, with the replay fix
 classic.html      Classical ML lab: four little machines that still run the
                   world. Three kinds of learning, nearest neighbours with a
                   poisoned memory, a decision tree you build and destabilise,
@@ -126,10 +128,10 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, command palette (Cmd/Ctrl+K),
                   progress rings + streak tracking, lab-to-topic mapping
-data/topics.json  The 270 topics as plain JSON (incl. per-topic difficulty)
+data/topics.json  The 272 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 229 simulations across the sixteen labs. Every one carries a
+There are 232 simulations across the sixteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -197,7 +199,7 @@ somebody deciding whether to open it. The detail lives in the lab; the card only
 has to be scannable alongside seventeen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
-the 270 topics that lab actually covers, 50 for the Cloud lab, 37 for
+the 272 topics that lab actually covers, 50 for the Cloud lab, 37 for
 Evaluation, 33 for the diagram lab. Clicking it opens the browse view filtered
 to just those, rather than the whole pile. The map from lab to categories lives
 in `assets/app.js` (`LABS`); the counts are computed from `data/topics.json` at

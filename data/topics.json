@@ -8008,5 +8008,69 @@
       "Golden set never refreshed since launch"
     ],
     "memory": "Commit-time evals, release-time proxies, quarter-time KPIs, and the joints are checked, not assumed."
+  },
+  {
+    "id": "peft-vocabulary-gap",
+    "title": "PEFT: When the Model Lacks Your Domain's Vocabulary",
+    "category": "Large Language Models",
+    "difficulty": "Medium",
+    "question": "A foundation model keeps mishandling a highly specialised medical domain: rare terms fragment, abbreviations misread, the clinical register is off. Which adaptation technique is most appropriate, and why not prompting or RAG?",
+    "technical": [
+      "The correct technique is fine-tuning, in practice Parameter-Efficient Fine-Tuning (PEFT): continue training on domain text so the weights themselves learn the vocabulary, abbreviations and register absent from general training data.",
+      "Why not prompting: a prompt can carry definitions but cannot re-teach how the model reads; rare domain terms still tokenise into fragments the model has no learned feel for, and the ever-growing brief rides on every request's token bill.",
+      "Why not RAG: retrieval supplies documents to the same general-purpose reader. It fixes missing facts, not broken reading; the model misreads the retrieved medical text too. Vocabulary and register live in weights.",
+      "PEFT (LoRA and friends) freezes the base model and trains small low-rank adapters, typically well under 1% of parameters, so the adaptation fits modest hardware, ships as a small artifact, and can be swapped per domain at serving time.",
+      "Certification framing: options like prompt engineering, RAG, or larger context windows address knowledge and instructions; only fine-tuning addresses a vocabulary/jargon gap, and PEFT is the cost-appropriate form of it."
+    ],
+    "layman": "A brilliant general reader handed a cardiology chart still reads it like a newspaper. Taping a glossary to the fridge (prompting) or handing over more charts (retrieval) does not change the reader; a short specialist course (fine-tuning) does.",
+    "usecases": [
+      "Clinical, legal or scientific assistants where jargon density breaks a general model",
+      "Certification and interview questions on choosing an adaptation technique",
+      "Deciding between an adapter and a bigger prompt when quality plateaus"
+    ],
+    "code": "the decision in one table:\n\ngap                              fix\nmissing or changing facts        RAG (index outside the model)\nloose behaviour, no data         prompt engineering\nvocabulary, register, format     fine-tune (PEFT first)\nwhole language/domain shift      full fine-tune, if data + budget allow\n\nPEFT sizing (7B-class model, LoRA rank 8 on attention):\ntrainable ~8.4M of 6.74B params  = 0.12%",
+    "followups": [
+      "Where does the fine-tuning data come from, and who checks label quality?",
+      "How do you verify the adapter did not degrade general capability?",
+      "When would you extend the tokenizer vocabulary as well, and what does that cost?"
+    ],
+    "redflags": [
+      "Reaches for fine-tuning to inject facts that change weekly",
+      "Cannot explain why RAG does not fix a reading problem",
+      "No general-capability eval gating the adapted model's release"
+    ],
+    "memory": "Facts go in the index; vocabulary goes in the weights. A vocabulary gap is a weight gap: PEFT."
+  },
+  {
+    "id": "finetuning-llms",
+    "title": "Fine-Tuning LLMs: Full, LoRA, QLoRA and the Forgetting Tax",
+    "category": "Large Language Models",
+    "difficulty": "High",
+    "question": "Walk through the fine-tuning options for a 7B model on one 24 GB GPU: what full fine-tuning costs, what LoRA and QLoRA change, and what every fine-tune risks regardless of method.",
+    "technical": [
+      "Full fine-tuning updates every weight: with Adam in mixed precision that is roughly 16 bytes per parameter (16-bit weights and gradients, 32-bit master copy and two optimiser moments), so a 7B model wants over 100 GB before activations: multi-GPU territory.",
+      "LoRA freezes the base and adds low-rank pairs A (d x r) and B (r x d) to chosen matrices; only those train. Rank 8 on attention is ~0.1% of parameters, so optimiser state collapses by the same factor and the result ships as a megabytes-sized adapter, swappable per tenant at serving time.",
+      "QLoRA additionally quantises the frozen base to 4-bit (~0.5 bytes per parameter, under 4 GB for 7B), making single-GPU fine-tuning routine; the adapters still train in 16-bit.",
+      "The forgetting tax: training only on specialist data erodes general capability, and freezing layers alone does not prevent it, because nothing in the loss defends old skills. Mitigations: replay (mix general data into the batches), a low learning rate, and gating release on a general eval suite as well as the domain one.",
+      "Data beats method: a few thousand clean, deduplicated, representative examples with verified labels outperform ten times the volume of scraped noise; hold out an untouched test set before anyone trains."
+    ],
+    "layman": "A textbook you may not reprint: full fine-tuning re-typesets every page; LoRA tucks sticky notes into the margins; QLoRA does the same to a pocket edition. And any specialist course, however delivered, makes the student rusty at everything the course never mentioned unless they keep a day a week in general practice.",
+    "usecases": [
+      "Domain adapters (legal, medical, house style) served per tenant",
+      "Single-GPU fine-tuning budgets and hardware sizing",
+      "Explaining to stakeholders why the specialised model must still pass the general test suite"
+    ],
+    "code": "7B model, memory to train (weights + optimiser, activations extra):\n\nfull fine-tune   ~108 GB   every param, 16 B each\nLoRA  (r=8)      ~13.9 GB  frozen 16-bit base + tiny adapter state\nQLoRA (r=8)      ~4.1 GB   frozen 4-bit base  + tiny adapter state\n                            ^ fits one 24 GB card with room to breathe\n\nforgetting check, every run:\n  eval(domain suite)   must rise\n  eval(general suite)  must not fall",
+    "followups": [
+      "Why does momentum-based optimiser state triple the memory bill, and what do 8-bit optimisers change?",
+      "What decides LoRA rank, and what does it mean if quality keeps demanding a higher one?",
+      "How does multi-LoRA serving isolate tenants compared to one merged model per tenant?"
+    ],
+    "redflags": [
+      "Plans a full fine-tune without pricing the optimiser state",
+      "Ships the adapted model on domain evals alone",
+      "Fine-tunes on raw scraped data with no dedup or holdout"
+    ],
+    "memory": "Full fine-tune pays 16 bytes a parameter; LoRA pays it only on the sticky notes; QLoRA shrinks the book too. Every method pays the forgetting tax unless replay covers it."
   }
 ]
