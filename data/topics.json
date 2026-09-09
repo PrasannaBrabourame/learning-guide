@@ -3372,7 +3372,7 @@
       "Selecting model complexity for fraud detection",
       "Choosing tree depth or regularisation strength"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q1\n\nExample:\nA shallow tree misses fraud patterns (high bias).\nA fully grown tree memorises training cases (high variance).\nCross-validation helps select a middle depth.",
+    "code": "Example:\nA shallow tree misses fraud patterns (high bias).\nA fully grown tree memorises training cases (high variance).\nCross-validation helps select a middle depth.",
     "followups": [
       "How would learning curves reveal bias or variance?",
       "Why can bagging reduce variance?"
@@ -3400,7 +3400,7 @@
       "Medical-test interpretation",
       "Fraud risk after a suspicious event"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q2\n\nMedical example:\nPrevalence = 1%, sensitivity = 99%, false-positive rate = 5%.\nAmong 10,000 people: about 99 true positives and 495 false positives.\nA positive result therefore does not mean a 99% chance of disease.",
+    "code": "Medical example:\nPrevalence = 1%, sensitivity = 99%, false-positive rate = 5%.\nAmong 10,000 people: about 99 true positives and 495 false positives.\nA positive result therefore does not mean a 99% chance of disease.",
     "followups": [
       "What is the base-rate fallacy?",
       "How does Naive Bayes use the theorem?"
@@ -3427,7 +3427,7 @@
       "Estimating a Bernoulli probability",
       "Fitting logistic-regression parameters"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q3\n\nExample:\nP(7 heads | p=0.6) is a probability of data.\nL(p | 7 heads, 3 tails) is a function comparing candidate values of p.",
+    "code": "Example:\nP(7 heads | p=0.6) is a probability of data.\nL(p | 7 heads, 3 tails) is a function comparing candidate values of p.",
     "followups": [
       "Is likelihood a probability distribution over parameters?",
       "How does maximum likelihood relate to cross-entropy?"
@@ -3454,7 +3454,7 @@
       "A/B test analysis",
       "Clinical or model-comparison experiments"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q4\n\nExample:\nA tiny latency improvement can have p < 0.05 with millions of observations but still be operationally irrelevant.",
+    "code": "Example:\nA tiny latency improvement can have p < 0.05 with millions of observations but still be operationally irrelevant.",
     "followups": [
       "What happens when many hypotheses are tested?",
       "Difference between statistical and practical significance?"
@@ -3481,7 +3481,7 @@
       "Confidence intervals for model latency",
       "A/B test differences in means"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q5\n\nExample:\nIndividual request latency may be skewed, but repeated sample means can be approximately normal when samples are large and independent.",
+    "code": "Example:\nIndividual request latency may be skewed, but repeated sample means can be approximately normal when samples are large and independent.",
     "followups": [
       "When does CLT fail or converge slowly?",
       "Does it say the original data becomes normal?"
@@ -3509,7 +3509,7 @@
       "Medical screening",
       "Security-alert thresholds"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q6\n\nExample:\nFraud: blocking a legitimate payment is Type I; missing actual fraud is Type II.\nA bank may use a sensitive first-stage detector and human review to reduce both harms.",
+    "code": "Example:\nFraud: blocking a legitimate payment is Type I; missing actual fraud is Type II.\nA bank may use a sensitive first-stage detector and human review to reduce both harms.",
     "followups": [
       "How does sample size affect power?",
       "How would you choose a threshold from costs?"
@@ -3538,7 +3538,7 @@
       "A/B experiments",
       "Causal impact assessment"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q7\n\nExample:\nIce-cream sales and drowning incidents correlate because hot weather raises both.",
+    "code": "Example:\nIce-cream sales and drowning incidents correlate because hot weather raises both.",
     "followups": [
       "Can zero correlation still hide a relationship?",
       "How would a randomised test establish causality?"
@@ -3566,7 +3566,7 @@
       "Customer segmentation",
       "Robot or game policy learning"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q8\n\nExamples:\nSupervised: predict fraud from labelled transactions.\nUnsupervised: cluster customers by behaviour.\nRL: choose actions to maximise long-term delivery efficiency.",
+    "code": "Examples:\nSupervised: predict fraud from labelled transactions.\nUnsupervised: cluster customers by behaviour.\nRL: choose actions to maximise long-term delivery efficiency.",
     "followups": [
       "Where does self-supervised learning fit?",
       "Why is offline RL difficult?"
@@ -3593,7 +3593,7 @@
     "usecases": [
       "House-price prediction versus fraud probability"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q9\n\nExample:\nLinear: predicted revenue = £250.\nLogistic: probability of churn = 0.82, then apply a decision threshold.",
+    "code": "Example:\nLinear: predicted revenue = £250.\nLogistic: probability of churn = 0.82, then apply a decision threshold.",
     "followups": [
       "What does a logistic coefficient mean?",
       "How do class weights affect training?"
@@ -3620,7 +3620,7 @@
     "usecases": [
       "Model selection for a limited labelled dataset"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q10\n\nExample:\nTraining loss keeps falling while validation loss begins rising; stop at the best validation checkpoint.",
+    "code": "Example:\nTraining loss keeps falling while validation loss begins rising; stop at the best validation checkpoint.",
     "followups": [
       "How do you distinguish overfitting from distribution shift?",
       "What does high training error indicate?"
@@ -3647,7 +3647,7 @@
       "Tabular risk scoring",
       "Customer churn prediction"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q11\n\nExample:\nUse Random Forest for a stable baseline; use XGBoost with tuned depth, learning rate and early stopping for stronger ranking performance.",
+    "code": "Example:\nUse Random Forest for a stable baseline; use XGBoost with tuned depth, learning rate and early stopping for stronger ranking performance.",
     "followups": [
       "What is the role of learning rate?",
       "How do out-of-bag estimates work?"
@@ -3675,7 +3675,7 @@
       "Customer behavioural segmentation",
       "Document-embedding exploration"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q12\n\nExample:\nCompare k=3 to k=8 using silhouette score and whether resulting customer groups support distinct actions.",
+    "code": "Example:\nCompare k=3 to k=8 using silhouette score and whether resulting customer groups support distinct actions.",
     "followups": [
       "Why does feature scaling matter?",
       "When would DBSCAN be better?"
@@ -3702,7 +3702,7 @@
     "usecases": [
       "Fraud, defect or rare-disease detection"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q13\n\nExample:\nTrain with class weights, report PR-AUC, and select a threshold that catches 90% of fraud within the review team’s capacity.",
+    "code": "Example:\nTrain with class weights, report PR-AUC, and select a threshold that catches 90% of fraud within the review team’s capacity.",
     "followups": [
       "Why is PR-AUC often more useful than ROC-AUC here?",
       "What risk does SMOTE introduce?"
@@ -3730,7 +3730,7 @@
       "Sparse high-dimensional text features",
       "Stabilising correlated tabular predictors"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q14\n\nObjective examples:\nL1: loss + λΣ|wᵢ|\nL2: loss + λΣwᵢ²",
+    "code": "Objective examples:\nL1: loss + λΣ|wᵢ|\nL2: loss + λΣwᵢ²",
     "followups": [
       "Why does geometry create sparsity?",
       "When would Elastic Net help?"
@@ -3757,7 +3757,7 @@
     "usecases": [
       "Training neural classifiers or Transformers"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q15\n\nExample:\nforward → loss → gradients ∂loss/∂weight → optimiser step → repeat over batches.",
+    "code": "Example:\nforward → loss → gradients ∂loss/∂weight → optimiser step → repeat over batches.",
     "followups": [
       "Why are activations cached in the forward pass?",
       "Difference between backprop and gradient descent?"
@@ -3784,7 +3784,7 @@
     "usecases": [
       "Training deep networks and long-sequence RNNs"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q16\n\nExample:\nClip global gradient norm to a configured threshold while also addressing root causes with residual architecture and normalisation.",
+    "code": "Example:\nClip global gradient norm to a configured threshold while also addressing root causes with residual architecture and normalisation.",
     "followups": [
       "Why do residual connections help?",
       "Does clipping solve vanishing gradients?"
@@ -3813,7 +3813,7 @@
       "ReLU in CNNs",
       "GELU in Transformers"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q17\n\nExample:\nHidden layers: ReLU/GELU.\nBinary output: sigmoid.\nMulticlass output: softmax.",
+    "code": "Example:\nHidden layers: ReLU/GELU.\nBinary output: sigmoid.\nMulticlass output: softmax.",
     "followups": [
       "What is a dead ReLU?",
       "Why not use sigmoid in every hidden layer?"
@@ -3840,7 +3840,7 @@
       "BatchNorm in CNNs",
       "LayerNorm in Transformer blocks"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q18\n\nExample:\nLayerNorm is applied around attention and feed-forward sublayers, often in pre-norm or post-norm layouts.",
+    "code": "Example:\nLayerNorm is applied around attention and feed-forward sublayers, often in pre-norm or post-norm layouts.",
     "followups": [
       "What changes between BatchNorm training and inference?",
       "Pre-norm versus post-norm?"
@@ -3867,7 +3867,7 @@
     "usecases": [
       "Regularising dense or neural network layers"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q19\n\nExample:\nDropout p=0.1 means roughly 10% of selected activations are masked during each training pass.",
+    "code": "Example:\nDropout p=0.1 means roughly 10% of selected activations are masked during each training pass.",
     "followups": [
       "Why must train/eval mode be set correctly?",
       "How does dropout resemble ensembling?"
@@ -3896,7 +3896,7 @@
       "RNN for small streaming sequence model",
       "Transformer for language or multimodal modelling"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q20\n\nExample:\nA vision Transformer may replace a CNN at scale, but a compact CNN can still be better for an edge device.",
+    "code": "Example:\nA vision Transformer may replace a CNN at scale, but a compact CNN can still be better for an edge device.",
     "followups": [
       "What did attention solve in RNNs?",
       "What is the quadratic attention cost?"
@@ -3925,7 +3925,7 @@
       "Text generation",
       "Multimodal models"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q21\n\nHigh-level block:\nembeddings + position → attention → residual/norm → feed-forward → residual/norm → output head.",
+    "code": "High-level block:\nembeddings + position → attention → residual/norm → feed-forward → residual/norm → output head.",
     "followups": [
       "What is causal masking?",
       "Why are residual connections important?"
@@ -3952,7 +3952,7 @@
     "usecases": [
       "Resolve pronouns or dependencies across a sentence"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q22\n\nAttention(Q,K,V) = softmax(QKᵀ / √dₖ)V",
+    "code": "Attention(Q,K,V) = softmax(QKᵀ / √dₖ)V",
     "followups": [
       "Why divide by √dₖ?",
       "How does causal masking work?"
@@ -3980,7 +3980,7 @@
       "Language dependencies",
       "Multimodal alignment"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q23\n\nExample:\nHead 1 attends to nearby modifiers; Head 2 links a pronoun to its noun; Head 3 tracks document section context.",
+    "code": "Example:\nHead 1 attends to nearby modifiers; Head 2 links a pronoun to its noun; Head 3 tracks document section context.",
     "followups": [
       "Can heads become redundant?",
       "How does head dimension relate to model dimension?"
@@ -4008,7 +4008,7 @@
       "Long-context LLMs",
       "Sequence modelling"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q24\n\nExample:\n“dog bites man” and “man bites dog” contain the same words; positional information distinguishes their meaning.",
+    "code": "Example:\n“dog bites man” and “man bites dog” contain the same words; positional information distinguishes their meaning.",
     "followups": [
       "Absolute versus relative position?",
       "Why can context extension require RoPE scaling?"
@@ -4037,7 +4037,7 @@
       "GPT for generation",
       "T5 for translation/summarisation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q25\n\nExample:\nSearch embedding → encoder.\nChat completion → decoder-only.\nTranslate English to French → encoder–decoder.",
+    "code": "Example:\nSearch embedding → encoder.\nChat completion → decoder-only.\nTranslate English to French → encoder–decoder.",
     "followups": [
       "Why is BERT not naturally autoregressive?",
       "Can decoder-only models perform classification?"
@@ -4066,7 +4066,7 @@
       "Cost estimation",
       "Handling code or multilingual input"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q26\n\nExample:\nA long identifier or uncommon word may split into many subword tokens, making code or some languages more expensive.",
+    "code": "Example:\nA long identifier or uncommon word may split into many subword tokens, making code or some languages more expensive.",
     "followups": [
       "Why use subwords instead of full words?",
       "What happens to unknown text in byte-level tokenisers?"
@@ -4093,7 +4093,7 @@
     "usecases": [
       "Creative writing versus JSON extraction"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q27\n\nExample:\nCompliance extraction: temperature near 0.\nBrainstorming: moderate temperature with top-p control.",
+    "code": "Example:\nCompliance extraction: temperature near 0.\nBrainstorming: moderate temperature with top-p control.",
     "followups": [
       "Should top-k and top-p always be combined?",
       "Why can low temperature still produce errors?"
@@ -4121,7 +4121,7 @@
       "Long documents",
       "Long-running agent sessions"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q28\n\nExample:\nReserve output tokens, keep critical policy near the beginning/end, and retrieve only evidence needed for the question.",
+    "code": "Example:\nReserve output tokens, keep critical policy near the beginning/end, and retrieve only evidence needed for the question.",
     "followups": [
       "Does a larger context remove the need for RAG?",
       "How do you test position sensitivity?"
@@ -4149,7 +4149,7 @@
       "Domain model adaptation",
       "Assistant behaviour training"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q29\n\nExample:\nPre-train on text → tune on question/answer examples → preference-align helpful responses.",
+    "code": "Example:\nPre-train on text → tune on question/answer examples → preference-align helpful responses.",
     "followups": [
       "How is continued pre-training different from SFT?",
       "What causes catastrophic forgetting?"
@@ -4176,7 +4176,7 @@
     "usecases": [
       "Aligning helpfulness, tone and refusal behaviour"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q30\n\nFlow:\npreferences → reward model → policy optimisation (RLHF)\nor\npreference pairs + reference model → direct preference loss (DPO).",
+    "code": "Flow:\npreferences → reward model → policy optimisation (RLHF)\nor\npreference pairs + reference model → direct preference loss (DPO).",
     "followups": [
       "What is reward hacking?",
       "Why keep a reference model?"
@@ -4204,7 +4204,7 @@
       "Tenant/domain adapters",
       "Task-specific open-model tuning"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q31\n\nExample:\nFreeze a 7B model, apply rank-16 LoRA adapters to attention projections, and train only those adapters.",
+    "code": "Example:\nFreeze a 7B model, apply rank-16 LoRA adapters to attention projections, and train only those adapters.",
     "followups": [
       "What does rank control?",
       "Can multiple adapters be combined?"
@@ -4232,7 +4232,7 @@
       "On-device inference",
       "Lower-cost GPU serving"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q32\n\nExample:\nAn 8-bit model may preserve quality well, while 4-bit enables much lower memory but needs stronger validation.",
+    "code": "Example:\nAn 8-bit model may preserve quality well, while 4-bit enables much lower memory but needs stronger validation.",
     "followups": [
       "Post-training quantisation versus quantisation-aware training?",
       "Which layers are most sensitive?"
@@ -4261,7 +4261,7 @@
       "Data extraction",
       "Customer support"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q33\n\nExample:\nRequire answers only from retrieved policy passages and return “insufficient evidence” when retrieval quality is below threshold.",
+    "code": "Example:\nRequire answers only from retrieved policy passages and return “insufficient evidence” when retrieval quality is below threshold.",
     "followups": [
       "Can temperature zero remove hallucinations?",
       "How do you verify citations?"
@@ -4290,7 +4290,7 @@
       "Complex planning",
       "Data transformation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q34\n\nExample:\nProvide three labelled support-ticket examples to enforce category and JSON format.",
+    "code": "Example:\nProvide three labelled support-ticket examples to enforce category and JSON format.",
     "followups": [
       "When can examples hurt?",
       "How do you evaluate prompt variants?"
@@ -4318,7 +4318,7 @@
       "High-throughput LLM serving",
       "Long chat generation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q35\n\nWithout cache: recompute old K/V every token.\nWith cache: compute only the new token’s K/V and reuse history.",
+    "code": "Without cache: recompute old K/V every token.\nWith cache: compute only the new token’s K/V and reuse history.",
     "followups": [
       "Why does long context reduce serving capacity?",
       "What is cache eviction?"
@@ -4347,7 +4347,7 @@
       "Control repetitive creative generation",
       "Terminate at a structured delimiter"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q36\n\nExample:\nSet a bounded output length and schema validation for extraction rather than relying only on a stop sequence.",
+    "code": "Example:\nSet a bounded output length and schema validation for extraction rather than relying only on a stop sequence.",
     "followups": [
       "What happens when max tokens is reached mid-JSON?",
       "Do penalties improve factuality?"
@@ -4376,7 +4376,7 @@
     "usecases": [
       "Policy assistant uses prompt + RAG; classifier may use tuning"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q37\n\nDecision:\nMissing current facts → RAG.\nWrong output format → prompt/structured output.\nPersistent domain behaviour with quality data → consider tuning.",
+    "code": "Decision:\nMissing current facts → RAG.\nWrong output format → prompt/structured output.\nPersistent domain behaviour with quality data → consider tuning.",
     "followups": [
       "Can RAG and tuning be combined?",
       "Why not fine-tune for changing policies?",
@@ -4407,7 +4407,7 @@
     "usecases": [
       "Large-scale language models with sparse expert routing"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q38\n\nExample:\nA router selects top-2 experts per token from a larger expert pool, then combines their outputs.",
+    "code": "Example:\nA router selects top-2 experts per token from a larger expert pool, then combines their outputs.",
     "followups": [
       "What is expert collapse or load imbalance?",
       "Why can MoE be harder to serve?"
@@ -4436,7 +4436,7 @@
       "Tool-using support agent",
       "RAG over external documents"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q39\n\nExample:\nThe model may propose send_email, but the application validates user permission, recipient domain, content policy and approval before execution.",
+    "code": "Example:\nThe model may propose send_email, but the application validates user permission, recipient domain, content policy and approval before execution.",
     "followups": [
       "How does indirect injection differ?",
       "Why is a system prompt insufficient?",
@@ -4466,7 +4466,7 @@
       "Reliable API extraction",
       "Tool-call argument generation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q40\n\nExample:\nRequire {\"category\": enum, \"confidence\": number}; reject values that fail schema or business validation.",
+    "code": "Example:\nRequire {\"category\": enum, \"confidence\": number}; reject values that fail schema or business validation.",
     "followups": [
       "Can user text override security controls?",
       "What happens if generation stops mid-object?"
@@ -4635,7 +4635,7 @@
       "Support Q&A",
       "Regulatory policy search"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q41\n\nRAG flow:\nquestion → retrieve relevant evidence → construct grounded prompt → answer with citations.",
+    "code": "RAG flow:\nquestion → retrieve relevant evidence → construct grounded prompt → answer with citations.",
     "followups": [
       "When is RAG unnecessary?",
       "Can RAG completely prevent hallucination?"
@@ -4664,7 +4664,7 @@
       "Private document assistant",
       "Product-support knowledge base"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q42\n\nIngestion → parse/OCR → structure-aware chunks → embeddings/index\nQuery → auth/ACL → retrieve → rerank → context → LLM → validate/cite",
+    "code": "Ingestion → parse/OCR → structure-aware chunks → embeddings/index\nQuery → auth/ACL → retrieve → rerank → context → LLM → validate/cite",
     "followups": [
       "Where is ACL enforcement applied?",
       "How are deleted documents removed from every index?"
@@ -4694,7 +4694,7 @@
       "Clustering",
       "Deduplication"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q43\n\ncosine(a,b) = (a·b) / (||a|| ||b||)",
+    "code": "cosine(a,b) = (a·b) / (||a|| ||b||)",
     "followups": [
       "When is dot product equivalent to cosine?",
       "Why should embeddings not be mixed across models?"
@@ -4721,7 +4721,7 @@
     "usecases": [
       "Policies, source code, tables and manuals need different chunk strategies"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q44\n\nExample:\nKeep a table with its caption and introductory sentence; store section hierarchy in metadata.",
+    "code": "Example:\nKeep a table with its caption and introductory sentence; store section hierarchy in metadata.",
     "followups": [
       "How would you chunk code?",
       "How do parent/child chunks help?"
@@ -4749,7 +4749,7 @@
       "Large document semantic search",
       "Recommendation candidate retrieval"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q45\n\nIndex flow:\nembedding + document_id + tenant_id + metadata → ANN index → top-k candidates → reranker.",
+    "code": "Index flow:\nembedding + document_id + tenant_id + metadata → ANN index → top-k candidates → reranker.",
     "followups": [
       "What is recall–latency trade-off?",
       "When is pgvector sufficient?"
@@ -4776,7 +4776,7 @@
     "usecases": [
       "Support search with product IDs and natural-language descriptions"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q46\n\nExample:\nQuery “error E104 payment timeout” benefits from exact E104 matching and semantic timeout context.",
+    "code": "Example:\nQuery “error E104 payment timeout” benefits from exact E104 matching and semantic timeout context.",
     "followups": [
       "How do you combine incomparable scores?",
       "When can hybrid add unnecessary cost?"
@@ -4803,7 +4803,7 @@
     "usecases": [
       "Rerank top 50 retrieval results down to the best 5"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q47\n\nquery → bi-encoder/ANN top 50 → cross-encoder scores → top 5 context chunks",
+    "code": "query → bi-encoder/ANN top 50 → cross-encoder scores → top 5 context chunks",
     "followups": [
       "What candidate count is appropriate?",
       "Can an LLM be used as a reranker?"
@@ -4830,7 +4830,7 @@
     "usecases": [
       "Policy question with no relevant internal document"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q48\n\nResponse example:\n“I do not have sufficient authorised evidence to answer. Please clarify the policy or contact the policy owner.”",
+    "code": "Response example:\n“I do not have sufficient authorised evidence to answer. Please clarify the policy or contact the policy owner.”",
     "followups": [
       "How is an answerability threshold calibrated?",
       "What if retrieval finds related but contradictory sources?"
@@ -4858,7 +4858,7 @@
       "Short ambiguous user queries",
       "Domain terminology mismatch"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q49\n\nExample:\n“refund issue” → “subscription refund eligibility”, “refund approval policy”, “payment reversal rules”.",
+    "code": "Example:\n“refund issue” → “subscription refund eligibility”, “refund approval policy”, “payment reversal rules”.",
     "followups": [
       "When can rewriting change intent?",
       "How do you deduplicate multi-query results?"
@@ -4887,7 +4887,7 @@
       "Research synthesis",
       "Organisation/entity relationship questions"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q50\n\nPattern choice:\nPrecise passage + context → parent/child.\nLocal surrounding text → sentence window.\nMulti-hop relationships → GraphRAG.",
+    "code": "Pattern choice:\nPrecise passage + context → parent/child.\nLocal surrounding text → sentence window.\nMulti-hop relationships → GraphRAG.",
     "followups": [
       "When is GraphRAG overkill?",
       "How is parent versioning maintained?"
@@ -4915,7 +4915,7 @@
       "Enterprise policy index",
       "Frequently updated support documentation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q51\n\nStates:\nDISCOVERED → PARSED → EMBEDDED → INDEXED → ACTIVE\nDeletion: TOMBSTONED → removed from all stores → audited.",
+    "code": "States:\nDISCOVERED → PARSED → EMBEDDED → INDEXED → ACTIVE\nDeletion: TOMBSTONED → removed from all stores → audited.",
     "followups": [
       "What if embedding succeeds but indexing fails?",
       "How do you re-embed after a model upgrade?"
@@ -4943,7 +4943,7 @@
     "usecases": [
       "Fluent but wrong enterprise Q&A"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q53\n\nDebug checklist:\nIs source indexed? → correct chunk in top-k? → passed ACL? → included in prompt? → answer supported?",
+    "code": "Debug checklist:\nIs source indexed? → correct chunk in top-k? → passed ACL? → included in prompt? → answer supported?",
     "followups": [
       "What if correct evidence is ranked 18th?",
       "How do stale versions affect answers?",
@@ -4972,7 +4972,7 @@
     "usecases": [
       "Department-level or user-level enterprise document search"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q54\n\nQuery filter example:\ntenant_id = authenticated_tenant AND document_id IN authorised_documents AND status = ACTIVE",
+    "code": "Query filter example:\ntenant_id = authenticated_tenant AND document_id IN authorised_documents AND status = ACTIVE",
     "followups": [
       "How are ACL changes propagated?",
       "What if the vector store has limited filtering?"
@@ -4999,7 +4999,7 @@
     "usecases": [
       "Deep analysis of a few documents versus enterprise search across millions"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q55\n\nDecision:\nSmall fixed packet + broad synthesis → long context may suffice.\nLarge/private/dynamic corpus → retrieval remains essential.",
+    "code": "Decision:\nSmall fixed packet + broad synthesis → long context may suffice.\nLarge/private/dynamic corpus → retrieval remains essential.",
     "followups": [
       "How would you benchmark both approaches?",
       "What is the security implication of loading everything?"
@@ -5062,7 +5062,7 @@
       "High precision for auto-blocking payments",
       "High recall for first-stage medical screening"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q56\n\nExample:\n100 alerts, 80 true → precision 0.80.\n100 real fraud cases, 80 found → recall 0.80.",
+    "code": "Example:\n100 alerts, 80 true → precision 0.80.\n100 real fraud cases, 80 found → recall 0.80.",
     "followups": [
       "Why harmonic rather than arithmetic mean?",
       "When is Fβ useful?"
@@ -5089,7 +5089,7 @@
     "usecases": [
       "Fraud or defect detection"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q57\n\nExample:\nFor 1% fraud, compare PR-AUC and precision at the review team’s maximum daily alert volume.",
+    "code": "Example:\nFor 1% fraud, compare PR-AUC and precision at the review team’s maximum daily alert volume.",
     "followups": [
       "What is the baseline PR-AUC?",
       "How does prevalence affect precision?"
@@ -5118,7 +5118,7 @@
       "Demand forecasting",
       "Delivery-time prediction"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q58\n\nExample:\nPrefer MAE when occasional extreme measurement errors should not dominate; prefer RMSE when large misses are especially costly.",
+    "code": "Example:\nPrefer MAE when occasional extreme measurement errors should not dominate; prefer RMSE when large misses are especially costly.",
     "followups": [
       "Why can R² be negative?",
       "Which metric is differentiable at zero?"
@@ -5146,7 +5146,7 @@
       "Pre-training validation",
       "Detecting language-model distribution shift"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q59\n\nPerplexity = exp(average token cross-entropy).",
+    "code": "Perplexity = exp(average token cross-entropy).",
     "followups": [
       "Why can tokenisation change perplexity?",
       "Can a low-perplexity model hallucinate?"
@@ -5174,7 +5174,7 @@
       "Translation regression",
       "Extractive summarisation baseline"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q60\n\nExample:\n“Revenue increased” and “Sales grew” can mean the same thing but have low n-gram overlap.",
+    "code": "Example:\n“Revenue increased” and “Sales grew” can mean the same thing but have low n-gram overlap.",
     "followups": [
       "What does BLEU brevity penalty do?",
       "When is ROUGE still useful?"
@@ -5201,7 +5201,7 @@
     "usecases": [
       "Paraphrastic summarisation evaluation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q61\n\nExample:\n“Customer cancelled the plan” and “The subscription was terminated by the user” receive stronger semantic similarity than lexical overlap.",
+    "code": "Example:\n“Customer cancelled the plan” and “The subscription was terminated by the user” receive stronger semantic similarity than lexical overlap.",
     "followups": [
       "Can semantic similarity detect hallucinated numbers?",
       "How do references affect score?"
@@ -5229,7 +5229,7 @@
       "Pairwise prompt/model evaluation",
       "RAG groundedness screening"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q62\n\nExample:\nJudge A vs B twice with reversed order; flag disagreements for human review.",
+    "code": "Example:\nJudge A vs B twice with reversed order; flag disagreements for human review.",
     "followups": [
       "How do you calibrate against humans?",
       "What is judge leakage?"
@@ -5255,7 +5255,7 @@
     "usecases": [
       "Initial model shortlisting"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q63\n\nExample:\nShortlist on public benchmarks, then run a governed domain golden set and production-like load test.",
+    "code": "Example:\nShortlist on public benchmarks, then run a governed domain golden set and production-like load test.",
     "followups": [
       "How do you detect contamination?",
       "What product capability is absent from the benchmark?"
@@ -5283,7 +5283,7 @@
       "Chatbot preference testing",
       "Model release comparison"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q64\n\nExample:\nRandomly show A/B answers without model names; balance order; calculate win rate and confidence intervals.",
+    "code": "Example:\nRandomly show A/B answers without model names; balance order; calculate win rate and confidence intervals.",
     "followups": [
       "How are annotators calibrated?",
       "How do you handle ties and unsafe answers?"
@@ -5311,7 +5311,7 @@
     "usecases": [
       "Release gate for a policy assistant"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q65\n\nStages:\n1 source/index coverage\n2 top-k evidence recall\n3 answer/citation quality\n4 user task success",
+    "code": "Stages:\n1 source/index coverage\n2 top-k evidence recall\n3 answer/citation quality\n4 user task success",
     "followups": [
       "How are table questions represented?",
       "How do you evaluate conflicting sources?",
@@ -5340,7 +5340,7 @@
     "usecases": [
       "LLM product release management"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q67\n\nRelease unit:\nmodel + prompt + tools + retrieval/index + safety policy + dataset version.",
+    "code": "Release unit:\nmodel + prompt + tools + retrieval/index + safety policy + dataset version.",
     "followups": [
       "How are golden examples refreshed?",
       "What triggers rollback?",
@@ -5371,7 +5371,7 @@
     "usecases": [
       "Expose internal developer tools to several AI clients"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q68\n\nWithout standard: many client-specific integrations.\nWith MCP: clients implement the protocol; servers expose standard capabilities.",
+    "code": "Without standard: many client-specific integrations.\nWith MCP: clients implement the protocol; servers expose standard capabilities.",
     "followups": [
       "What does MCP not solve?",
       "How is trust established?"
@@ -5398,7 +5398,7 @@
     "usecases": [
       "Desktop coding assistant connecting to filesystem and issue-tracker servers"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q69\n\nHost/model ↔ MCP client ↔ transport ↔ MCP server ↔ product/data system",
+    "code": "Host/model ↔ MCP client ↔ transport ↔ MCP server ↔ product/data system",
     "followups": [
       "Where are credentials held?",
       "Can one host connect to several servers?"
@@ -5427,7 +5427,7 @@
       "Read-only documentation resource",
       "Code-review prompt template"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q70\n\nTool: create_ticket(args)\nResource: docs://service/runbook\nPrompt: investigate_incident(service)",
+    "code": "Tool: create_ticket(args)\nResource: docs://service/runbook\nPrompt: investigate_incident(service)",
     "followups": [
       "Should resources ever execute side effects?",
       "How are tool schemas validated?"
@@ -5455,7 +5455,7 @@
       "Local filesystem MCP server",
       "Remote enterprise CRM MCP server"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q71\n\nLocal: host launches server → stdin/stdout messages.\nRemote: authenticated HTTPS session → shared service.",
+    "code": "Local: host launches server → stdin/stdout messages.\nRemote: authenticated HTTPS session → shared service.",
     "followups": [
       "What credentials are appropriate for remote use?",
       "How do you handle server availability?"
@@ -5482,7 +5482,7 @@
     "usecases": [
       "One internal assistant may use direct APIs; many AI clients may justify an MCP server"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q72\n\nModel tool call → host validates → MCP client invokes server → server calls underlying API.",
+    "code": "Model tool call → host validates → MCP client invokes server → server calls underlying API.",
     "followups": [
       "Can MCP and function calling be used together?",
       "When is direct REST simpler?"
@@ -5510,7 +5510,7 @@
     "usecases": [
       "Create a project issue from a coding assistant"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q73\n\ndiscover → select capability → model proposes call → host validates → server executes → sanitised result → model continues",
+    "code": "discover → select capability → model proposes call → host validates → server executes → sanitised result → model continues",
     "followups": [
       "Who executes the tool?",
       "What if the tool result contains malicious instructions?"
@@ -5537,7 +5537,7 @@
     "usecases": [
       "Enterprise MCP gateway or approved server registry"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q74\n\nSecurity gates:\nserver trust → capability review → user/resource auth → argument validation → sandbox/egress → result sanitisation → audit",
+    "code": "Security gates:\nserver trust → capability review → user/resource auth → argument validation → sandbox/egress → result sanitisation → audit",
     "followups": [
       "How are server updates approved?",
       "How do you prevent confused-deputy actions?"
@@ -5564,7 +5564,7 @@
     "usecases": [
       "Product offers search, read and create operations to several AI development tools"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q75\n\nArchitecture:\nAI hosts → MCP server adapter → existing domain APIs\nNon-AI clients → existing REST/gRPC APIs",
+    "code": "Architecture:\nAI hosts → MCP server adapter → existing domain APIs\nNon-AI clients → existing REST/gRPC APIs",
     "followups": [
       "Should MCP contain business logic?",
       "How are breaking changes versioned?"
@@ -5592,7 +5592,7 @@
     "usecases": [
       "Customer support agent"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q77\n\nInput/goal + state → model decision → policy gate → tool → observation → state update → completion or next step",
+    "code": "Input/goal + state → model decision → policy gate → tool → observation → state update → completion or next step",
     "followups": [
       "Where is authorisation enforced?",
       "What should never enter long-term memory?"
@@ -5620,7 +5620,7 @@
       "Research across several sources",
       "Troubleshooting with diagnostic tools"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q78\n\nLoop:\nassess state → choose tool → execute → observe → update plan → finish/escalate",
+    "code": "Loop:\nassess state → choose tool → execute → observe → update plan → finish/escalate",
     "followups": [
       "When does ReAct become an expensive loop?",
       "How are tool failures handled?"
@@ -5648,7 +5648,7 @@
       "Lookup order status",
       "Create a support ticket"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q79\n\ntool schema → model proposal → validator/policy → executor → sanitised result → model",
+    "code": "tool schema → model proposal → validator/policy → executor → sanitised result → model",
     "followups": [
       "What if arguments are valid JSON but unsafe?",
       "How is idempotency handled for write tools?"
@@ -5676,7 +5676,7 @@
       "Persistent user preferences",
       "Agent task history and learned runbook hints"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q80\n\nMemory record:\nowner/tenant + content + source + timestamp + expiry + sensitivity + embedding",
+    "code": "Memory record:\nowner/tenant + content + source + timestamp + expiry + sensitivity + embedding",
     "followups": [
       "How do you prevent stale memory?",
       "How is a user memory deleted?"
@@ -5704,7 +5704,7 @@
       "Research project",
       "Multi-step support diagnosis"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q81\n\nHybrid:\nplan milestones → execute bounded step → validate checkpoint → continue or re-plan",
+    "code": "Hybrid:\nplan milestones → execute bounded step → validate checkpoint → continue or re-plan",
     "followups": [
       "How do you validate a plan before execution?",
       "When should the plan be immutable?"
@@ -5731,7 +5731,7 @@
     "usecases": [
       "Long-running research or support agent"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q82\n\nStop conditions:\nmax_steps=8\ndeadline=60s\nbudget=£0.50\nrepeat_action_limit=2\nwrite actions require approval",
+    "code": "Stop conditions:\nmax_steps=8\ndeadline=60s\nbudget=£0.50\nrepeat_action_limit=2\nwrite actions require approval",
     "followups": [
       "How do you identify loops?",
       "What if a tool is rate-limited?"
@@ -5758,7 +5758,7 @@
     "usecases": [
       "Complex resumable workflow versus a two-tool assistant"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q83\n\nDecision checklist:\nstate complexity, durability, human approval, tool count, observability, vendor lock-in, team expertise.",
+    "code": "Decision checklist:\nstate complexity, durability, human approval, tool count, observability, vendor lock-in, team expertise.",
     "followups": [
       "How do you migrate away from the framework?",
       "Where is state persisted?"
@@ -5788,7 +5788,7 @@
       "Production deployment",
       "Sending confidential data"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q84\n\nApproval object:\naction_hash + user + tenant + parameters + expiry + approver + timestamp",
+    "code": "Approval object:\naction_hash + user + tenant + parameters + expiry + approver + timestamp",
     "followups": [
       "Where in the workflow should approval occur?",
       "How do you prevent approval replay?"
@@ -5816,7 +5816,7 @@
       "Coding agent executing tests",
       "Support agent reading customer data"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q85\n\nGuardrail layers:\ninput → policy → model → tool proposal → auth/schema → sandbox → output/DLP → audit",
+    "code": "Guardrail layers:\ninput → policy → model → tool proposal → auth/schema → sandbox → output/DLP → audit",
     "followups": [
       "Can output filtering replace tool permissions?",
       "How are sandboxes reset?"
@@ -5844,7 +5844,7 @@
     "usecases": [
       "Healthcare or financial support assistant"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q86\n\nPattern:\nuser identity → policy service → scoped data API → redacted response → model context → audited output",
+    "code": "Pattern:\nuser identity → policy service → scoped data API → redacted response → model context → audited output",
     "followups": [
       "How is tenant isolation tested?",
       "What goes into long-term memory?"
@@ -5871,7 +5871,7 @@
     "usecases": [
       "Debugging a failed support or coding-agent run"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q87\n\nRun trace:\nrun_id → step_id → state_hash → model/version → tool/args hash → policy result → observation → cost → next state",
+    "code": "Run trace:\nrun_id → step_id → state_hash → model/version → tool/args hash → policy result → observation → cost → next state",
     "followups": [
       "Can exact model output always be reproduced?",
       "How do you protect trace data?"
@@ -5902,7 +5902,7 @@
       "Support resolution",
       "Coding automation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q88\n\nAutonomy ladder:\ncall → chain → routed workflow → agent loop → multi-agent → bounded autonomy\n\nAgent loop:\ngoal → choose action → execute tool → observe result → update state → stop/escalate",
+    "code": "Autonomy ladder:\ncall → chain → routed workflow → agent loop → multi-agent → bounded autonomy\n\nAgent loop:\ngoal → choose action → execute tool → observe result → update state → stop/escalate",
     "followups": [
       "What makes a system genuinely agentic?",
       "Where should autonomy stop?",
@@ -5931,7 +5931,7 @@
       "Document extraction pipeline",
       "Parallel research synthesis"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q89\n\nPattern choice:\nknown steps → chain/workflow\nindependent tasks → parallel\nunknown next action → bounded agent",
+    "code": "Pattern choice:\nknown steps → chain/workflow\nindependent tasks → parallel\nunknown next action → bounded agent",
     "followups": [
       "When does evaluator–optimizer loop stop?",
       "Can routing be deterministic?"
@@ -5960,7 +5960,7 @@
       "Hierarchy for large programme planning",
       "Peer pattern for bounded simulation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q90\n\nSupervisor → {search agent, data agent, writer} → verifier → final response",
+    "code": "Supervisor → {search agent, data agent, writer} → verifier → final response",
     "followups": [
       "What if supervisor is wrong?",
       "How is shared state controlled?"
@@ -5988,7 +5988,7 @@
       "Long-running research agents sharing evidence",
       "Delegation across enterprise agent services"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q91\n\nTask message:\ntask_id + sender + recipient + goal + allowed resources + deadline + schema + trace_id",
+    "code": "Task message:\ntask_id + sender + recipient + goal + allowed resources + deadline + schema + trace_id",
     "followups": [
       "How are concurrent state updates resolved?",
       "How is an agent identity authenticated?"
@@ -6015,7 +6015,7 @@
     "usecases": [
       "Research with search, data-analysis and writing roles"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q92\n\nExperiment:\nA: single agent with all tools\nB: supervisor + specialists\nCompare quality, steps, cost, latency and failures.",
+    "code": "Experiment:\nA: single agent with all tools\nB: supervisor + specialists\nCompare quality, steps, cost, latency and failures.",
     "followups": [
       "How much context is lost in hand-offs?",
       "Can tool permissions be isolated by specialist?"
@@ -6042,7 +6042,7 @@
     "usecases": [
       "Multi-hour research, migration or onboarding agent"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q93\n\nState machine:\nCREATED → PLANNED → RUNNING(step n) → WAITING_APPROVAL → RESUMED → COMPLETED/FAILED/CANCELLED",
+    "code": "State machine:\nCREATED → PLANNED → RUNNING(step n) → WAITING_APPROVAL → RESUMED → COMPLETED/FAILED/CANCELLED",
     "followups": [
       "How do you upgrade workflow code mid-run?",
       "How are non-idempotent actions compensated?"
@@ -6069,7 +6069,7 @@
     "usecases": [
       "Long-running research/coding agents"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q94\n\nContext layers:\npolicy + current goal + structured state + selected evidence + available tools + recent observations",
+    "code": "Context layers:\npolicy + current goal + structured state + selected evidence + available tools + recent observations",
     "followups": [
       "What must never be summarised away?",
       "How do you prevent memory poisoning?"
@@ -6097,7 +6097,7 @@
     "usecases": [
       "High-volume customer-support automation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q95\n\nCost policy:\nsmall model triage → deterministic tool/workflow → large model only for complex synthesis → human escalation for high risk",
+    "code": "Cost policy:\nsmall model triage → deterministic tool/workflow → large model only for complex synthesis → human escalation for high risk",
     "followups": [
       "When is caching unsafe?",
       "How do parallel calls affect rate limits?"
@@ -6124,7 +6124,7 @@
     "usecases": [
       "Twenty-step onboarding or coding workflow"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q96\n\nIf independent step success = 0.95, 20-step success ≈ 0.95²⁰ ≈ 0.36.\nImprove by reducing steps, verifying and recovering.",
+    "code": "If independent step success = 0.95, 20-step success ≈ 0.95²⁰ ≈ 0.36.\nImprove by reducing steps, verifying and recovering.",
     "followups": [
       "Are step failures independent?",
       "Where should verification be inserted?"
@@ -6151,7 +6151,7 @@
     "usecases": [
       "Payment, deployment, account-management agents"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q97\n\nSafety pattern:\nread-only by default → explicit write capability → exact approval → execution limit → audit → compensation/kill switch",
+    "code": "Safety pattern:\nread-only by default → explicit write capability → exact approval → execution limit → audit → compensation/kill switch",
     "followups": [
       "How are privileges revoked during a run?",
       "Which actions are irreversible?"
@@ -6180,7 +6180,7 @@
       "Coding agent evaluated with tests",
       "Research agent evaluated for evidence coverage"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q98\n\nScorecard:\ntask success + hidden checks + policy violations + tool error recovery + steps + time + cost",
+    "code": "Scorecard:\ntask success + hidden checks + policy violations + tool error recovery + steps + time + cost",
     "followups": [
       "How many repeated runs are needed?",
       "How are environment side effects reset?",
@@ -6211,7 +6211,7 @@
       "Deep-research agent",
       "Customer-support automation"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q99\n\nInterview structure:\nuse case → environment/tools → failure modes → safety → evaluation → human hand-off → cost/operations",
+    "code": "Interview structure:\nuse case → environment/tools → failure modes → safety → evaluation → human hand-off → cost/operations",
     "followups": [
       "What is the highest-risk side effect?",
       "What is the fallback when the agent is uncertain?"
@@ -6238,7 +6238,7 @@
     "usecases": [
       "Roadmap discussion for production agent platforms"
     ],
-    "code": "Source question: 100-AI-Interview-Questions.pdf · Q100\n\nLikely progression:\ndemos → bounded workflows → verified domain agents → carefully expanded autonomy, with humans retained for high-risk decisions.",
+    "code": "Likely progression:\ndemos → bounded workflows → verified domain agents → carefully expanded autonomy, with humans retained for high-risk decisions.",
     "followups": [
       "Which limitation is model-related versus systems-related?",
       "What evidence would justify more autonomy?"
