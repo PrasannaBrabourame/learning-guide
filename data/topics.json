@@ -8072,5 +8072,38 @@
       "Fine-tunes on raw scraped data with no dedup or holdout"
     ],
     "memory": "Full fine-tune pays 16 bytes a parameter; LoRA pays it only on the sticky notes; QLoRA shrinks the book too. Every method pays the forgetting tax unless replay covers it."
+  },
+  {
+    "id": "catastrophic-forgetting",
+    "title": "Catastrophic Forgetting",
+    "category": "Deep Learning & Neural Networks",
+    "difficulty": "Medium",
+    "question": "You fine-tuned a model on domain data and it aced the domain evals. A week later users report it has got worse at almost everything else. What happened, why does it happen, and what actually prevents it?",
+    "technical": [
+      "The mechanism: a neural network stores every skill in the same shared weights. Gradient descent on new data moves those weights in whatever direction lowers the new loss, and nothing in that loss defends capabilities the new batches never exercise, so old skills are overwritten rather than set aside. Documented in sequential-learning research since the late 1980s; scale softens it but does not remove it.",
+      "Where it bites in LLM work: domain fine-tunes eroding general capability; instruction tuning and RLHF degrading base skills (the 'alignment tax'); continual-learning pipelines where task N+1 quietly damages tasks 1..N; and even adapter runs, because a LoRA limits where change is stored, not what the loss cares about, so merged behaviour can still regress.",
+      "Mitigations, data first, because they work best: replay (mix a slice of general or pretraining-like data into the fine-tuning batches, commonly 10-50%), keep the learning rate low and the epochs few, and early-stop on a general suite rather than the domain one.",
+      "Mitigations, method second: keep the change in an adapter that can be removed (the base itself never forgets; only merged behaviour is at risk), regularise toward the original model (a KL penalty to the base, as RLHF training does, or elastic weight consolidation, which penalises moving weights important to old tasks), or distil the old model's answers into the new training set.",
+      "Detection is a release gate, not an investigation: every fine-tune ships only if the domain suite rose and the general suite held, because the failure is invisible on the metric you were staring at. Freezing most layers is not on the mitigation list: with only specialist data in the batch, whatever remains trainable is spent on the specialist task."
+    ],
+    "layman": "Cramming French all summer and finding your Spanish gone: both languages live in the same brain, and nothing in the French course rehearsed Spanish. The fix is not studying French more gently; it is keeping a Spanish evening each week while you cram.",
+    "usecases": [
+      "Gating domain fine-tune releases",
+      "Explaining the alignment tax after instruction tuning",
+      "Designing continual-learning pipelines that add tasks monthly",
+      "Deciding between merging an adapter and serving it separately"
+    ],
+    "code": "release gate, every fine-tune:\n\n            domain suite   general suite\nbefore      62%            81%\nafter       91%            79%   pass: general held within 2 points\nafter(bad)  93%            58%   catastrophic forgetting: block\n\nmitigation ladder, in order of attack:\n1. replay: mix 10-50% general data into the batches\n2. low learning rate, few epochs, early stop on the GENERAL suite\n3. keep the change in a removable adapter\n4. regularise toward the base model (KL penalty, EWC)",
+    "followups": [
+      "Why does freezing most of the layers not prevent it?",
+      "What goes into the general suite that gates the release?",
+      "How is the RLHF alignment tax the same phenomenon wearing different clothes?"
+    ],
+    "redflags": [
+      "Ships a fine-tune on domain evals alone",
+      "Believes LoRA makes forgetting impossible",
+      "Many epochs over a tiny specialist set at a high learning rate"
+    ],
+    "memory": "Shared weights, selfish loss: training defends only what is in its batches. Replay what you want remembered."
   }
 ]
