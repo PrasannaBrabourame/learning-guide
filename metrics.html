@@ -127,7 +127,7 @@ document.getElementById('sec-mtool').innerHTML=`
   <div class="simnote" style="margin-top:10px">Names to recognise, not endorsements: pick whichever implements the family you need with the least new infrastructure. The deterministic gates are the exception, and stay yours: a regex over your own roster is not worth a framework.</div>
 </div>
 
-<div class="card">
+<div class="card" style="margin-bottom:16px">
   <h2 class="sec">Try it: eight jobs, find the give-away, pick the tool</h2>
   <div class="plain-line"><b>Try this:</b> eight evaluation jobs, one per tool on the shelf. Most requirements in a posting are shared by half the shelf and choose nothing; each posting here hides exactly one <b>give-away</b> that a single tool satisfies. Find it before the shelf unlocks, then pick, and every wrong option really is the right answer to a different job on this list.</div>
   <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A hardware shop. Eight fasteners, eight drivers. Every driver turns every screw a little, which is exactly why people strip threads: the skill is matching the head, not gripping harder. And the box label names the head, if you read past the parts every box shares.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>in job one, click the underlined requirement you think <b>only a single tool</b> could satisfy. The shelf stays locked until you find it.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool / framework</b> an off-the-shelf package that implements evaluation metrics for you</span><span class="sp-w"><b>agent</b> an AI system that answers in steps, calling helpers such as search or a database along the way, not a human agent</span><span class="sp-w"><b>an agent&rsquo;s tools</b> the helpers an agent can call mid-task: a search box, a calculator, a customer database, not the evaluation tools on this shelf</span><span class="sp-w"><b>LLM</b> large language model: the AI text engine being evaluated here, the kind that powers chatbots</span><span class="sp-w"><b>give-away</b> the one requirement in a posting that a single tool on the shelf satisfies; everything else is shared, and chooses nothing</span><span class="sp-w"><b>CI</b> the pipeline that runs checks automatically on every code change</span><span class="sp-w"><b>CLI</b> a tool driven from the command line, nothing to click</span><span class="sp-w"><b>assertion</b> a pass-or-fail rule a pipeline can act on</span><span class="sp-w"><b>unit test</b> a small automatic check on one piece of code; if any one fails, the whole release is blocked</span><span class="sp-w"><b>tracing</b> recording every step an app took, so scores can attach to steps</span><span class="sp-w"><b>reference-free</b> scored without a human-written example of the ideal answer to compare against</span><span class="sp-w"><b>pairwise</b> judging &ldquo;is A better than B&rdquo; instead of scoring A alone</span><span class="sp-w"><b>managed</b> run by the cloud provider inside your existing account and permissions</span><span class="sp-w"><b>estate</b> everything an organisation already runs: its systems, accounts and cloud services</span><span class="sp-w"><b>RAG</b> retrieval-augmented generation: fetch passages first, then write the answer from them</span><span class="sp-w"><b>faithfulness / groundedness</b> two names for one check: does the answer stick to what was fetched</span><span class="sp-w"><b>context precision</b> of the passages fetched, how many were actually useful, with credit for putting the useful ones first</span><span class="sp-w"><b>trajectory</b> the route an agent took to its answer: which helpers it called, and in what order</span><span class="sp-w"><b>drift</b> this week&rsquo;s inputs no longer looking like the baseline&rsquo;s</span><span class="sp-w"><b>golden set</b> a fixed set of cases you re-run so two versions can be compared line by line</span><span class="sp-w"><b>IAM</b> the cloud&rsquo;s permission system: which identities may touch which resources</span><span class="sp-w"><b>YAML</b> a plain-text settings file, written by hand, read by machines</span><span class="sp-w"><b>red team / injection probes</b> attacking your own system on purpose, prompt injections included, to find the holes before an outsider does</span><span class="sp-w"><b>UI</b> the clickable interface, here one shared by a whole team</span></span></div></div>
@@ -135,6 +135,21 @@ document.getElementById('sec-mtool').innerHTML=`
     <div><div id="mxToolOut"></div></div>
     <div><div id="mxToolCtl"></div>
       <div id="mxToolNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+<div class="card">
+  <h2 class="sec">Try it: the build that fails politely</h2>
+  <div class="plain-line"><b>Try this:</b> the DeepEval idea, live: a golden set of ten reports scored by an AI judge, a threshold, and a build that ships or blocks like a unit-test suite. The judge is honest but noisy (about &plusmn;0.04 on any single call), and that noise is the whole lesson: <b>run the suite twice on the same commit</b> and watch what each threshold does. One of the three sits in a gap, one can be rescued, and one cannot be saved by any number of re-judgings.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A tasting panel scoring the same soup a point apart on different days. If the pass mark sits where no soup actually scores, the verdicts never wobble; put the pass mark right on the cluster of scores and the same soup passes Monday and fails Tuesday.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set the threshold to <b>0.80</b> with <b>one judge call</b>, then press <b>run the suite</b> twice and compare the two verdicts.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>suite</b> the whole set of test cases run together; one failure blocks the build</span><span class="sp-w"><b>test case</b> one input plus the answer the system gave, scored by the judge</span><span class="sp-w"><b>threshold</b> the pass mark: a score at or above it passes</span><span class="sp-w"><b>judge</b> a model asked to score another model&rsquo;s output</span><span class="sp-w"><b>judge noise</b> the same answer getting slightly different scores on different calls</span><span class="sp-w"><b>median of 3 / 5</b> call the judge several times per case and keep the middle score</span><span class="sp-w"><b>flaky</b> a gate that flips verdicts on the same commit; teams learn to ignore it, and then it is worse than no gate</span><span class="sp-w"><b>blocked / shipped</b> what the pipeline does with the verdict: any failure blocks</span><span class="sp-w"><b>deadband</b> the gates tab&rsquo;s idea: put the pass mark in a gap where no case actually scores</span><span class="sp-w"><b>true score</b> the case&rsquo;s real quality, which the noisy judge can only approximate</span><span class="sp-w"><b>faithfulness</b> the quality being scored here: does the report stick to what its source documents say</span><span class="sp-w"><b>commit</b> one saved version of the code; every run here scores the same version</span><span class="sp-w"><b>pinned</b> locked to one exact version of the judge, so it cannot quietly change overnight</span><span class="sp-w"><b>cache</b> a saved copy of past scores, so a repeated answer reuses its old score instead of rolling the dice again</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="mxDeOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THRESHOLD (faithfulness must be at least)</div>
+      <div class="segmented" id="mxDeTh" style="flex-direction:row"></div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:10px 0 6px">JUDGE CALLS PER CASE</div>
+      <div class="segmented" id="mxDeM" style="flex-direction:row"></div>
+      <button class="seg" id="mxDeRun" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>run the suite</b></button>
+      <div id="mxDeNote" class="cidr-out" style="margin-top:12px"></div></div>
   </div>
 </div>`;
 
@@ -231,6 +246,63 @@ document.getElementById('sec-mtool').innerHTML=`
     shelf();
   }
   render();
+})();
+
+/* --- SIM: the build that fails politely --- */
+(function(){
+  const out=document.getElementById('mxDeOut'), note=document.getElementById('mxDeNote'),
+        thEl=document.getElementById('mxDeTh'), mEl=document.getElementById('mxDeM'),
+        runB=document.getElementById('mxDeRun');
+  if(!out) return;
+  const mulberry32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let z=Math.imul(a^a>>>15,1|a);z=z+Math.imul(z^z>>>7,61|z)^z;return((z^z>>>14)>>>0)/4294967296;};
+  const T=[0.93,0.89,0.86,0.84,0.81,0.79,0.78,0.64,0.58,0.51];
+  const THS=[0.70,0.75,0.80], MS=[1,3,5], ML=['one judge call','median of 3','median of 5'];
+  let thi=2, mi=0, judge=mulberry32(11), runs=0, last=null, lastKey='';
+  function render(){
+    thEl.innerHTML=THS.map((v,i)=>'<button class="seg'+(i===thi?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:12px">'+v.toFixed(2)+'</button>').join('');
+    mEl.innerHTML=MS.map((v,i)=>'<button class="seg'+(i===mi?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:11px">'+ML[i]+'</button>').join('');
+    thEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{thi=+b.dataset.i;render();});
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mi=+b.dataset.i;render();});
+  }
+  function runSuite(){
+    const th=THS[thi], m=MS[mi];
+    const rows=T.map((t,i)=>{
+      const calls=[]; for(let c=0;c<m;c++) calls.push(Math.max(0,Math.min(1,t+(judge()*2-1)*0.04)));
+      calls.sort((a,b)=>a-b);
+      const sc=calls[(m-1)/2];
+      return {name:'report-'+String(i+1).padStart(2,'0'), sc, pass:sc>=th};
+    });
+    runs++;
+    const key=th+'|'+m;
+    const fails=rows.filter(r=>!r.pass).length;
+    let flip=null;
+    if(last && lastKey===key){
+      const flips=rows.filter((r,i)=>r.pass!==last[i].pass).map(r=>r.name);
+      if(flips.length) flip=flips;
+    }
+    const sameSettings = lastKey===key;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">RUN '+runs+' &middot; SAME COMMIT EVERY TIME &middot; faithfulness &ge; '+th.toFixed(2)+' &middot; '+ML[mi]+'</div>'
+      +'<div style="font-family:var(--mono);font-size:12px;line-height:1.9;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:12px 14px">'
+      +rows.map((r,i)=>r.name+'  scored '+r.sc.toFixed(2)+'  '
+        +(r.pass?'<span style="color:var(--green)">PASS</span>':'<span style="color:var(--red)">FAIL</span>')
+        +(flip&&flip.includes(r.name)?'  <span style="color:var(--amber)">&larr; flipped since the last run</span>':'')).join('<br>')
+      +'<br><br>'+(fails
+        ? '<b style="color:var(--red)">'+fails+' failed, '+(10-fails)+' passed &middot; build BLOCKED</b>'
+        : '<b style="color:var(--green)">10 passed &middot; build SHIPPED</b>')+'</div>';
+    note.innerHTML = flip
+      ? '<div class="lzbad"><b>The gate just flip-flopped on the same commit.</b> '+flip.join(' and ')+' changed verdict with no code change at all: only the judge&rsquo;s noise moved. That is a flaky gate, and a team that sees this twice starts overriding the gate, which is worse than having none. Fixes, in order: move the threshold into a gap between where cases actually score (0.70 here), steady the judge with medians, lock the judge to one exact version (pin it), and keep a copy of every score (a cache), so the same answer is only ever scored once.</div>'
+      : sameSettings && runs>1
+      ? '<div class="ok"><b>Same verdict as the last run.</b> '+(th===0.70
+          ? 'This threshold sits in a gap: the nearest case scores are 0.64 and 0.78, both further away than the judge&rsquo;s noise can reach, so single calls are already stable. The three failures are real: their true quality sits below the line.'
+          : th===0.75&&m>1
+          ? 'The medians did it: report-07 sits 0.03 from this line, close enough for one noisy call to flip but too far for the middle of '+m+' calls. Borderline cases can be rescued by re-judging, as long as they do not hug the line.'
+          : 'Stable this time. Run it again: cases sitting within noise of this line (0.79 and 0.81 around 0.80) will flip sooner or later, and no number of re-judgings fixes a threshold parked on top of the case scores.')+'</div>'
+      : '<div class="simnote"><b>Run it again, same settings.</b> A gate is only trustworthy if the same commit gets the same verdict twice, so the test for flakiness is always a second run.</div>';
+    last=rows; lastKey=key;
+  }
+  runB.onclick=runSuite;
+  render();
+  note.innerHTML='<div class="simnote">The ten reports&rsquo; true quality is fixed; only the judge wobbles. Press <b>run the suite</b> twice with each threshold and watch which gates keep their word.</div>';
 })();
 
 /* ================= 11 · EXAM ANGLE ================= */

@@ -631,7 +631,7 @@ document.getElementById('sec-ttune').innerHTML=`
   </div>
 </div>
 
-<div class="card">
+<div class="card" style="margin-bottom:16px">
   <h2 class="sec">Try it: specialise the clinic model without lobotomising it</h2>
   <div class="plain-line"><b>Try this:</b> catastrophic forgetting, live, on this page&rsquo;s real network. Train a general clinic model until its map is perfect. Then a specialist ward sends over its notes: a small pocket of cases where the reading flips. Specialise three ways and watch two meters at once, because the disaster is never on the meter you are staring at.</div>
   <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A locum doctor spends a month on a cardiology ward and comes back reading every chest complaint as cardiac. The cure is not studying the ward less; it is keeping one day a week in the general clinic while specialising.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>1 &middot; train the clinic model</b>, then try <b>specialist notes only</b> and watch the left meter, not the right one.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>pretrain</b> the general training a model gets before you ever touch it</span><span class="sp-w"><b>specialise / fine-tune</b> continue training on the new domain&rsquo;s examples</span><span class="sp-w"><b>catastrophic forgetting</b> new training overwriting old skill, because nothing in the new data defends it</span><span class="sp-w"><b>the pocket</b> the specialist cases: one small corner of the map where the label flips</span><span class="sp-w"><b>replay</b> mixing a slice of the old general data into the specialist training</span><span class="sp-w"><b>freeze</b> lock some layers so training cannot move them</span><span class="sp-w"><b>learning rate</b> this lab&rsquo;s step size; smaller steps forget more slowly, and still forget</span><span class="sp-w"><b>accuracy</b> the share of a test set the model currently gets right</span></span></div></div>
@@ -647,6 +647,24 @@ document.getElementById('sec-ttune').innerHTML=`
       </div>
       <button class="seg" id="tuneFgReset" disabled style="width:100%;margin-top:8px;font-size:12px">back to the trained clinic model</button>
       <div id="tuneFgNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: bottle the teacher into a student a fifth its size</h2>
+  <div class="plain-line"><b>Try this:</b> distillation, the move for when the model is right but too big to serve. A large teacher network learned the spiral from a 140-case archive that no longer exists; today you hold <b>14 surviving labelled cases</b> and a student with a fifth of the teacher&rsquo;s dials. Train the student two ways and watch the same small network produce two very different maps, because the teacher can do something the archive cannot: <b>label unlimited fresh examples, confidence included</b>.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A master chef retiring. Hand the apprentice the 14 surviving recipe cards, or have the chef cook beside them for a month commenting on every dish, not just right or wrong but <em>how close</em>. The apprentice who trained beside the chef cooks like the chef.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>1 &middot; train the teacher</b>, then <b>student from the 14 labels</b>, then <b>student from the teacher</b>, and compare the two maps.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>distillation</b> training a small student model to imitate a big teacher&rsquo;s answers</span><span class="sp-w"><b>teacher / student</b> the big trained model, and the small one learning to copy it</span><span class="sp-w"><b>soft labels</b> the teacher&rsquo;s confidence, not just its verdict: &ldquo;0.93 teal&rdquo; (93% sure) teaches more than &ldquo;teal&rdquo;</span><span class="sp-w"><b>synthetic data</b> fresh examples labelled by the teacher rather than by a person</span><span class="sp-w"><b>dials</b> this lab&rsquo;s word for learnable numbers: the student here has 74 to the teacher&rsquo;s 354</span><span class="sp-w"><b>archive</b> the original human-labelled training set, mostly lost in this story</span><span class="sp-w"><b>held-out test</b> fresh cases neither model trained on, where accuracy is measured</span><span class="sp-w"><b>agreement</b> the share of the test where student and teacher give the same verdict</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="tuneDsOut" class="live"></div></div>
+    <div>
+      <button class="seg" id="tuneDsPre" style="width:100%;font-size:12px;color:var(--accent)">&#9654; <b>1 &middot; train the teacher (full archive, 140 cases)</b></button>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:10px 0 6px">2 &middot; THEN TRAIN THE SMALL STUDENT, TWO WAYS</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="seg" id="tuneDsHard" disabled style="text-align:left;font-size:12px">student from the 14 surviving labels <span class="k" style="font-size:10px;color:var(--dim)">all the human data left</span></button>
+        <button class="seg" id="tuneDsSoft" disabled style="text-align:left;font-size:12px">student from the teacher (distil) <span class="k" style="font-size:10px;color:var(--dim)">1,500 fresh points, soft labels</span></button>
+      </div>
+      <button class="seg" id="tuneDsBack" disabled style="width:100%;margin-top:8px;font-size:12px">show the teacher&rsquo;s map again</button>
+      <div id="tuneDsNote" class="cidr-out" style="margin-top:12px"></div></div>
   </div>
 </div>`;
 
@@ -919,6 +937,126 @@ document.getElementById('sec-ttune').innerHTML=`
   paint(); setBtns();
 })();
 
+
+
+/* --- SIM: distillation, bottle the teacher --- */
+(function(){
+  const out=document.getElementById('tuneDsOut'), note=document.getElementById('tuneDsNote'),
+        pre=document.getElementById('tuneDsPre'), bH=document.getElementById('tuneDsHard'),
+        bS=document.getElementById('tuneDsSoft'), bB=document.getElementById('tuneDsBack');
+  if(!out) return;
+  function mkNet(H,r){
+    const lay=(nin,nout)=>({w:Array.from({length:nout},()=>Array.from({length:nin},()=>gauss(r)/Math.sqrt(nin))),
+      b:Array(nout).fill(0), mw:Array.from({length:nout},()=>Array(nin).fill(0)), mb:Array(nout).fill(0)});
+    return {H,l1:lay(2,H),l2:lay(H,H),l3:lay(H,2)};
+  }
+  const fwd=(n,x,y)=>{
+    const h1=n.l1.w.map((w,i)=>Math.tanh(w[0]*x+w[1]*y+n.l1.b[i]));
+    const h2=n.l2.w.map((w,i)=>Math.tanh(w.reduce((s,v,j)=>s+v*h1[j],0)+n.l2.b[i]));
+    const o=n.l3.w.map((w,i)=>w.reduce((s,v,j)=>s+v*h2[j],0)+n.l3.b[i]);
+    const m=Math.max(o[0],o[1]), e0=Math.exp(o[0]-m), e1=Math.exp(o[1]-m);
+    return {h1,h2,p1:e1/(e0+e1)};
+  };
+  /* targets are probabilities, so the same loop learns hard labels (t=0 or 1) and soft ones */
+  function trainSoft(net,pts,k,rnd,LR){
+    const MU=0.9,B=24;
+    for(let s=0;s<k;s++){
+      const H=net.H;
+      const g={l1w:net.l1.w.map(r=>r.map(()=>0)),l1b:Array(H).fill(0),
+               l2w:net.l2.w.map(r=>r.map(()=>0)),l2b:Array(H).fill(0),
+               l3w:net.l3.w.map(r=>r.map(()=>0)),l3b:[0,0]};
+      for(let b=0;b<B;b++){
+        const [x,y,t]=pts[(rnd()*pts.length)|0];
+        const f=fwd(net,x,y);
+        const do1=f.p1-t, do0=-do1;
+        const dh2=net.l2.b.map((_,j)=>(net.l3.w[0][j]*do0+net.l3.w[1][j]*do1)*(1-f.h2[j]*f.h2[j]));
+        const dh1=net.l1.b.map((_,j)=>{let s2=0;for(let i=0;i<H;i++)s2+=net.l2.w[i][j]*dh2[i];return s2*(1-f.h1[j]*f.h1[j]);});
+        for(let i=0;i<H;i++){g.l3w[0][i]+=do0*f.h2[i];g.l3w[1][i]+=do1*f.h2[i];}
+        g.l3b[0]+=do0;g.l3b[1]+=do1;
+        for(let i=0;i<H;i++){for(let j=0;j<H;j++)g.l2w[i][j]+=dh2[i]*f.h1[j];g.l2b[i]+=dh2[i];}
+        for(let i=0;i<H;i++){g.l1w[i][0]+=dh1[i]*x;g.l1w[i][1]+=dh1[i]*y;g.l1b[i]+=dh1[i];}
+      }
+      const upd=(L,gw,gb)=>{for(let i=0;i<L.w.length;i++){for(let j=0;j<L.w[i].length;j++){
+        L.mw[i][j]=MU*L.mw[i][j]-LR*gw[i][j]/B;L.w[i][j]+=L.mw[i][j];}
+        L.mb[i]=MU*L.mb[i]-LR*gb[i]/B;L.b[i]+=L.mb[i];}};
+      upd(net.l1,g.l1w,g.l1b);upd(net.l2,g.l2w,g.l2b);upd(net.l3,g.l3w,g.l3b);
+    }
+  }
+  const accOf=(net,pts)=>{let a=0;for(const [x,y,c] of pts) if((fwd(net,x,y).p1>0.5)===(c>0.5)) a++;return a/pts.length;};
+  function genSpiral(r,n){const p=[];for(let c=0;c<2;c++) for(let i=0;i<n;i++){const q=i/n,rad=.22+q*2.15,
+    th=q*6.1+c*Math.PI+gauss(r)*.07;p.push([Math.cos(th)*rad,Math.sin(th)*rad,c]);}return p;}
+  const FULL=genSpiral(mulberry32(7),70);
+  const KEEP=FULL.filter((_,i)=>i%10===0);
+  const TEST=genSpiral(mulberry32(555),120);
+  const dials=H=>2*H+H + H*H+H + 2*H+2;
+  let teacher=null, cur=null, curName='', SYN=null, running=false, token=0;
+  const GX=30, GY=22, DOM=2.6;
+  const PX=x=>(x+DOM)/(2*DOM)*460, PY=y=>340-(y+DOM)/(2*DOM)*340;
+  function paint(msg){
+    if(!cur){ out.innerHTML='<div class="simnote">Press <b>1 &middot; train the teacher</b> to begin. The archive of 140 cases will then appear as dots, and the 14 ringed ones are all the labelled data that will survive to train the student.</div>'; return; }
+    let cells='';
+    for(let i=0;i<GX;i++) for(let j=0;j<GY;j++){
+      const x=-DOM+(i+0.5)*2*DOM/GX, y=-DOM+(j+0.5)*2*DOM/GY;
+      const p=fwd(cur,x,y).p1, conf=Math.min(0.55,Math.abs(p-0.5)*1.5);
+      cells+='<rect x="'+(i*460/GX).toFixed(1)+'" y="'+(340-(j+1)*340/GY).toFixed(1)+'" width="'+(460/GX+0.5).toFixed(1)+'" height="'+(340/GY+0.5).toFixed(1)
+        +'" style="fill:var(--'+(p>0.5?'teal':'red')+');opacity:'+conf.toFixed(2)+'"/>';
+    }
+    const ta=accOf(cur,TEST);
+    let agr=null;
+    if(teacher&&cur!==teacher){ let a=0; for(const [x,y] of TEST){ if((fwd(cur,x,y).p1>0.5)===(fwd(teacher,x,y).p1>0.5)) a++; } agr=a/TEST.length; }
+    const syn=(curName==='soft'&&SYN)?SYN.slice(0,220).map(([x,y,t])=>'<circle cx="'+PX(x).toFixed(1)+'" cy="'+PY(y).toFixed(1)+'" r="1.7" style="fill:var(--'+(t>0.5?'teal':'red')+');opacity:.55"/>').join(''):'';
+    out.innerHTML='<svg viewBox="0 0 460 340" role="img" aria-label="The spiral archive over the current model&rsquo;s map, with the 14 surviving labelled cases ringed." style="width:100%;height:auto;border-radius:9px;overflow:hidden">'
+      +'<rect x="0" y="0" width="460" height="340" style="fill:var(--panel2)"/>'+cells+syn
+      +FULL.map(([x,y,c])=>'<circle cx="'+PX(x).toFixed(1)+'" cy="'+PY(y).toFixed(1)+'" r="3" style="fill:var(--'+(c?'teal':'red')+');opacity:'+(curName===''?'0.85':'0.28')+'"/>').join('')
+      +KEEP.map(([x,y,c])=>'<circle cx="'+PX(x).toFixed(1)+'" cy="'+PY(y).toFixed(1)+'" r="4.4" style="fill:var(--'+(c?'teal':'red')+');stroke:var(--text);stroke-width:1.4"/>').join('')
+      +'</svg>'
+      +'<div style="display:flex;gap:18px;margin-top:8px;flex-wrap:wrap" class="nnbig">'
+      +'<span style="font-size:12px;color:var(--muted)">'+(curName===''?'teacher ('+dials(16)+' dials)':'student ('+dials(6)+' dials)')+' on held-out test <b style="font-size:18px;color:'+(ta>0.95?'var(--green)':ta>0.85?'var(--amber)':'var(--red)')+'">'+Math.round(ta*100)+'%</b></span>'
+      +(agr!==null?'<span style="font-size:12px;color:var(--muted)">agreement with teacher <b style="font-size:18px;color:'+(agr>0.95?'var(--green)':'var(--amber)')+'">'+Math.round(agr*100)+'%</b></span>':'')
+      +(msg?'<span style="font-size:12px;color:var(--accent)" class="k">'+msg+'</span>':'')
+      +'</div>';
+    return {ta,agr};
+  }
+  function setBtns(){ const ready=!!teacher&&!running; [bH,bS,bB].forEach(b=>b.disabled=!ready); pre.disabled=running||!!teacher; }
+  function animate(net,pts,total,perFrame,LR,stream,label,done){
+    running=true; setBtns(); const my=++token; let doneSteps=0;
+    (function frame(){
+      if(my!==token){running=false;setBtns();return;}
+      const k=Math.min(perFrame,total-doneSteps);
+      trainSoft(net,pts,k,stream,LR); doneSteps+=k;
+      paint(doneSteps<total ? label+'&hellip; step '+doneSteps.toLocaleString('en-GB') : '');
+      if(doneSteps<total) requestAnimationFrame(frame);
+      else {running=false; setBtns(); done();}
+    })();
+  }
+  pre.onclick=()=>{
+    if(running||teacher) return;
+    cur=mkNet(16,mulberry32(1)); curName=''; note.innerHTML='';
+    animate(cur,FULL,5000,100,0.05,mulberry32(107),'training the teacher',()=>{
+      teacher=cur; setBtns(); const m=paint('');
+      note.innerHTML='<div class="ok"><b>The teacher is trained: '+Math.round(m.ta*100)+'% on the held-out test, '+dials(16)+' dials.</b> Now the story moves on: the archive is gone, only the 14 ringed cases keep their labels, and the teacher is too expensive to serve. Train the small student both ways.</div>';
+    });
+  };
+  bH.onclick=()=>{
+    if(running||!teacher) return;
+    cur=mkNet(6,mulberry32(2)); curName='hard'; note.innerHTML='';
+    animate(cur,KEEP.map(p=>[p[0],p[1],p[2]]),3000,100,0.05,mulberry32(5),'training on 14 labels',()=>{
+      const m=paint('');
+      note.innerHTML='<div class="lzwarn"><b>'+Math.round(m.ta*100)+'% on the test, agreeing with the teacher '+Math.round(m.agr*100)+'% of the time.</b> Fourteen dots cannot pin down a spiral: between them the student guesses, and the map shows where it guessed wrong. This is not a small-model problem; it is a small-<em>data</em> problem, and the teacher is about to solve it.</div>';
+    });
+  };
+  bS.onclick=()=>{
+    if(running||!teacher) return;
+    if(!SYN){ const rs=mulberry32(207); SYN=[]; for(let i=0;i<1500;i++){ const x=(rs()*2-1)*DOM, y=(rs()*2-1)*DOM; SYN.push([x,y,fwd(teacher,x,y).p1]); } }
+    cur=mkNet(6,mulberry32(2)); curName='soft'; note.innerHTML='';
+    animate(cur,SYN,3000,100,0.05,mulberry32(5),'distilling',()=>{
+      const m=paint('');
+      note.innerHTML='<div class="ok"><b>'+Math.round(m.ta*100)+'% on the test, agreeing with the teacher '+Math.round(m.agr*100)+'% of the time, with the same '+dials(6)+' dials.</b> Same student, same size: the difference is the data. The teacher labelled 1,500 fresh points (the small dots), and its <em>confidence</em> on each one carried the shape of the boundary into the student. That is distillation: the student buys the map, not the textbook. It also inherits the teacher&rsquo;s mistakes, which is why a distilled model must still pass the same held-out test before anyone relies on it, not just agree with its teacher.</div>';
+    });
+  };
+  bB.onclick=()=>{ if(running||!teacher) return; cur=teacher; curName=''; paint(''); note.innerHTML='<div class="simnote">The teacher&rsquo;s map, for comparison. Train either student again whenever you like.</div>'; };
+  paint(); setBtns();
+})();
 
 /* ================= 7 · WHY THE GPU CARES ================= */
 document.getElementById('sec-tgpu').innerHTML=`
