@@ -28,7 +28,7 @@ function init(topics) {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* topic counts come from the data, never from hard-coded markup */
-  $("#msearch").placeholder = `Search ${topics.length} topics…   ( / )`;
+  $("#msearch").placeholder = `Search ${topics.length} topics…`;
   const dsubEl = document.querySelector(".dsub");
   if (dsubEl) dsubEl.textContent = dsubEl.textContent.replace(/^\d+/, topics.length);
 
@@ -483,15 +483,8 @@ function init(topics) {
   $("#flash").onclick = fcOpen;
   $("#flash2").onclick = fcOpen;
 
-  /* ============ keyboard shortcuts ============ */
-  function visibleCards() { return [...document.querySelectorAll(".card:not([hidden])")] }
-  function currentCardIndex(cs) {
-    let best = 0;
-    cs.forEach((c, i) => { if (c.getBoundingClientRect().top <= 100) best = i });
-    return best;
-  }
+  /* ============ dialog keys (no global shortcuts; only open dialogs listen) ============ */
   addEventListener("keydown", e => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); pal.hidden ? palOpen() : palClose(); return }
     if (!fc.hidden) {
       if (e.key === "Escape") fcClose();
       else if (e.key === " ") { e.preventDefault(); fcReveal() }
@@ -500,22 +493,7 @@ function init(topics) {
       else if (e.key.toLowerCase() === "a") $fc(".fcagain").click();
       return;
     }
-    if (!pal.hidden) { if (e.key === "Escape") palClose(); return }
-    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) { if (e.key === "Escape") e.target.blur(); return }
-    const k = e.key.toLowerCase();
-    if (k === "/") { e.preventDefault(); ms.focus() }
-    else if (k === "escape" && !browse.hidden) showDash();
-    else if (k === "j" || k === "k") {
-      if (browse.hidden) return;
-      const cs = visibleCards(); if (!cs.length) return;
-      const i = currentCardIndex(cs);
-      const next = cs[Math.min(Math.max(i + (k === "j" ? 1 : -1), 0), cs.length - 1)];
-      next.scrollIntoView({ block: "start" });
-    }
-    else if (k === "f") fcOpen();
-    else if (k === "q" && !browse.hidden) $("#quiz").click();
-    else if (k === "d") $("#theme").click();
-    else if (k === "?") toast("Shortcuts: / search · j/k next/prev · f flashcards · q quiz · d dark · esc back · ⌘K jump");
+    if (!pal.hidden && e.key === "Escape") palClose();
   });
 
   /* ============ boot ============ */
