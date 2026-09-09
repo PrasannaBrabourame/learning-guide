@@ -8105,5 +8105,101 @@
       "Many epochs over a tiny specialist set at a high learning rate"
     ],
     "memory": "Shared weights, selfish loss: training defends only what is in its batches. Replay what you want remembered."
+  },
+  {
+    "id": "model-distillation",
+    "title": "Model Distillation: Bottling a Big Model into a Small One",
+    "category": "Large Language Models",
+    "difficulty": "Medium",
+    "question": "The 70B model is accurate and unaffordable at your traffic; the 7B model is affordable and not good enough on your task. What is distillation, what are its two practical flavours for LLMs, and what does the student inherit that you did not order?",
+    "technical": [
+      "Distillation trains a small student model to imitate a large teacher: the teacher scores or answers inputs, and the student learns from those outputs rather than (only) from human labels. The classic insight: the teacher's confidence distribution (soft labels) carries far more information per example than a bare right answer.",
+      "Flavour one, logit/soft-label distillation: the student matches the teacher's output probabilities (often softened with a temperature) on a transfer set. Needs access to the teacher's logits, so it is mostly for models you run yourself.",
+      "Flavour two, response distillation (the common LLM path): the teacher generates outputs, reasoning traces or preference judgements for a large synthetic dataset, and the student is fine-tuned on them. This is why a teacher matters even when labelled data is scarce: it can label unlimited fresh inputs.",
+      "Distillation vs the neighbours: quantisation keeps the same model and shrinks its numbers; PEFT adapts a model to a domain; distillation produces a genuinely smaller model for serving cost, latency or edge deployment. They stack: distil, then quantise the student.",
+      "What the student inherits: the teacher's mistakes and biases (agreement is not correctness), plus contractual limits, since many hosted-model terms restrict using outputs to train competing models. Gate the student on the real test suite, never on agreement with the teacher alone."
+    ],
+    "layman": "A master chef retiring. Hand the apprentice the fourteen surviving recipe cards, or have the chef cook beside them for a month commenting on every dish, not just right or wrong but how close. The apprentice who trained beside the chef cooks like the chef, wrong dishes included.",
+    "usecases": [
+      "Serving cost and latency: a small model matching a giant on one domain",
+      "Edge and on-device deployment",
+      "Creating training data for a specialist model when human labels are scarce"
+    ],
+    "code": "the training lab's live demonstration (Make it yours tab):\n\nteacher: 16 hidden, 354 dials, trained on the full 140-case archive\nstudent: 6 hidden, 74 dials (a fifth the size)\n\nstudent trained on the 14 surviving labels:   ~83% held-out\nstudent trained on 1,500 teacher-labelled\npoints with soft labels (distilled):          99-100%, agreement ~100%\n\nsame student, same size: the difference is who labelled the data",
+    "followups": [
+      "Why do soft labels beat hard labels for the student?",
+      "When would you distil rather than quantise, and when both?",
+      "What stops you distilling from any hosted model you like?"
+    ],
+    "redflags": [
+      "Evaluates the student only on agreement with the teacher",
+      "Ignores licence terms on training against a hosted model's outputs",
+      "Confuses distillation with quantisation or pruning"
+    ],
+    "memory": "The student buys the map, not the textbook: unlimited teacher-labelled data, confidence included, mistakes included."
+  },
+  {
+    "id": "llm-red-teaming",
+    "title": "Red Teaming LLM Systems: Coverage Wearing a Trench Coat",
+    "category": "Security",
+    "difficulty": "Medium",
+    "question": "You are asked to red-team an agent before launch. What is red teaming for LLM systems, what does a good exercise actually produce, and why is coverage worth more than cleverness?",
+    "technical": [
+      "Red teaming is authorised adversarial testing: attacking your own system, in scope and on purpose, before an outsider does. For LLM systems the attack surface is language itself, so the exercise probes what text can make the system do, not just what packets can reach it.",
+      "The working artefact is a coverage board: attack families (instruction override, data extraction, tool abuse, encoding smuggling, denial of wallet) crossed with surfaces the payload rides on (the user's message, retrieved documents, tool results, the outgoing traffic). Gaps live in untested cells far more often than in beaten defences.",
+      "Classic LLM-specific findings: indirect prompt injection through retrieved content; encoded payloads that pass plain-text sanitisers; exfiltration through channels nobody scans, such as tool-call arguments or URLs the agent is asked to fetch; and cross-agent injection, where one agent's output is another's input.",
+      "Every break found becomes a permanent regression test, run on every release. Automated probe suites (Promptfoo red team and similar) make the board repeatable in CI; the humans then spend their time inventing new rows and columns, not re-running old ones.",
+      "Governance: written scope and authorisation before probing anything, production data excluded or masked, findings routed like vulnerabilities (severity, owner, deadline), and defence in depth as the response, since single filters fail per cell."
+    ],
+    "layman": "Hotel security hires someone to try every door for a week. The report that matters is never that the front door held: it is the fire escape nobody ever tests, plus the list of doors tried, so next year's tester starts where this one stopped.",
+    "usecases": [
+      "Pre-launch assessment of an agent with tools and retrieval",
+      "Building the adversarial regression suite that runs in CI",
+      "Prioritising which defence to add next"
+    ],
+    "code": "the board (families x surfaces), from the govern lab's exercise:\n\n                 chat box   retrieved doc   tool result   outgoing\ninstr. override  gateway    sanitiser       sanitiser     peer gateway\ndata theft       privilege  sanitiser       output filter BREAK (URL args)\ntool abuse       allow-list allow-list      allow-list    approval gate\nencoded smuggle  gateway    BREAK           schema check  entropy flag\n\nrule: a found break joins the regression suite, forever",
+    "followups": [
+      "Why does the sanitiser miss the encoded payload, and what layer catches it instead?",
+      "What belongs in the written scope before the first probe?",
+      "How often should the automated board run, and who owns a red finding?"
+    ],
+    "redflags": [
+      "Red teams once a year instead of probing every release",
+      "Measures the exercise by clever jailbreaks rather than cells covered",
+      "Finds a break and fixes it without adding the regression test"
+    ],
+    "memory": "Red teaming is a coverage exercise wearing a trench coat: the board is the artefact, and every break becomes a test forever."
+  },
+  {
+    "id": "deepeval-testing",
+    "title": "DeepEval-Style Testing: LLM Checks that Fail the Build",
+    "category": "Evaluation & Metrics",
+    "difficulty": "Medium",
+    "question": "Your team wants LLM quality checks to behave like unit tests: red build on regression. What does a DeepEval-style suite look like, and what makes such gates flaky in practice?",
+    "technical": [
+      "The design: each test case bundles an input, the system's actual output and any context (retrieved passages, expected answer); metric objects (faithfulness, answer relevancy, rubric-based G-Eval and friends) score the case, and a score under the metric's threshold fails the test, which fails the build, exactly like pytest.",
+      "The golden set is the dataset: a fixed, versioned collection of cases re-run on every change, so two commits can be compared line by line. Grow it from production incidents; every escaped defect becomes a case.",
+      "The flaky-gate problem: judge-based metrics wobble a few points between calls on identical input. A threshold parked where cases actually score flips verdicts on the same commit, and a team that sees that twice starts overriding the gate.",
+      "The fix ladder: put thresholds in a gap between case scores (the deadband idea); steady borderline cases with the median of several judge calls; pin the judge model version and cache scores so one answer is scored once; and route cases that genuinely hug the line to human review or a different metric.",
+      "Placement: this is the CI layer of the metric chain. Offline suites gate commits; they do not replace online proxies or business KPIs, and a suite that never fails is a suite whose thresholds nobody trusts."
+    ],
+    "layman": "A tasting panel scoring the same soup a point apart on different days. Put the pass mark where no soup actually scores and verdicts never wobble; park it on the cluster and the same soup passes Monday, fails Tuesday, and the kitchen learns to ignore the panel.",
+    "usecases": [
+      "Blocking regressions on prompt or model changes in CI",
+      "Turning production incidents into permanent test cases",
+      "Diagnosing why a quality gate keeps flip-flopping"
+    ],
+    "code": "the shape of a suite:\n\ncase:   input + actual output + retrieval context\nmetric: faithfulness, threshold 0.70\nverdict: score >= threshold -> PASS, else FAIL -> build BLOCKED\n\nflakiness check: run the suite twice on the SAME commit\n  same verdicts  -> trustworthy gate\n  any flip       -> flaky: move threshold into a score gap,\n                    median-of-3 the judge, pin + cache it",
+    "followups": [
+      "Why is a flaky gate worse than no gate?",
+      "Where do thresholds come from: who decides 0.70, and against what baseline?",
+      "When does a failing case mean the metric is wrong rather than the model?"
+    ],
+    "redflags": [
+      "Thresholds chosen to make the current build pass",
+      "No second-run flakiness check before trusting the gate",
+      "Golden set never grows from production incidents"
+    ],
+    "memory": "A gate is trustworthy when the same commit gets the same verdict twice; thresholds live in the gaps, not on the cluster."
   }
 ]

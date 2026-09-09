@@ -1,6 +1,6 @@
 # Learning Guide
 
-A static learning guide for Technical Lead & AI Engineer topics, covering 273 topics. No build step, no dependencies, no external requests, just serve the folder.
+A static learning guide for Technical Lead & AI Engineer topics, covering 276 topics. No build step, no dependencies, no external requests, just serve the folder.
 
 Each topic is broken down into:
 - 🧠 Technical answer
@@ -57,14 +57,16 @@ metrics.html      Metrics lab: which number to trust when a miss costs more
                   point, MAE against the quadratic penalty, stability and the
                   boilerplate detector, the retrieval ceiling, deterministic
                   gates and the deadband, judging the judge, drift, fairness
-                  by slice, and the toolbox of off-the-shelf eval frameworks
+                  by slice, and the toolbox of off-the-shelf eval frameworks,
+                  including a judge-scored build gate you can make flaky and
+                  then cure
 gemini.html       Gemini Enterprise lab, architecture and provisioning, the
                   identity decision, Workforce Identity Federation, networking,
                   data stores and connectors, agents, Model Armor, search
                   quality and tuning, governance, change management
 govern.html       Govern & secure lab, the agent gateway on both sides, the
                   policy chain, private egress, agent identity, delegated
-                  access, the threat landscape, boundaries and controls,
+                  access, the threat landscape, the red-team week, boundaries and controls,
                   perimeters, the registry, tracing and audit
 gpu.html          GPU lab. The layer everything else sits on: why a GPU is
                   shaped differently from a CPU, threads/warps/SMs and warp
@@ -79,7 +81,9 @@ train.html        Training lab: watch a model learn, live in the page. The
                   U-curve, early stopping as a game, why batching is a
                   hardware decision, and adapting a foundation model: prompt
                   vs RAG vs fine-tuning, LoRA arithmetic on a 7B shape, and
-                  catastrophic forgetting live, with the replay fix
+                  catastrophic forgetting live, with the replay fix,
+                  and distillation, bottling the teacher into a student
+                  a fifth its size
 classic.html      Classical ML lab: four little machines that still run the
                   world. Three kinds of learning, nearest neighbours with a
                   poisoned memory, a decision tree you build and destabilise,
@@ -128,10 +132,10 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, lab-to-topic mapping
-data/topics.json  The 273 topics as plain JSON (incl. per-topic difficulty)
+data/topics.json  The 276 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 232 simulations across the sixteen labs. Every one carries a
+There are 235 simulations across the sixteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -199,7 +203,7 @@ somebody deciding whether to open it. The detail lives in the lab; the card only
 has to be scannable alongside seventeen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
-the 273 topics that lab actually covers, 50 for the Cloud lab, 37 for
+the 276 topics that lab actually covers, 50 for the Cloud lab, 37 for
 Evaluation, 33 for the diagram lab. Clicking it opens the browse view filtered
 to just those, rather than the whole pile. The map from lab to categories lives
 in `assets/app.js` (`LABS`); the counts are computed from `data/topics.json` at
