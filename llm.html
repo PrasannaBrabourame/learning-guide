@@ -1681,6 +1681,138 @@ document.getElementById('sec-lmshape').innerHTML=`
   render();
 })();
 
+
+/* ================= SHAPES · WHERE THE WEIGHTS LIVE ================= */
+document.getElementById('sec-lmshape').innerHTML += `
+<div class="card" style="margin-top:16px">
+  <h2 class="sec">Try it: where the weights actually live</h2>
+  <div class="plain-line"><b>Try this:</b> a model is mostly a warehouse of numbers, and the warehouse has departments: the embedding tables, the attention blocks, the MLPs. Walk up the model sizes and watch the departments change share, because the answer to &ldquo;where does the model keep its knowledge&rdquo; is different at 124 million parameters than at 175 billion, and the flip surprises almost everyone.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A corner shop and a supermarket both have a till, shelves and a stockroom. In the corner shop the till area is a third of the floor; in the supermarket it is a rounding error. Same departments, completely different proportions, and the proportions tell you what the building is really for.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>compare the <b>embedding</b> share at 124M with the same share at 175B.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>parameter</b> one stored number the model learned; the warehouse&rsquo;s unit of stock</span><span class="sp-w"><b>embedding table</b> one row of numbers per vocabulary entry: how tokens become vectors</span><span class="sp-w"><b>attention weights</b> the matrices that make Q, K and V and mix heads back together</span><span class="sp-w"><b>MLP</b> each block&rsquo;s expand-then-contract pair, four times wider than the model</span><span class="sp-w"><b>tied</b> the output layer reusing the embedding table instead of owning a copy</span><span class="sp-w"><b>activations</b> the working values for one request: tiny next to the weights</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="lmWhOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="lmWhCtl" style="flex-direction:column;align-items:stretch"></div>
+      <div id="lmWhNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: the parameter census --- */
+(function(){
+  const out=document.getElementById('lmWhOut'), note=document.getElementById('lmWhNote'),
+        ctl=document.getElementById('lmWhCtl');
+  if(!out||!ctl) return;
+  /* census formula, tied unembedding: reproduces the published totals exactly */
+  const MODELS=[
+    {n:'a teaching model', d:'3-word vocabulary, 3 layers', V:3, T:11, C:48, L:3},
+    {n:'the 124M classic', d:'the small model everyone quotes', V:50257, T:1024, C:768, L:12},
+    {n:'the 1.5B version', d:'same recipe, scaled', V:50257, T:1024, C:1600, L:48},
+    {n:'the 175B giant', d:'the one that changed the argument', V:50257, T:2048, C:12288, L:96}
+  ];
+  let mi=1;
+  const fmt=n=>n>=1e9?(n/1e9).toFixed(n<1e10?2:0)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n.toLocaleString('en-GB');
+  function census(m){
+    const wte=m.V*m.C, wpe=m.T*m.C;
+    const attn=m.L*(m.C*3*m.C+3*m.C + m.C*m.C+m.C);
+    const mlp=m.L*(m.C*4*m.C+4*m.C + 4*m.C*m.C+m.C);
+    const ln=m.L*4*m.C + 2*m.C;
+    return {wte,wpe,attn,mlp,ln,total:wte+wpe+attn+mlp+ln};
+  }
+  function render(){
+    ctl.innerHTML=MODELS.map((m,i)=>'<button class="seg'+(i===mi?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px"><b>'+m.n+'</b>, <span style="color:var(--dim)">'+m.d+'</span></button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mi=+b.dataset.i;render();});
+    const m=MODELS[mi], c=census(m);
+    const DEP=[['embedding tables', c.wte+c.wpe, 'var(--violet)'],
+               ['attention weights', c.attn, 'var(--teal)'],
+               ['MLP weights', c.mlp, 'var(--amber)'],
+               ['norms and small parts', c.ln, 'var(--wire)']];
+    /* one request's working state, for the contrast line */
+    const act=m.T*m.C*m.L*2;
+    out.innerHTML =
+      '<div class="simnote" style="margin-bottom:8px">The whole warehouse as one bar. Vocabulary '+m.V.toLocaleString('en-GB')+', width '+m.C.toLocaleString('en-GB')+', '+m.L+' layers.</div>'
+      +'<div style="display:flex;height:34px;border-radius:9px;overflow:hidden;border:1px solid var(--line2)">'
+      +DEP.map(([n,v,col])=>'<div title="'+n+'" style="width:'+(v/c.total*100)+'%;background:'+col+';opacity:.8"></div>').join('')+'</div>'
+      +'<div style="margin-top:12px">'+DEP.map(([n,v,col])=>
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)">'
+        +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+col+';margin-right:7px"></span>'+n+'</span>'
+        +'<span class="k"><b>'+fmt(v)+'</b> &middot; '+(v/c.total*100).toFixed(1)+'%</span></div>').join('')+'</div>'
+      +'<div class="lzhop" style="display:block;padding:10px 12px;margin-top:12px;border-left-color:var(--blue)">'
+      +'<b>total: '+fmt(c.total)+' parameters</b>'
+      +'<div style="font-size:12px;color:var(--muted);margin-top:4px">and one full-length request&rsquo;s working state is about '+fmt(act)
+      +' values: the warehouse outweighs the work in progress by '+Math.max(1,Math.round(c.total/act)).toLocaleString('en-GB')+'&times;</div></div>';
+    note.innerHTML = (mi===1
+      ? '<div class="ok"><b>At 124M, the embedding tables are '+((c.wte+c.wpe)/c.total*100).toFixed(0)+'% of the entire model.</b> A third of the warehouse is just the dictionary: one row of numbers per vocabulary entry, before any thinking machinery at all. Now jump to the giant.</div>'
+      : mi===3
+      ? '<div class="ok"><b>Same dictionary, now '+((c.wte+c.wpe)/c.total*100).toFixed(1)+'% of the model.</b> The vocabulary never grew, but the blocks did, so two thirds of the giant is MLP weight. When people say scaling bought capability, this bar is where the buying happened, and it is why quantising and serving costs are dominated by the blocks, not the dictionary.</div>'
+      : mi===0
+      ? '<div class="simnote"><b>The teaching model: '+fmt(c.total)+' parameters you could print on a few pages.</b> Its vocabulary is three words, so its embedding share is nearly nothing and the blocks are everything. Tiny, but the departments and their wiring are identical to the giant&rsquo;s, which is why walking through a toy teaches the real thing.</div>'
+      : '<div class="simnote"><b>Scaled up, the shares are already drifting.</b> Width and depth both grew, and every part that scales with width squared (attention, MLP) is pulling away from the parts that scale with width alone (the tables). Keep going.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> Weights dwarf activations. Serving one more user barely touches memory next to the warehouse itself, which is why batching is nearly free and why the GPU lab&rsquo;s whole argument (fetch the weights once, use them many times) works at all.</div>';
+  }
+  render();
+})();
+
+/* ================= THE BLOCK · THE VOLUME KNOB ================= */
+document.getElementById('sec-lmblock').innerHTML += `
+<div class="card" style="margin-top:16px">
+  <h2 class="sec">Try it: the volume knob before every station</h2>
+  <div class="plain-line"><b>Try this:</b> every block adds its output onto the running signal, and adding dozens of times does what adding always does: the numbers grow, or shrink, until they are useless. The unglamorous fix sits before every station: renormalise the signal to a standard volume. Toggle it off and watch a deep stack destroy itself; toggle it on and watch forty layers behave like one.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A message whispered around a circle of forty people, where each person also turns the volume slightly up. By person twenty it is shouting, by thirty it is noise. Now put a &ldquo;speak at normal volume&rdquo; rule before each person: the message survives the whole circle.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set the depth to 40, then flip the knob off.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>signal</b> the running vector each block reads and adds to</span><span class="sp-w"><b>magnitude</b> how big the signal&rsquo;s numbers currently are: its volume</span><span class="sp-w"><b>normalise</b> rescale the signal to a standard volume before each station</span><span class="sp-w"><b>explode / vanish</b> magnitudes growing past what arithmetic can hold, or shrinking to nothing</span><span class="sp-w"><b>stable</b> layer forty receiving its input at the same volume layer one did</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="lmVkOut" class="live"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">stack depth: <b id="lmVkDv" style="color:var(--accent)">12</b> layers</label>
+      <input id="lmVkD" type="range" min="4" max="40" step="4" value="12" style="width:100%">
+      <div class="segmented" id="lmVkMode" style="flex-direction:row;margin-top:10px"></div>
+      <div id="lmVkNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: normalisation across depth --- */
+(function(){
+  const out=document.getElementById('lmVkOut'), note=document.getElementById('lmVkNote'),
+        dEl=document.getElementById('lmVkD'), dv=document.getElementById('lmVkDv'),
+        modeEl=document.getElementById('lmVkMode');
+  if(!out||!dEl) return;
+  let ln=true;
+  /* each block multiplies the signal by a gain from a fixed seeded set;
+     with the knob on, magnitude is reset to 1 before every station */
+  let seed=7; const rnd=()=>{seed=(seed*1103515245+12345)%2147483648; return seed/2147483648;};
+  const GAINS=Array.from({length:40},()=>1.02+rnd()*0.22);
+  function render(){
+    const d=+dEl.value; dv.textContent=d;
+    modeEl.innerHTML=[[true,'knob on'],[false,'knob off']].map(([v,n])=>
+      '<button class="seg'+(ln===v?' on':'')+'" data-v="'+v+'" style="flex:1;font-size:12px">'+n+'</button>').join('');
+    modeEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ln=b.dataset.v==='true';render();});
+    let mag=1; const mags=[1];
+    for(let i=0;i<d;i++){ mag=(ln?1:mag)*GAINS[i]; mags.push(mag); }
+    const worst=Math.max(...mags);
+    const LOG=v=>Math.log10(Math.max(1e-4,v));
+    const top=ln?1:Math.max(1,LOG(worst));
+    out.innerHTML='<svg class="clplot" viewBox="0 0 460 250" role="img" aria-label="Signal magnitude at each layer, with and without normalisation." style="width:100%;height:auto;background:var(--panel2);border-radius:9px">'
+      +'<line x1="34" y1="218" x2="446" y2="218" style="stroke:var(--line2)"/>'
+      +mags.map((m2,i)=>{
+        const x=34+i/(d)*400;
+        const h=ln? m2*150 : Math.max(2,(LOG(m2)+0.2)/(top+0.2)*185);
+        const bad=m2>50||m2<0.05;
+        return '<rect x="'+(x-3.4)+'" y="'+(218-h)+'" width="6.8" height="'+h+'" rx="2" style="fill:var(--'+(bad?'red':ln?'green':m2>4?'amber':'teal')+');opacity:.85"/>';
+      }).join('')
+      +tm(240,236,'layer 0 &rarr; layer '+d,'var(--dim)')
+      +tm(240,20, ln?'every station receives volume 1.0':'volume at layer '+d+': '+(mags[d]>=1000?mags[d].toExponential(1):mags[d].toFixed(1)), ln?'var(--green)':(mags[d]>50?'var(--red)':'var(--amber)'))
+      +'</svg>'
+      +'<div class="clbig" style="font-size:12px;color:var(--muted);margin-top:8px">worst magnitude anywhere in the stack: <b style="font-size:16px;color:'+(worst>50?'var(--red)':worst>4?'var(--amber)':'var(--green)')+'">'
+      +(worst>=1000?worst.toExponential(1):worst.toFixed(2))+'</b></div>';
+    note.innerHTML = ln
+      ? '<div class="ok"><b>Forty layers behave like one.</b> Before every station the signal is rescaled to a standard volume, so depth stops compounding. Nothing about the stations&rsquo; gains changed: only what they are allowed to inherit from each other. This is the boring guardrail that makes very deep stacks trainable at all, and it runs twice in every block of every model you have used.</div>'
+      : (mags[+dEl.value]>50
+        ? '<div class="lzbad"><b>The whisper became a shout became noise.</b> Each layer&rsquo;s small gain compounds: a 13% average boost, forty times, is a '+(mags[+dEl.value]>=1000?mags[+dEl.value].toExponential(1):Math.round(mags[+dEl.value])+'&times;')+' signal. Past this point the arithmetic saturates, gradients explode during training, and layer forty is reacting to volume, not meaning. Flip the knob back on.</div>'
+        : '<div class="lzwarn"><b>Already drifting.</b> The compounding is gentle at this depth, which is exactly why shallow networks got away without the knob for years. Drag the depth to 40 and watch what &ldquo;gentle&rdquo; does when it compounds.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> The famous parts of a block (attention, the MLP) decide <em>what</em> is said. The normalisation decides that layer forty can still <em>hear</em> it. When a paper says a model diverged during training, this knob, or its placement, is a usual suspect.</div>';
+  }
+  dEl.addEventListener('input',render);
+  render();
+})();
 </script>
 <script src="assets/version.js" defer></script>
 <script src="assets/lab.js" defer></script>

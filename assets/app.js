@@ -76,6 +76,7 @@ function init(topics) {
     peakweek: { name: "Peak Week \u2014 one agent end to end", hue: 320, cats: ["Agent Frameworks & Runtimes", "AI Agents", "Agentic AI", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "GCP"] },
     gpu: { name: "The machine underneath", hue: 280, cats: ["Large Language Models", "Deep Learning & Neural Networks", "Performance", "LLMOps", "Math, Probability & Statistics"] },
     train: { name: "Wrong, then less wrong", hue: 280, cats: ["Deep Learning & Neural Networks", "Classical Machine Learning", "Math, Probability & Statistics"] },
+  classic: { name: "Before the network", hue: 280, cats: ["Classical Machine Learning", "Math, Probability & Statistics", "Deep Learning & Neural Networks"] },
   llm: { name: "One token at a time", hue: 280, cats: ["Large Language Models", "Deep Learning & Neural Networks", "Retrieval-Augmented Generation", "LLMOps", "Performance"] },
     serving: { name: "The engine, not the model", hue: 48, cats: ["Large Language Models", "LLMOps", "Performance", "Production Readiness", "Observability", "Multi-Tenancy"] },
     fleet: { name: "Twenty engines, one endpoint", hue: 48, cats: ["Production Readiness", "Observability", "Performance", "LLMOps", "Kubernetes", "Software Architecture", "Production Operations"] },

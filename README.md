@@ -78,6 +78,13 @@ train.html        Training lab: watch a model learn, live in the page. The
                   XOR / spiral with the boundary forming, the overfitting
                   U-curve, early stopping as a game, and why batching is a
                   hardware decision
+classic.html      Classical ML lab: four little machines that still run the
+                  world. Three kinds of learning, nearest neighbours with a
+                  poisoned memory, a decision tree you build and destabilise,
+                  k-means as food trucks with a genuine local-optimum trap,
+                  the perceptron to margin to logistic confidence, PCA as a
+                  lamp whose brightest shadow can hide the meaning, and which
+                  machine for which job
 llm.html          LLM internals lab, the generation loop, tokenisation and
                   BPE, embeddings and position, attention (Q/K/V, heads,
                   the attention sink), the transformer block and what breaks
@@ -110,10 +117,10 @@ design.html       Diagram lab, audiences, levels of zoom, anatomy, notation,
                   choosing services, what people leave out, the questions
                   behind the picture, surviving a review, diagram rot, the
                   do's and don'ts, and the whiteboard interview
-assets/lab.css    Styling shared by all thirteen lab pages, theme tokens,
+assets/lab.css    Styling shared by all sixteen lab pages, theme tokens,
                   layout, the top bar, tabs, callouts, the plain-English
                   on-ramp, diagrams
-assets/lab.js     Behaviour shared by all thirteen lab pages, theme toggle,
+assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
                   tab deep links, the scenario drill, the navigation rail,
                   the labs menu and the track line
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
@@ -122,7 +129,7 @@ assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
 data/topics.json  The 267 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 219 simulations across the fifteen labs. Every one carries a
+There are 229 simulations across the sixteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -166,7 +173,7 @@ guide, this lab's related topics, all labs, and the theme and search controls.
 The twelve sibling-lab links that used to sit above every title are behind
 **⊞ all labs**, grouped into the same three tracks the dashboard uses and
 numbered in the same order. Under the title, a line says where the reader is
-standing: `Under the hood · lab 2 of 4 · next: The engine, not the model`,
+standing: `Under the hood · lab 3 of 6 · next: One token at a time`,
 so the reading order the dashboard sets survives past the front door. Both are
 generated from one table in `assets/lab.js`, so adding a lab is one edit.
 
@@ -187,7 +194,7 @@ is the only prose on it. The cards used to carry a four-sentence description as
 well, which assumed the thing the lab teaches: "a docstring decides whether a
 tool is ever chosen" is a good sentence about the ADK lab and no help at all to
 somebody deciding whether to open it. The detail lives in the lab; the card only
-has to be scannable alongside fourteen others.
+has to be scannable alongside seventeen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
 the 267 topics that lab actually covers, 50 for the Cloud lab, 35 for
@@ -205,7 +212,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The thirteen labs are self-contained pages, but the chrome around the content
+The sixteen labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
