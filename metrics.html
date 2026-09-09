@@ -25,6 +25,15 @@
   .mxchip.ok{color:var(--green); border-color:var(--green)}
   .mxchip.bad{color:var(--red); border-color:var(--red)}
   .mxchip.warn{color:var(--amber); border-color:var(--amber)}
+  .mxclue{display:inline; padding:0 2px; border:none; background:transparent; color:var(--text);
+    font:inherit; line-height:inherit; cursor:pointer; border-radius:4px; border-bottom:1.6px dashed var(--accent)}
+  .mxclue:hover{background:var(--sel)}
+  .mxclue.no{color:var(--muted); border-bottom:1.6px dashed var(--amber); background:var(--sel); cursor:default}
+  .mxclue.yes{color:var(--green); border-bottom:1.6px solid var(--green); background:var(--accent-soft); cursor:default}
+  .mxclue:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .mxshelf .seg .mxchips{display:block; font-size:9.5px; color:var(--dim); letter-spacing:.04em; margin-top:2px; font-family:var(--mono)}
+  .mxshelf .seg:disabled{opacity:.45; cursor:default}
+  .mxshelf .seg.no{border-color:var(--red); opacity:.65}
 </style>
 </head>
 
@@ -106,21 +115,22 @@ document.getElementById('sec-mtool').innerHTML=`
   <h2 class="sec">You do not have to write the harness</h2>
   <div class="plain-line"><b>In plain English:</b> everything this lab taught (faithfulness against fetched evidence, assertion gates in a build pipeline, pairwise judging, retrieval scores, drift) exists as an off-the-shelf tool. The frameworks below are the ones worth knowing by name. The list changes every year; the metric families they implement are the nine tabs you just did, and those do not.</div>
   <div style="overflow-x:auto"><table class="osi"><thead><tr><th>Framework</th><th>What it is</th><th>Its signature idea</th><th>It automates, from this lab</th></tr></thead><tbody>
-    <tr><td><b>RAGAS</b></td><td>Open-source Python library for scoring RAG pipelines</td><td>Reference-free RAG metrics: faithfulness, answer relevance, context precision and recall, scored by an LLM judge without hand-written model answers</td><td>The retrieval ceiling, plus groundedness from the triage map</td></tr>
+    <tr><td><b>RAGAS</b></td><td>Open-source Python library for scoring RAG pipelines</td><td>Reference-free RAG metrics: faithfulness, answer relevance and context precision, scored by an LLM judge without hand-written model answers; context recall, the one that does need a model answer, sits alongside</td><td>The retrieval ceiling, plus groundedness from the triage map</td></tr>
     <tr><td><b>TruLens</b></td><td>Open-source tracing and evaluation for LLM apps</td><td>Feedback functions attached to a traced run, so every step of the app carries its own scores; home of the &ldquo;RAG triad&rdquo; framing</td><td>Groundedness, context relevance and answer relevance, measured per step rather than per output</td></tr>
     <tr><td><b>DeepEval</b></td><td>Open-source testing framework that treats LLM checks like unit tests</td><td>Pytest-style assertions: a metric below threshold fails the build, exactly like a broken test</td><td>The gates tab&rsquo;s discipline applied to statistical metrics; golden-set regression from the triage map</td></tr>
     <tr><td><b>Promptfoo</b></td><td>Open-source CLI for prompt and model comparison in CI</td><td>A YAML file declaring prompts &times; models &times; assertions, plus red-team probes, no application code needed</td><td>The prompt-edit and model-swap rows of the triage map, and adversarial suites</td></tr>
     <tr><td><b>LangSmith</b></td><td>Managed platform for datasets, experiments and traces</td><td>Curated datasets run as experiments with LLM-as-judge and pairwise comparison, results shared in a team UI</td><td>Judging the judge&rsquo;s pairwise-over-pointwise advice, run at team scale</td></tr>
-    <tr><td><b>Arize Phoenix</b></td><td>Open-source observability with built-in evals</td><td>Traces first, evaluations layered onto the traces, drift and embedding monitoring alongside</td><td>The drift alarm, plus watching production with no labels</td></tr>
-    <tr><td><b>The cloud&rsquo;s own</b></td><td>Managed evaluation services inside AWS, Azure and Google Cloud</td><td>Pointwise and pairwise evaluation jobs, computation-based and judge-based metrics, run next to where the model already runs, with IAM and audit attached</td><td>Most of the lab as a managed job, when staying inside one cloud matters more than tool choice</td></tr>
+    <tr><td><b>Arize Phoenix</b></td><td>Open-source observability (watching the running app from the outside) with built-in evals</td><td>Traces first, evaluations layered onto the traces, drift and embedding monitoring alongside</td><td>The drift alarm, plus watching production with no labels</td></tr>
+    <tr><td><b>Vertex AI evaluation</b></td><td>Managed evaluation service inside Google Cloud&rsquo;s AI platform</td><td>One call scores an agent twice: the final answer, with judge-model metrics run pointwise (one answer on its own) or pairwise plus rubric and computation metrics, and the <em>trajectory</em> it took, the sequence of tool calls, matched exactly, in order or any order, with precision and recall</td><td>Judging the judge and its pairwise-over-pointwise advice as a managed job, plus the trajectory scoring the agent labs lean on</td></tr>
+    <tr><td><b>The cloud&rsquo;s own</b></td><td>Managed evaluation services inside AWS and Azure</td><td>Pointwise and pairwise evaluation jobs, computation-based and judge-based metrics, run next to where the model already runs, with IAM and audit attached</td><td>Most of the lab as a managed job, when staying inside the estate&rsquo;s cloud matters more than tool choice</td></tr>
   </tbody></table></div>
   <div class="simnote" style="margin-top:10px">Names to recognise, not endorsements: pick whichever implements the family you need with the least new infrastructure. The deterministic gates are the exception, and stay yours: a regex over your own roster is not worth a framework.</div>
 </div>
 
 <div class="card">
-  <h2 class="sec">Try it: six jobs, pick the tool</h2>
-  <div class="plain-line"><b>Try this:</b> six evaluation jobs from the screener&rsquo;s roadmap. Each has one best tool on the shelf, and every wrong option is the right answer to a different job. The skill being drilled is reading the distinguishing requirement, not memorising logos.</div>
-  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A hardware shop. Six fasteners, six drivers. Every driver turns every screw a little, which is exactly why people strip threads: the skill is matching the head, not gripping harder.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read job one&rsquo;s requirement twice, then pick. The give-away word is usually in the middle.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool / framework</b> an off-the-shelf package that implements evaluation metrics for you</span><span class="sp-w"><b>CI</b> the pipeline that runs checks automatically on every code change</span><span class="sp-w"><b>assertion</b> a pass-or-fail rule a pipeline can act on</span><span class="sp-w"><b>tracing</b> recording every step an app took, so scores can attach to steps</span><span class="sp-w"><b>reference-free</b> scored without a hand-written model answer to compare against</span><span class="sp-w"><b>pairwise</b> judging &ldquo;is A better than B&rdquo; instead of scoring A alone</span><span class="sp-w"><b>managed</b> run by the cloud provider inside your existing account and permissions</span></span></div></div>
+  <h2 class="sec">Try it: eight jobs, find the give-away, pick the tool</h2>
+  <div class="plain-line"><b>Try this:</b> eight evaluation jobs, one per tool on the shelf. Most requirements in a posting are shared by half the shelf and choose nothing; each posting here hides exactly one <b>give-away</b> that a single tool satisfies. Find it before the shelf unlocks, then pick, and every wrong option really is the right answer to a different job on this list.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A hardware shop. Eight fasteners, eight drivers. Every driver turns every screw a little, which is exactly why people strip threads: the skill is matching the head, not gripping harder. And the box label names the head, if you read past the parts every box shares.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>in job one, click the underlined requirement you think <b>only a single tool</b> could satisfy. The shelf stays locked until you find it.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool / framework</b> an off-the-shelf package that implements evaluation metrics for you</span><span class="sp-w"><b>agent</b> an AI system that answers in steps, calling helpers such as search or a database along the way, not a human agent</span><span class="sp-w"><b>an agent&rsquo;s tools</b> the helpers an agent can call mid-task: a search box, a calculator, a customer database, not the evaluation tools on this shelf</span><span class="sp-w"><b>LLM</b> large language model: the AI text engine being evaluated here, the kind that powers chatbots</span><span class="sp-w"><b>give-away</b> the one requirement in a posting that a single tool on the shelf satisfies; everything else is shared, and chooses nothing</span><span class="sp-w"><b>CI</b> the pipeline that runs checks automatically on every code change</span><span class="sp-w"><b>CLI</b> a tool driven from the command line, nothing to click</span><span class="sp-w"><b>assertion</b> a pass-or-fail rule a pipeline can act on</span><span class="sp-w"><b>unit test</b> a small automatic check on one piece of code; if any one fails, the whole release is blocked</span><span class="sp-w"><b>tracing</b> recording every step an app took, so scores can attach to steps</span><span class="sp-w"><b>reference-free</b> scored without a human-written example of the ideal answer to compare against</span><span class="sp-w"><b>pairwise</b> judging &ldquo;is A better than B&rdquo; instead of scoring A alone</span><span class="sp-w"><b>managed</b> run by the cloud provider inside your existing account and permissions</span><span class="sp-w"><b>estate</b> everything an organisation already runs: its systems, accounts and cloud services</span><span class="sp-w"><b>RAG</b> retrieval-augmented generation: fetch passages first, then write the answer from them</span><span class="sp-w"><b>faithfulness / groundedness</b> two names for one check: does the answer stick to what was fetched</span><span class="sp-w"><b>context precision</b> of the passages fetched, how many were actually useful, with credit for putting the useful ones first</span><span class="sp-w"><b>trajectory</b> the route an agent took to its answer: which helpers it called, and in what order</span><span class="sp-w"><b>drift</b> this week&rsquo;s inputs no longer looking like the baseline&rsquo;s</span><span class="sp-w"><b>golden set</b> a fixed set of cases you re-run so two versions can be compared line by line</span><span class="sp-w"><b>IAM</b> the cloud&rsquo;s permission system: which identities may touch which resources</span><span class="sp-w"><b>YAML</b> a plain-text settings file, written by hand, read by machines</span><span class="sp-w"><b>red team / injection probes</b> attacking your own system on purpose, prompt injections included, to find the holes before an outsider does</span><span class="sp-w"><b>UI</b> the clickable interface, here one shared by a whole team</span></span></div></div>
   <div class="sim-layout">
     <div><div id="mxToolOut"></div></div>
     <div><div id="mxToolCtl"></div>
@@ -128,64 +138,97 @@ document.getElementById('sec-mtool').innerHTML=`
   </div>
 </div>`;
 
-/* --- SIM: six jobs, pick the tool --- */
+/* --- SIM: eight jobs, find the give-away, pick the tool --- */
 (function(){
   const out=document.getElementById('mxToolOut'), note=document.getElementById('mxToolNote'),
         ctl=document.getElementById('mxToolCtl');
   if(!out) return;
-  const TOOLS=['RAGAS','TruLens','DeepEval','Promptfoo','LangSmith','Arize Phoenix','the cloud&rsquo;s own'];
-  const JOBS=[
-    {j:'Score faithfulness and context precision on the retrieval pipeline, in Python, with no hand-written model answers', a:0,
-     key:'reference-free RAG metrics in Python',
-     why:'Reference-free RAG scoring is the one job this library was built around: the retrieval-ceiling tab as a pip install.'},
-    {j:'Attach groundedness and relevance scores to every step of a traced run, so a bad report can be blamed on the step that caused it', a:1,
-     key:'scores attached to a trace, per step',
-     why:'Feedback functions on traces is the signature: the score lives on the step, not just the final output.'},
-    {j:'Make the golden set a unit-test suite: any metric under threshold fails the build like a broken test', a:2,
-     key:'pytest-style, fails the build',
-     why:'Treating LLM checks as unit tests is the whole design. The gates discipline, extended to statistical metrics.'},
-    {j:'Compare two prompts across two models with assertions and a folder of injection probes, from a YAML file, in CI, touching no application code', a:3,
-     key:'declarative YAML, prompts &times; models, red-team probes',
-     why:'A config file declaring the whole comparison matrix plus adversarial probes, runnable by CI with no code, is this tool&rsquo;s exact shape.'},
-    {j:'Let the whole team curate the labelled datasets, run pairwise experiments between model versions, and read the results in one shared UI', a:4,
-     key:'datasets, experiments, a team UI',
-     why:'Dataset curation plus experiment tracking plus pairwise judging in a shared interface is the managed-platform job.'},
-    {j:'Stay inside the existing cloud account: evaluation as a managed job, with the same permissions and audit trail as everything else', a:6,
-     key:'managed, inside the account, IAM and audit attached',
-     why:'When governance beats tool choice, the provider&rsquo;s own evaluation service wins: it inherits the identity, network and audit story the estate already has.'}
+  const TOOLS=[
+    {n:'RAGAS',                 chips:'library &middot; RAG-first &middot; reference-free',      home:'faithfulness and context precision on the retrieval pipeline'},
+    {n:'TruLens',               chips:'library &middot; traces &middot; per-step scores',        home:'blame attached to the exact step of a traced run'},
+    {n:'DeepEval',              chips:'library &middot; unit tests &middot; CI gate',            home:'a metric under threshold failing the build like a broken test'},
+    {n:'Promptfoo',             chips:'CLI &middot; YAML config &middot; red team',              home:'the whole comparison declared in a YAML file, no app code'},
+    {n:'LangSmith',             chips:'platform &middot; datasets &middot; team UI',             home:'the whole team reading experiments in one shared UI'},
+    {n:'Arize Phoenix',         chips:'open-source &middot; traces &middot; drift watch',        home:'unlabelled production traffic watched for drift'},
+    {n:'Vertex AI evaluation',  chips:'managed &middot; Google Cloud &middot; trajectory',       home:'answer and tool-call trajectory scored in one managed call'},
+    {n:'the cloud&rsquo;s own', chips:'managed &middot; AWS / Azure &middot; IAM + audit',       home:'a managed job inside the cloud the estate already runs on'}
   ];
-  let cur=0, score=0, answered=false, results=[];
+  /* seg items: plain string, {p,d:1} the give-away, or {p,fb} a shared decoy */
+  const JOBS=[
+    {a:2, seg:['Make the ',{p:'golden set',fb:'A golden set is table stakes: DeepEval, Promptfoo, LangSmith and Vertex AI evaluation all run one. Shared by four tools, so it chooses nothing.'},' a unit-test suite ',{p:'in CI',fb:'DeepEval and Promptfoo both live happily in CI, and the managed services can be called from it. Still several candidates standing.'},': any metric under threshold ',{p:'fails the build like a broken test',d:1},'.'],
+     why:'Treating LLM checks as unit tests is the whole design: assert on a metric, and a miss fails the pipeline exactly like a failing test. The gates discipline, extended to statistical metrics.'},
+    {a:5, seg:[{p:'Trace every request',fb:'TruLens, LangSmith and Arize Phoenix all trace every request. Three candidates is not a pick.'},' in production, where ',{p:'nothing has labels',fb:'Reference-free scoring is a family, not a tool: RAGAS, TruLens and every judge-based metric cope without labels.'},', and raise a hand when ',{p:'this week&rsquo;s inputs stop looking like the baseline&rsquo;s',d:1},'.'],
+     why:'Watching comes first: it records every request as a trace, layers evaluations onto those recordings, and keeps a drift watch on the incoming traffic, all without needing a single label. Production monitoring is this tool&rsquo;s home turf, straight from the drift tab.'},
+    {a:0, seg:['Score ',{p:'faithfulness and context precision on the retrieval pipeline',d:1},', ',{p:'in Python',fb:'RAGAS, TruLens, DeepEval and Arize Phoenix are all Python libraries. Half the shelf survives that filter.'},', with ',{p:'no hand-written model answers',fb:'Reference-free is a family, not a tool: any judge-based metric on this shelf scores without a human-written ideal answer.'},'.'],
+     why:'Reference-free RAG metrics are the one job this library was built around: the retrieval-ceiling tab, packaged as a Python library you install with one command.'},
+    {a:7, seg:[{p:'The estate runs on AWS',d:1},': evaluation must be ',{p:'a managed job',fb:'Two shelf items are managed: Vertex AI evaluation and the cloud&rsquo;s own. Managed alone cannot split them.'},' inheriting the same ',{p:'IAM roles, private network and audit trail',fb:'Both managed services inherit their own cloud&rsquo;s identity and audit story. Still two candidates.'},' as everything else.'],
+     why:'When governance beats tool choice, the provider&rsquo;s own evaluation service wins, and <em>which</em> provider is decided by where the estate already lives. On AWS or Azure, that is the platform&rsquo;s own evals, not another cloud&rsquo;s.'},
+    {a:3, seg:[{p:'Compare two prompts across two models',fb:'Comparison is everywhere: LangSmith experiments, Vertex AI evaluation&rsquo;s pairwise metrics and Promptfoo all run A against B.'},' with ',{p:'assertions',fb:'Pass-or-fail assertions are DeepEval&rsquo;s bread and Promptfoo&rsquo;s butter. Two tools left standing.'},' and a folder of injection probes, ',{p:'declared in a YAML file, touching no application code',d:1},'.'],
+     why:'A config file declaring the whole matrix, prompts &times; models &times; assertions plus red-team probes, runnable by CI with no code, is this tool&rsquo;s exact shape.'},
+    {a:6, seg:['Score the support agent twice in one call: ',{p:'did the final answer hold up',fb:'Final-answer quality is what every tool on this shelf scores. It rules out nothing at all.'},', and did it ',{p:'call the right tools in the right order',d:1},', ',{p:'pairwise against last quarter&rsquo;s agent',fb:'Pairwise is shared: LangSmith experiments, Promptfoo comparisons and both managed services judge A against B.'},', inside the Google Cloud project.'],
+     why:'Trajectory metrics are the signature: the agent&rsquo;s sequence of tool calls matched exactly, in order or any order, with precision and recall, scored alongside the final answer in one managed call. Sitting inside the Google Cloud project seals it.'},
+    {a:1, seg:['Attach ',{p:'groundedness and relevance scores',fb:'RAGAS scores close cousins of both, and the judge metrics in the managed services do too. Not distinguishing.'},' to ',{p:'a traced run',fb:'Tracing narrows it to TruLens, LangSmith and Arize Phoenix. Closer, but still three.'},', so a bad answer is ',{p:'blamed on the exact step that caused it',d:1},'.'],
+     why:'Feedback functions attached to the trace are the signature: the score lives on the step, not just on the final output, so blame arrives pre-assigned.'},
+    {a:4, seg:['Let ',{p:'the whole team',fb:'Teams use every tool here; a team is a situation, not a capability. Read on for what the team must be able to do.'},' curate ',{p:'labelled datasets',fb:'Datasets are table stakes again: DeepEval, Promptfoo and Vertex AI evaluation all consume one.'},', run experiments between model versions, and ',{p:'read the results in one shared UI',d:1},'.'],
+     why:'Dataset curation, experiment tracking and pairwise judging in one shared interface is the managed-platform job: evaluation as a team sport rather than a script on one laptop.'}
+  ];
+  const giveaway=jb=>jb.seg.find(x=>x&&x.d).p;
+  let cur=0, score=0, hunt=0, results=[], found=false, missed=false, answered=false, wrongPicked=false;
+  function shelf(){
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE SHELF'
+      +(found?'':' <span style="color:var(--amber)">&middot; locked until the give-away is found</span>')+'</div>'
+      +'<div class="segmented mxshelf" style="flex-direction:column;align-items:stretch">'
+      +TOOLS.map((t,i)=>'<button class="seg" data-i="'+i+'"'+(found?'':' disabled')+' style="text-align:left;font-size:12px">'+t.n
+      +'<span class="mxchips">'+t.chips+'</span></button>').join('')+'</div>';
+    if(!found) return;
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const pick=+b.dataset.i, jb=JOBS[cur], right=pick===jb.a;
+      if(!answered){ answered=true; if(right) score++; results.push(right); }
+      if(right){
+        b.classList.add('on');
+        ctl.querySelectorAll('.seg').forEach(x=>{if(x!==b)x.disabled=true;});
+        note.innerHTML='<div class="ok"><b>Yes: '+TOOLS[jb.a].n+'.</b> '+jb.why+'</div>'
+          +'<button class="seg" id="mxToolNext" style="width:100%;margin-top:10px;font-size:12px">next job &rarr;</button>';
+        document.getElementById('mxToolNext').onclick=()=>{cur++;found=false;missed=false;answered=false;wrongPicked=false;note.innerHTML='';render();};
+      } else {
+        wrongPicked=true;
+        b.classList.add('no');
+        note.innerHTML='<div class="lzbad"><b>'+TOOLS[pick].n+' answers a different job on this list.</b> Its own give-away is <em>'+TOOLS[pick].home+'</em>. The give-away you found here, <em>'+giveaway(jb)+'</em>, belongs to a different tool: read the labels under the names and try again.</div>';
+      }
+    });
+  }
   function render(){
     if(cur>=JOBS.length){
-      out.innerHTML='<div class="ok"><b>'+score+' of '+JOBS.length+'.</b> The routing:</div>'
+      out.innerHTML='<div class="ok"><b>Tools: '+score+' of '+JOBS.length+' first pick &middot; give-aways: '+hunt+' of '+JOBS.length+' first click.</b> The routing, by give-away:</div>'
         +'<div style="margin-top:10px">'+JOBS.map((jb,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
         +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
-        +'<span style="flex:1">'+jb.key+'</span><span class="k" style="color:var(--accent)">'+TOOLS[jb.a]+'</span></div>').join('')+'</div>';
-      ctl.innerHTML='<button class="seg" id="mxToolAgain" style="width:100%;font-size:12px">&#9654; shuffle back to job one</button>';
-      document.getElementById('mxToolAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
-      note.innerHTML='<div class="simnote"><b>The keeper.</b> Every tool on the shelf implements families from the nine tabs before this one. Learn the families and the shelf reorganising itself every year stops mattering; learn only the logos and it never stops.</div>';
+        +'<span style="flex:1">'+giveaway(jb)+'</span><span class="k" style="color:var(--accent);white-space:nowrap">'+TOOLS[jb.a].n+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="mxToolAgain" style="width:100%;font-size:12px">&#9654; back to job one</button>';
+      document.getElementById('mxToolAgain').onclick=()=>{cur=0;score=0;hunt=0;results=[];found=false;missed=false;answered=false;wrongPicked=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> This table is the takeaway: eight phrases that each pick a tool by themselves. Every tool on the shelf implements families from the nine tabs before this one, so learn the families and the give-aways, and the shelf reorganising itself every year stops mattering.</div>';
       return;
     }
     const jb=JOBS[cur];
     out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">JOB '+(cur+1)+' OF '+JOBS.length+'</div>'
-      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet)"><b style="font-size:13.5px">'+jb.j+'</b></div>'
-      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
-    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE SHELF</div>'
-      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
-      +TOOLS.map((t,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+t+'</button>').join('')+'</div>';
-    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
-      if(answered) return;
-      answered=true;
-      const pick=+b.dataset.i, right=pick===jb.a;
-      if(right) score++;
-      results.push(right);
-      b.classList.add('on');
-      note.innerHTML=(right
-        ? '<div class="ok"><b>Yes: '+TOOLS[jb.a]+'.</b> '+jb.why+'</div>'
-        : '<div class="lzbad"><b>Closer to a different job.</b> The give-away here was <em>'+jb.key+'</em>, which points at <b>'+TOOLS[jb.a]+'</b>. '+jb.why+'</div>')
-        +'<button class="seg" id="mxToolNext" style="width:100%;margin-top:10px;font-size:12px">next job &rarr;</button>';
-      document.getElementById('mxToolNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet);font-size:13.5px;line-height:1.75">'
+      +jb.seg.map((x,si)=>typeof x==='string'?x:'<button class="mxclue" data-si="'+si+'">'+x.p+'</button>').join('')+'</div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">underlined = a requirement you can click &middot; exactly one is a give-away &middot; right so far: '+score+' / '+cur+'</div>';
+    out.querySelectorAll('.mxclue').forEach(b=>b.onclick=()=>{
+      if(found||b.classList.contains('no')) return;
+      const x=jb.seg[+b.dataset.si];
+      if(x.d){
+        found=true; if(!missed) hunt++;
+        b.classList.add('yes');
+        note.innerHTML='<div class="ok"><b>That is the give-away.</b> Only one box on the shelf can claim <em>'+x.p+'</em>. The shelf is open: the small label under each name says what that box is for.</div>';
+        shelf();
+      } else {
+        missed=true;
+        b.classList.add('no');
+        note.innerHTML='<div class="lzwarn"><b>True, and useless for choosing.</b> '+x.fb+' A requirement several tools meet cannot pick between them: keep hunting.</div>';
+      }
     });
+    shelf();
   }
   render();
 })();
