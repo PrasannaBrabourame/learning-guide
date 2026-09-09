@@ -46,6 +46,7 @@
     <button class="tab" data-pane="tnet" role="tab">A real network</button>
     <button class="tab" data-pane="tfit" role="tab">Fitting too well</button>
     <button class="tab" data-pane="tstop" role="tab">When to stop</button>
+    <button class="tab" data-pane="ttune" role="tab">Make it yours</button>
     <button class="tab" data-pane="tgpu" role="tab">Why the GPU cares</button>
     <button class="tab" data-pane="texam" role="tab">Exam angle</button>
   </div>
@@ -55,6 +56,7 @@
   <section class="pane" id="pane-tnet"><div id="sec-tnet"></div></section>
   <section class="pane" id="pane-tfit"><div id="sec-tfit"></div></section>
   <section class="pane" id="pane-tstop"><div id="sec-tstop"></div></section>
+  <section class="pane" id="pane-ttune"><div id="sec-ttune"></div></section>
   <section class="pane" id="pane-tgpu"><div id="sec-tgpu"></div></section>
   <section class="pane" id="pane-texam"><div id="sec-texam"></div></section>
 
@@ -587,7 +589,338 @@ document.getElementById('sec-tstop').innerHTML=`
   note.innerHTML='<div class="simnote">The curves are pre-computed from one seeded run, so the game is fair: everyone stares down the same turn.</div>';
 })();
 
-/* ================= 6 · WHY THE GPU CARES ================= */
+/* ================= 6 · MAKE IT YOURS ================= */
+document.getElementById('sec-ttune').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">You will almost never train from scratch: you adapt someone else&rsquo;s years of training</h2>
+  <div class="plain-line"><b>In plain English:</b> everything before this tab trained a model from nothing, which is the right way to learn the mechanism and the wrong way to build most things. In practice you start from a <b>foundation model</b> that already spent years&rsquo; worth of compute learning language, and you close the gap between what it knows and what you need. There are only three doors: change nothing and <b>brief it</b> (prompt engineering), keep the facts outside and <b>hand it the book</b> (RAG), or change the weights themselves and <b>teach it</b> (fine-tuning, usually the parameter-efficient kind, PEFT). The exam version: when the gap is <em>vocabulary and register</em>, the way the model reads a specialist domain, the answer is fine-tuning, because reading lives in the weights.</div>
+  ${D('0 0 660 190','A frozen foundation model, and the three doors: prompt it, give it retrieval, or fine-tune its weights.',
+   `${box(14,50,170,90,'var(--wire)')}${t(99,82,'foundation model',SANS)}${tm(99,102,'years of training','var(--dim)')}${tm(99,118,'weights frozen','var(--dim)')}
+    ${box(420,14,226,46,'var(--teal)')}${t(533,32,'brief it',SANS)}${tm(533,48,'prompt: nothing changes','var(--dim)')}
+    ${box(420,72,226,46,'var(--blue)')}${t(533,90,'hand it the book',SANS)}${tm(533,106,'RAG: facts stay outside','var(--dim)')}
+    ${box(420,130,226,46,'var(--violet)')}${t(533,148,'teach it',SANS)}${tm(533,164,'fine-tune: weights change','var(--dim)')}
+    <path d="M186 78 H418" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M186 95 H418" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M186 112 L418 152" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>`,
+   'The first two doors leave the model untouched. Only the third changes what it is, and the two simulations after the chooser show what that costs and what it breaks.')}
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: six gaps, three doors, and what happens three weeks later</h2>
+  <div class="plain-line"><b>Try this:</b> six real gaps between a foundation model and a job. Pick a door for each. Every wrong door comes with its own <b>three weeks later</b>: the specific way that choice goes wrong in production, because the fastest way to learn this decision is to watch the other three fail.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A new hire from a good general school. For today&rsquo;s job you can brief them at their desk, hand them the current price list, or send them on a six-week specialist course. Nobody re-runs their entire education because the price list changed.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read gap one and ask <b>where the failure lives</b>: in the facts it was given, or in how it reads and writes.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>foundation model</b> a big general model someone else already trained; you start from it, never from zero</span><span class="sp-w"><b>prompt engineering</b> changing only the written brief the model reads before answering</span><span class="sp-w"><b>RAG</b> retrieval-augmented generation: fetch the relevant documents at question time and let the model read them</span><span class="sp-w"><b>fine-tuning</b> continuing training on your own examples, so the weights themselves change</span><span class="sp-w"><b>PEFT</b> parameter-efficient fine-tuning: freeze the model, train a small add-on instead of everything (LoRA is the famous one)</span><span class="sp-w"><b>full fine-tune</b> updating every weight in the model, the expensive kind</span><span class="sp-w"><b>adapter</b> the small trained add-on PEFT produces: the base model stays as it was, the adapter rides on top and can be swapped or removed</span><span class="sp-w"><b>weights</b> the numbers that hold everything a model has learned</span><span class="sp-w"><b>register</b> the tone and word choices a profession writes in: clinicians, lawyers and support agents all sound different</span><span class="sp-w"><b>labelled examples</b> input-and-right-answer pairs, the food fine-tuning eats</span><span class="sp-w"><b>deterministic gate</b> a plain code check that blocks an output no matter what the model thinks</span><span class="sp-w"><b>latency</b> how long one answer takes</span><span class="sp-w"><b>unit cost</b> what one answer costs to produce</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="tuneDecOut"></div></div>
+    <div><div id="tuneDecCtl"></div>
+      <div id="tuneDecNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: sticky notes in a book you may not reprint</h2>
+  <div class="plain-line"><b>Try this:</b> LoRA, the workhorse of PEFT, next to the full fine-tune it replaces. The frozen weight matrix is the printed page; the two thin strips are the sticky notes: a matrix of 4,096 &times; 4,096 numbers gets a correction built from two slivers of 4,096 &times; r each. Slide the rank r and choose which matrices get notes, and watch the trainable share and the memory bill move. Every number is computed live from a real 7-billion-parameter shape.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A 1,000-page textbook you are not allowed to reprint. You tuck sticky notes into the margins: tiny, removable, and the book reads differently with them in. The serving lab&rsquo;s multi-LoRA tab is a librarian swapping whole sticky-note sets between readers.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set rank to <b>8</b> on <b>attention only</b>, then read the memory bars against the one-GPU line.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>LoRA</b> low-rank adaptation: freeze the big matrix, train two thin strips whose product is the correction</span><span class="sp-w"><b>rank (r)</b> the width of the strips: how rich a correction the notes can express</span><span class="sp-w"><b>matrix</b> one rectangular block of weights; a model is thousands of them</span><span class="sp-w"><b>attention</b> the part of every layer where the model decides which earlier words to look at while reading; built from four weight matrices, nicknamed q, k, v and o</span><span class="sp-w"><b>MLP</b> the other big block in every layer, a plain mixing step after attention; its matrices are the model&rsquo;s largest</span><span class="sp-w"><b>q and v</b> two of attention&rsquo;s four matrices, the pair the original LoRA recipe put sticky notes on</span><span class="sp-w"><b>frozen</b> left exactly as trained, receiving no updates</span><span class="sp-w"><b>trainable parameters</b> the weights actually being changed, the only ones the optimiser must track</span><span class="sp-w"><b>optimiser state</b> the extra bookkeeping training keeps for every weight it may change: the optimiser (big models use one called Adam) holds a running average, a spread and a high-precision copy per weight, which is why the full bar is roughly eight times the model itself</span><span class="sp-w"><b>VRAM</b> the GPU&rsquo;s own memory, the scarce resource all of this is fighting over</span><span class="sp-w"><b>QLoRA</b> LoRA with the frozen base squeezed to 4-bit numbers, so the book itself shrinks too</span><span class="sp-w"><b>quantised</b> stored at lower precision; the LLM lab&rsquo;s quantisation tab shows what that costs</span><span class="sp-w"><b>adapter</b> the trained sticky-note set: small enough to email, swappable per customer</span><span class="sp-w"><b>activations</b> the temporary working-out each batch produces on its way through the model; it needs its own slab of memory on top of everything in the bars</span><span class="sp-w"><b>full FT</b> full fine-tune: updating every weight, the expensive baseline the red bar measures</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="tuneLoraOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">RANK r</div>
+      <div class="segmented" id="tuneLoraR" style="flex-direction:row"></div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:10px 0 6px">WHERE THE NOTES GO</div>
+      <div class="segmented" id="tuneLoraM" style="flex-direction:column;align-items:stretch"></div>
+      <div id="tuneLoraNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: specialise the clinic model without lobotomising it</h2>
+  <div class="plain-line"><b>Try this:</b> catastrophic forgetting, live, on this page&rsquo;s real network. Train a general clinic model until its map is perfect. Then a specialist ward sends over its notes: a small pocket of cases where the reading flips. Specialise three ways and watch two meters at once, because the disaster is never on the meter you are staring at.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A locum doctor spends a month on a cardiology ward and comes back reading every chest complaint as cardiac. The cure is not studying the ward less; it is keeping one day a week in the general clinic while specialising.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>1 &middot; train the clinic model</b>, then try <b>specialist notes only</b> and watch the left meter, not the right one.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>pretrain</b> the general training a model gets before you ever touch it</span><span class="sp-w"><b>specialise / fine-tune</b> continue training on the new domain&rsquo;s examples</span><span class="sp-w"><b>catastrophic forgetting</b> new training overwriting old skill, because nothing in the new data defends it</span><span class="sp-w"><b>the pocket</b> the specialist cases: one small corner of the map where the label flips</span><span class="sp-w"><b>replay</b> mixing a slice of the old general data into the specialist training</span><span class="sp-w"><b>freeze</b> lock some layers so training cannot move them</span><span class="sp-w"><b>learning rate</b> this lab&rsquo;s step size; smaller steps forget more slowly, and still forget</span><span class="sp-w"><b>accuracy</b> the share of a test set the model currently gets right</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="tuneFgOut" class="live"></div></div>
+    <div>
+      <button class="seg" id="tuneFgPre" style="width:100%;font-size:12px;color:var(--accent)">&#9654; <b>1 &middot; train the clinic model</b></button>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:10px 0 6px">2 &middot; THEN SPECIALISE, THREE WAYS</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="seg tunefg2" id="tuneFgNaive" disabled style="text-align:left;font-size:12px">specialist notes only <span class="k" style="font-size:10px;color:var(--dim)">the obvious move</span></button>
+        <button class="seg tunefg2" id="tuneFgFreeze" disabled style="text-align:left;font-size:12px">freeze all but the last layer, notes only <span class="k" style="font-size:10px;color:var(--dim)">the gentle-sounding move</span></button>
+        <button class="seg tunefg2" id="tuneFgMix" disabled style="text-align:left;font-size:12px">specialist notes + a slice of old caseload <span class="k" style="font-size:10px;color:var(--dim)">replay</span></button>
+      </div>
+      <button class="seg" id="tuneFgReset" disabled style="width:100%;margin-top:8px;font-size:12px">back to the trained clinic model</button>
+      <div id="tuneFgNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: six gaps, three doors --- */
+(function(){
+  const out=document.getElementById('tuneDecOut'), ctl=document.getElementById('tuneDecCtl'),
+        note=document.getElementById('tuneDecNote');
+  if(!out) return;
+  const MOVES=['brief it (prompt engineering)','hand it the book (RAG)','send it on the course (PEFT fine-tune)','rebuild its education (full fine-tune)'];
+  const JOBS=[
+   {a:2, key:'the reading fails, not the facts',
+    j:'The model keeps stumbling over specialist medical vocabulary: it trips over rare terms, reading them in pieces with no feel for what the pieces mean together, reads MI as Michigan rather than myocardial infarction, and misses the register clinicians write in. The facts it needs are public; it is the reading that fails.',
+    fb:['Three weeks later: the prompt has grown to two pages of definitions, that briefing rides along on every single request, and the model still has no feel for the pieces those rare terms break into. A brief cannot re-teach how someone reads.',
+        'Three weeks later: retrieval dutifully hands it textbook pages, and it misreads those too. The gap was never missing facts: retrieval feeds documents to the same general-purpose reader. Vocabulary and register live in the weights.',
+        'Fine-tuning adapts the weights themselves: a few thousand clinical notes teach the jargon, the abbreviations and the register, for around a tenth of a percent of the parameter bill (next simulation down). This is the exam answer: a vocabulary gap is a weight gap.',
+        'It would work, and it moves every weight where a small adapter buys the same reading skill, needs roughly eight times the training memory (next simulation down), and risks forgetting far more on the way. Save the full rebuild for when the whole language shifts, not one profession&rsquo;s dialect.']},
+   {a:1, key:'facts that change daily and must be cited',
+    j:'Answers must quote today&rsquo;s price list and cite the paragraph they came from. Prices change every morning, and a wrong price is a refund.',
+    fb:['Three weeks later: someone forgets to paste Tuesday&rsquo;s list into the template, and the model confidently quotes Monday. A fact that changes daily cannot live in static text.',
+        'Retrieval keeps the facts outside the model, in an index refreshed every morning and citable line by line. Facts that change, or must be audited, never belong in weights.',
+        'Three weeks later: you are fine-tuning nightly, the Tuesday model still quotes Monday until the job finishes, and nobody can prove which weights knew which price. Weights are undated and unquotable.',
+        'Everything wrong with the adapter answer, at vastly higher cost, and still no citations.']},
+   {a:2, key:'voice and format, with 12,000 worked examples',
+    j:'Every reply must open with an apology where one is due, keep the house voice, stay under 80 words and never promise a refund. You hold 12,000 gold replies your best agents wrote.',
+    fb:['Three weeks later: nine replies in ten follow the style guide in the prompt; the tenth promises a refund to a lawyer. Prompting is a strong average with weak guarantees, and the style guide rides on every request&rsquo;s bill.',
+        'Retrieval fetches facts. Voice, length discipline and what never to say appear in no document it could fetch: they are behaviour, not knowledge.',
+        'Twelve thousand worked examples is exactly the food fine-tuning eats. Style, format and taboo lists are behaviour, and behaviour lives in weights. Keep the refund ban as a deterministic gate as well: weights make it rare, gates make it never.',
+        'It works, costs more, and forgets more of the general model on the way (two simulations down). The adapter learns the house voice without the surgery.']},
+   {a:0, key:'no data, no time, behaviour already close',
+    j:'The demo is Friday. There is no labelled data, the model already does the task decently, and it only needs to hold a consistent voice and refuse off-topic questions politely.',
+    fb:['No data, no time, and the behaviour is already close: write the brief. A good system prompt with two worked examples in it is the only move that ships by Friday, and it costs nothing to undo.',
+        'Nothing is missing that a document could supply: the behaviour is loose, not the facts. You would be building an index to fix a sentence.',
+        'Three weeks later is after Friday. Fine-tuning needs labelled examples you do not have and evaluation time you do not have. Right second step, wrong first one.',
+        'Rebuilding the employee&rsquo;s entire education for a Friday demo is how demos get cancelled.']},
+   {a:3, key:'one narrow task, two million labels, a cost ceiling',
+    j:'One narrow job at brutal scale: classify millions of radiology reports a day. You hold two million labelled reports, latency and unit cost decide the business case, and a small model must match the giant&rsquo;s accuracy on this one task.',
+    fb:['A giant model behind a long prompt hits the accuracy and destroys the unit cost: general-intelligence prices for one narrow skill, millions of times a day.',
+        'There is nothing to look up: every report carries its own evidence inside it. Retrieval adds latency and changes nothing.',
+        'Close, and often the right first experiment. But with two million labels, one narrow target and a hard cost ceiling, the small model can absorb the task completely; an adapter caps how far it can move.',
+        'This is the case that pays for a full fine-tune: one narrow task, oceans of labels, and a cost ceiling a small specialised model clears while the giant cannot. Forgetting is acceptable here, because the general skills are not the product.']},
+   {a:1, key:'per-client isolation, weekly changes',
+    j:'The assistant answers from confidential contracts that differ per client, arrive weekly, and must never inform an answer for a different client.',
+    fb:['Pasting contracts into prompts goes wrong the day somebody attaches the wrong file, and week-old prompt text quietly goes stale.',
+        'One index per client, fetched under the caller&rsquo;s identity, is isolation you can point at in an audit. Weights are shared by every caller: a fact trained in for one client is available to all of them.',
+        'Three weeks later: client B&rsquo;s assistant quotes a clause that only ever existed in client A&rsquo;s contract. Weights keep no record of whose fact is whose: anything trained in for one client can surface for any other.',
+        'The same leak as the adapter, at maximum price.']}
+  ];
+  let cur=0, score=0, answered=false, wrong=false, results=[];
+  function render(){
+    if(cur>=JOBS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+JOBS.length+' first pick.</b> The routing:</div>'
+        +'<div style="margin-top:10px">'+JOBS.map((jb,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+        +'<span style="flex:1">'+jb.key+'</span><span class="k" style="color:var(--accent);white-space:nowrap">'+MOVES[jb.a].replace(/ \(.*/,'')+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="tuneDecAgain" style="width:100%;font-size:12px">&#9654; back to gap one</button>';
+      document.getElementById('tuneDecAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;wrong=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Weights hold skills, style and vocabulary. The prompt holds instructions. Retrieval holds facts, especially facts that change or must be cited. When the gap is in how the model reads a domain, that is a weight gap, and the answer is fine-tuning, usually the parameter-efficient kind.</div>';
+      return;
+    }
+    const jb=JOBS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">GAP '+(cur+1)+' OF '+JOBS.length+'</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet);font-size:13.5px;line-height:1.7">'+jb.j+'</div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE THREE DOORS (the third splits in two: short course or full rebuild)</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +MOVES.map((m,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+m+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const pick=+b.dataset.i, right=pick===jb.a;
+      if(!answered){answered=true; if(right) score++; results.push(right);}
+      if(right){
+        b.classList.add('on');
+        ctl.querySelectorAll('.seg').forEach(x=>{if(x!==b)x.disabled=true;});
+        note.innerHTML='<div class="ok"><b>Yes: '+MOVES[jb.a]+'.</b> '+jb.fb[jb.a]+'</div>'
+          +'<button class="seg" id="tuneDecNext" style="width:100%;margin-top:10px;font-size:12px">next gap &rarr;</button>';
+        document.getElementById('tuneDecNext').onclick=()=>{cur++;answered=false;wrong=false;note.innerHTML='';render();};
+      } else {
+        wrong=true; b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65';
+        note.innerHTML='<div class="lzbad"><b>'+MOVES[pick]+'.</b> '+jb.fb[pick]+'</div>';
+      }
+    });
+  }
+  render();
+})();
+
+/* --- SIM: LoRA sticky notes --- */
+(function(){
+  const out=document.getElementById('tuneLoraOut'), note=document.getElementById('tuneLoraNote'),
+        rEl=document.getElementById('tuneLoraR'), mEl=document.getElementById('tuneLoraM');
+  if(!out) return;
+  const C=4096, L=32, V=32000, I=11008;
+  const TOTAL=2*V*C + L*(4*C*C + 3*C*I) + L*2*C + C;   /* 6.74B, the 7B-class shape */
+  const RANKS=[1,4,8,16,64];
+  const SCOPES=[
+    {n:'q and v only (the classic)', mats:[[C,C],[C,C]]},
+    {n:'all four attention matrices', mats:[[C,C],[C,C],[C,C],[C,C]]},
+    {n:'attention + MLP (the modern default)', mats:[[C,C],[C,C],[C,C],[C,C],[C,I],[C,I],[C,I]]}
+  ];
+  let ri=2, si=0;
+  const fmt=n=> n>=1e9 ? (n/1e9).toFixed(2)+'B' : n>=1e6 ? (n/1e6).toFixed(2)+'M' : Math.round(n/1e3)+'K';
+  function render(){
+    const r=RANKS[ri], sc=SCOPES[si];
+    const train=L*sc.mats.reduce((s,mm)=>s+r*(mm[0]+mm[1]),0);
+    const share=train/TOTAL*100;
+    const memFull=TOTAL*16/1e9, memLora=(TOTAL*2+train*16)/1e9, memQ=(TOTAL*0.55+train*16)/1e9;
+    rEl.innerHTML=RANKS.map((v,i)=>'<button class="seg'+(i===ri?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:12px">'+v+'</button>').join('');
+    mEl.innerHTML=SCOPES.map((s2,i)=>'<button class="seg'+(i===si?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px">'+s2.n+'</button>').join('');
+    rEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ri=+b.dataset.i;render();});
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{si=+b.dataset.i;render();});
+    const sw=Math.max(1.2, r/C*260);   /* strip drawn no thinner than 1.2px */
+    const BARW=v=>Math.max(2,(v/memFull)*268);
+    out.innerHTML='<svg viewBox="0 0 460 356" role="img" aria-label="One frozen weight matrix with its two thin LoRA strips, and the training-memory bill below." style="width:100%;height:auto">'
+      +'<rect x="20" y="16" width="260" height="260" rx="6" style="fill:var(--panel2);stroke:var(--wire)"/>'
+      +'<text x="150" y="140" text-anchor="middle" style="'+SANS+';fill:var(--text)">frozen W</text>'
+      +'<text x="150" y="158" text-anchor="middle" style="'+MONO+';fill:var(--muted)">4,096 &times; 4,096</text>'
+      +'<rect x="292" y="16" width="'+sw.toFixed(1)+'" height="260" rx="2" style="fill:var(--amber);opacity:.85"/>'
+      +'<text x="'+(296+sw).toFixed(1)+'" y="146" style="'+MONO+';fill:var(--amber)" text-anchor="start">A: 4,096 &times; '+r+'</text>'
+      +'<rect x="20" y="288" width="260" height="'+sw.toFixed(1)+'" rx="2" style="fill:var(--amber);opacity:.85"/>'
+      +'<text x="20" y="'+(302+sw).toFixed(1)+'" style="'+MONO+';fill:var(--amber)" text-anchor="start">B: '+r+' &times; 4,096'+(r<=8?'  (drawn thicker than true scale)':'')+'</text>'
+      +'</svg>'
+      +'<div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap" class="nnbig">'
+      +'<span style="font-size:12px;color:var(--muted)">model <b style="font-size:17px;color:var(--text)">'+fmt(TOTAL)+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">trainable <b style="font-size:17px;color:var(--amber)">'+fmt(train)+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">share <b style="font-size:17px;color:'+(share<1?'var(--green)':'var(--text)')+'">'+(share<0.1?share.toFixed(3):share.toFixed(2))+'%</b></span></div>'
+      +'<div style="margin-top:10px">'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:4px" class="k">MEMORY TO TRAIN (weights, gradients and optimiser state; activations extra)</div>'
+      +'<svg viewBox="0 0 460 96" role="img" aria-label="Training memory: full fine-tune against LoRA against QLoRA, with a 24-gigabyte single-GPU line." style="width:100%;height:auto">'
+      +'<rect x="120" y="8"  width="'+BARW(memFull)+'" height="18" rx="4" style="fill:var(--red);opacity:.8"/>'
+      +'<rect x="120" y="36" width="'+BARW(memLora)+'" height="18" rx="4" style="fill:var(--amber);opacity:.85"/>'
+      +'<rect x="120" y="64" width="'+BARW(memQ)+'" height="18" rx="4" style="fill:var(--green);opacity:.85"/>'
+      +'<text x="112" y="21" text-anchor="end" style="'+MONO+';fill:var(--muted)">full FT</text>'
+      +'<text x="112" y="49" text-anchor="end" style="'+MONO+';fill:var(--muted)">LoRA</text>'
+      +'<text x="112" y="77" text-anchor="end" style="'+MONO+';fill:var(--muted)">QLoRA</text>'
+      +'<text x="'+(124+BARW(memFull))+'" y="21" style="'+MONO+';fill:var(--text)">'+memFull.toFixed(0)+' GB</text>'
+      +'<text x="'+(124+BARW(memLora))+'" y="49" style="'+MONO+';fill:var(--text)">'+memLora.toFixed(1)+' GB</text>'
+      +'<text x="'+(124+BARW(memQ))+'" y="77" style="'+MONO+';fill:var(--text)">'+memQ.toFixed(1)+' GB</text>'
+      +'<line x1="'+(120+BARW(24)).toFixed(1)+'" y1="2" x2="'+(120+BARW(24)).toFixed(1)+'" y2="88" style="stroke:var(--teal);stroke-dasharray:4 3"/>'
+      +'<text x="'+(124+BARW(24)).toFixed(1)+'" y="94" style="'+MONO+';fill:var(--teal)">one 24 GB card</text>'
+      +'</svg></div>';
+    note.innerHTML = (si===0&&r<=4
+      ? '<div class="ok"><b>This corner is the original result.</b> Ranks as small as 1 to 4 on just the attention q and v matrices matched full fine-tuning on several benchmarks, with '+fmt(train)+' trainable numbers standing in for '+fmt(TOTAL)+'. The correction a domain needs is usually low-rank: a nudge, not a rewrite.</div>'
+      : r===64
+      ? '<div class="lzwarn"><b>Diminishing returns territory.</b> At rank 64 the notes are '+share.toFixed(1)+'% of the model and the memory bill barely moved, but quality gains over rank 8 to 16 are usually small. If rank keeps needing to grow, the gap may be a full-fine-tune gap.</div>'
+      : '<div class="simnote"><b>Read the green bar.</b> The full fine-tune needs '+memFull.toFixed(0)+' GB of weights and optimiser state before a single activation; the frozen-base tricks need '+memLora.toFixed(1)+' GB, and QLoRA squeezes the book itself to fit one desktop GPU with room for activations. Same 7B model, three very different electricity bills.</div>');
+  }
+  render();
+})();
+
+/* --- SIM: catastrophic forgetting, live --- */
+(function(){
+  const out=document.getElementById('tuneFgOut'), note=document.getElementById('tuneFgNote'),
+        pre=document.getElementById('tuneFgPre'), bN=document.getElementById('tuneFgNaive'),
+        bF=document.getElementById('tuneFgFreeze'), bM=document.getElementById('tuneFgMix'),
+        rs=document.getElementById('tuneFgReset');
+  if(!out) return;
+  function mkNet(H,r){
+    const lay=(nin,nout)=>({w:Array.from({length:nout},()=>Array.from({length:nin},()=>gauss(r)/Math.sqrt(nin))),
+      b:Array(nout).fill(0), mw:Array.from({length:nout},()=>Array(nin).fill(0)), mb:Array(nout).fill(0)});
+    return {H,l1:lay(2,H),l2:lay(H,H),l3:lay(H,2)};
+  }
+  const fwd=(n,x,y)=>{
+    const h1=n.l1.w.map((w,i)=>Math.tanh(w[0]*x+w[1]*y+n.l1.b[i]));
+    const h2=n.l2.w.map((w,i)=>Math.tanh(w.reduce((s,v,j)=>s+v*h1[j],0)+n.l2.b[i]));
+    const o=n.l3.w.map((w,i)=>w.reduce((s,v,j)=>s+v*h2[j],0)+n.l3.b[i]);
+    const m=Math.max(o[0],o[1]), e0=Math.exp(o[0]-m), e1=Math.exp(o[1]-m);
+    return {h1,h2,p1:e1/(e0+e1)};
+  };
+  function trainSteps(net,pts,k,rnd,LR,frozen){
+    const MU=0.9,B=24;
+    for(let s=0;s<k;s++){
+      const H=net.H;
+      const g={l1w:net.l1.w.map(r=>r.map(()=>0)),l1b:Array(H).fill(0),
+               l2w:net.l2.w.map(r=>r.map(()=>0)),l2b:Array(H).fill(0),
+               l3w:net.l3.w.map(r=>r.map(()=>0)),l3b:[0,0]};
+      for(let b=0;b<B;b++){
+        const [x,y,c]=pts[(rnd()*pts.length)|0];
+        const f=fwd(net,x,y);
+        const do1=f.p1-(c===1?1:0), do0=-do1;
+        const dh2=net.l2.b.map((_,j)=>(net.l3.w[0][j]*do0+net.l3.w[1][j]*do1)*(1-f.h2[j]*f.h2[j]));
+        const dh1=net.l1.b.map((_,j)=>{let s2=0;for(let i=0;i<H;i++)s2+=net.l2.w[i][j]*dh2[i];return s2*(1-f.h1[j]*f.h1[j]);});
+        for(let i=0;i<H;i++){g.l3w[0][i]+=do0*f.h2[i];g.l3w[1][i]+=do1*f.h2[i];}
+        g.l3b[0]+=do0;g.l3b[1]+=do1;
+        for(let i=0;i<H;i++){for(let j=0;j<H;j++)g.l2w[i][j]+=dh2[i]*f.h1[j];g.l2b[i]+=dh2[i];}
+        for(let i=0;i<H;i++){g.l1w[i][0]+=dh1[i]*x;g.l1w[i][1]+=dh1[i]*y;g.l1b[i]+=dh1[i];}
+      }
+      const upd=(L,gw,gb)=>{for(let i=0;i<L.w.length;i++){for(let j=0;j<L.w[i].length;j++){
+        L.mw[i][j]=MU*L.mw[i][j]-LR*gw[i][j]/B;L.w[i][j]+=L.mw[i][j];}
+        L.mb[i]=MU*L.mb[i]-LR*gb[i]/B;L.b[i]+=L.mb[i];}};
+      if(!frozen){upd(net.l1,g.l1w,g.l1b);upd(net.l2,g.l2w,g.l2b);}
+      upd(net.l3,g.l3w,g.l3b);
+    }
+  }
+  const accOf=(net,pts)=>{let a=0;for(const [x,y,c] of pts) if((fwd(net,x,y).p1>0.5)===(c===1)) a++;return a/pts.length;};
+  const clone=n=>JSON.parse(JSON.stringify(n));
+  function genGeneral(r){const p=[];for(let i=0;i<70;i++){const a=r()*6.283,ri=r()*0.75;p.push([Math.cos(a)*ri,Math.sin(a)*ri,0]);
+    const a2=r()*6.283,ro=1.45+r()*0.7;p.push([Math.cos(a2)*ro,Math.sin(a2)*ro,1]);}return p;}
+  function genPocket(r){const p=[];for(let i=0;i<40;i++){p.push([1.45+gauss(r)*0.12,1.45+gauss(r)*0.12,0]);
+    p.push([0.95+gauss(r)*0.12,0.95+gauss(r)*0.12,1]);}return p;}
+  const rd=mulberry32(7);
+  const GEN=genGeneral(rd), POCKET=genPocket(rd);
+  const GENTEST=genGeneral(mulberry32(999)), POCKTEST=genPocket(mulberry32(998));
+  let base=null, cur=null, running=false, token=0, mode='';
+  const GX=30, GY=22, DOM=2.6;
+  const PX=x=>(x+DOM)/(2*DOM)*460, PY=y=>340-(y+DOM)/(2*DOM)*340;
+  function paint(msg){
+    if(!cur){ out.innerHTML='<div class="simnote">Press <b>1 &middot; train the clinic model</b> to begin. A map will appear: circles for the everyday caseload, diamonds for the specialist ward&rsquo;s notes, clustered in one corner where the right answer flips.</div>'; return; }
+    let cells='';
+    for(let i=0;i<GX;i++) for(let j=0;j<GY;j++){
+      const x=-DOM+(i+0.5)*2*DOM/GX, y=-DOM+(j+0.5)*2*DOM/GY;
+      const p=fwd(cur,x,y).p1, conf=Math.min(0.55,Math.abs(p-0.5)*1.5);
+      cells+='<rect x="'+(i*460/GX).toFixed(1)+'" y="'+(340-(j+1)*340/GY).toFixed(1)+'" width="'+(460/GX+0.5).toFixed(1)+'" height="'+(340/GY+0.5).toFixed(1)
+        +'" style="fill:var(--'+(p>0.5?'teal':'red')+');opacity:'+conf.toFixed(2)+'"/>';
+    }
+    const ga=accOf(cur,GENTEST), pa=accOf(cur,POCKTEST);
+    out.innerHTML='<svg viewBox="0 0 460 340" role="img" aria-label="The clinic map: everyday cases as circles, the specialist pocket as diamonds, over the model&rsquo;s current opinion." style="width:100%;height:auto;border-radius:9px;overflow:hidden">'
+      +'<rect x="0" y="0" width="460" height="340" style="fill:var(--panel2)"/>'+cells
+      +GEN.map(([x,y,c])=>'<circle cx="'+PX(x).toFixed(1)+'" cy="'+PY(y).toFixed(1)+'" r="3.6" style="fill:var(--'+(c?'teal':'red')+');stroke:var(--bg);stroke-width:1"/>').join('')
+      +POCKET.map(([x,y,c])=>{const px=PX(x).toFixed(1),py=PY(y).toFixed(1);
+        return '<rect x="'+(PX(x)-3.4).toFixed(1)+'" y="'+(PY(y)-3.4).toFixed(1)+'" width="6.8" height="6.8" transform="rotate(45 '+px+' '+py+')" style="fill:var(--'+(c?'teal':'red')+');stroke:var(--bg);stroke-width:1.1"/>';}).join('')
+      +'</svg>'
+      +'<div style="display:flex;gap:18px;margin-top:8px;flex-wrap:wrap" class="nnbig">'
+      +'<span style="font-size:12px;color:var(--muted)">old caseload (circles) <b style="font-size:18px;color:'+(ga>0.9?'var(--green)':ga>0.75?'var(--amber)':'var(--red)')+'">'+Math.round(ga*100)+'%</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">specialist pocket (diamonds) <b style="font-size:18px;color:'+(pa>0.9?'var(--green)':pa>0.6?'var(--amber)':'var(--red)')+'">'+Math.round(pa*100)+'%</b></span>'
+      +(msg?'<span style="font-size:12px;color:var(--accent)" class="k">'+msg+'</span>':'')
+      +'</div>';
+    return {ga,pa};
+  }
+  function setBtns(){
+    const ready=!!base && !running;
+    [bN,bF,bM,rs].forEach(b=>b.disabled=!ready);
+    pre.disabled=running || !!base;
+  }
+  function animate(net,pts,totalSteps,perFrame,LR,frozen,stream,done){
+    running=true; setBtns(); const my=++token; let doneSteps=0;
+    (function frame(){
+      if(my!==token){running=false;setBtns();return;}
+      const k=Math.min(perFrame,totalSteps-doneSteps);
+      trainSteps(net,pts,k,stream,LR,frozen); doneSteps+=k;
+      paint(doneSteps<totalSteps ? (mode==='pre'?'training&hellip; step ':'specialising&hellip; step ')+doneSteps.toLocaleString('en-GB') : '');
+      if(doneSteps<totalSteps) requestAnimationFrame(frame);
+      else {running=false; setBtns(); done();}
+    })();
+  }
+  pre.onclick=()=>{
+    if(running||base) return;
+    mode='pre'; cur=mkNet(16,mulberry32(1));
+    note.innerHTML='';
+    animate(cur,GEN,4000,100,0.05,false,mulberry32(107),()=>{
+      base=clone(cur); setBtns(); const m=paint('');
+      note.innerHTML='<div class="ok"><b>The clinic model is trained: old caseload '+Math.round(m.ga*100)+'%.</b> Look at the diamonds: the pocket sits near '+Math.round(m.pa*100)+'%, because the general rule reads that flipped corner wrong. That is exactly why the ward wants the model specialised. Now try the three ways.</div>';
+    });
+  };
+  function specialise(m2,pts,frozen,after){
+    if(running||!base) return;
+    mode=m2; cur=clone(base); note.innerHTML='';
+    animate(cur,pts,1500,30,0.02,frozen,mulberry32(5),()=>{
+      const m=paint(''); after(Math.round(m.ga*100),Math.round(m.pa*100));
+    });
+  }
+  bN.onclick=()=>specialise('naive',POCKET,false,(g,p)=>{
+    note.innerHTML='<div class="lzbad"><b>The pocket is learned, and the clinic is lobotomised.</b> Specialist pocket '+p+'%, old caseload <b>'+g+'%</b>: worse than guessing. The specialist notes contained nothing that defends the old skill, so 1,500 steps of them redrew the whole map, not just the flipped corner. That is catastrophic forgetting: the disagreement was local, the damage is global.</div>';
+  });
+  bF.onclick=()=>specialise('freeze',POCKET,true,(g,p)=>{
+    note.innerHTML='<div class="lzwarn"><b>Gentleness did not save it.</b> Only the last layer could move, and the old caseload still fell to <b>'+g+'%</b> (pocket '+p+'%). Freezing layers limits <em>where</em> change happens, not <em>what the loss cares about</em>: with only specialist notes in the batch, whatever is trainable gets spent on the pocket. The fix is in the data, not the plumbing.</div>';
+  });
+  bM.onclick=()=>specialise('mix',POCKET.concat(GEN.filter((_,i)=>i%2===0)),false,(g,p)=>{
+    note.innerHTML='<div class="ok"><b>Both meters survived: pocket '+p+'%, old caseload '+g+'%.</b> Half of every batch was old caseload, so the loss had to defend the general skill while learning the pocket. This is what production fine-tuning runs do: mix general data back in (replay), keep the learning rate low, and gate the release on a general test suite, not only the specialist one. The few points still missed sit where the two readings genuinely conflict; no single map can satisfy both at the same spot.</div>';
+  });
+  rs.onclick=()=>{ if(running||!base) return; token++; cur=clone(base); mode=''; paint(''); note.innerHTML='<div class="simnote">Back to the freshly trained clinic model. Try another strategy.</div>'; };
+  paint(); setBtns();
+})();
+
+
+/* ================= 7 · WHY THE GPU CARES ================= */
 document.getElementById('sec-tgpu').innerHTML=`
 <div class="card">
   <h2 class="sec">Try it: why nobody trains one example at a time</h2>
@@ -634,7 +967,7 @@ document.getElementById('sec-tgpu').innerHTML=`
   render();
 })();
 
-/* ================= 7 · EXAM ANGLE ================= */
+/* ================= 8 · EXAM ANGLE ================= */
 document.getElementById('sec-texam').innerHTML=`
 <div class="card" style="margin-bottom:16px">
   <h2 class="sec">Try it: drill the scenarios instead of reading them</h2>
@@ -655,6 +988,10 @@ document.getElementById('sec-texam').innerHTML=`
   <div class="exam-line"><b>&ldquo;We went from batch 8 to batch 1024 and quality dropped.&rdquo;</b> &rarr; The averaged gradient lost its useful noise and the effective step changed. Rescale the learning rate with the batch and consider a warmup; the hardware wanted the big batch, the optimisation has to be paid for it.</div>
   <div class="exam-line"><b>&ldquo;Same code, same data, different final model each run.&rdquo;</b> &rarr; Different random starting weights land in different minima. Expected, not a bug; if it alarms the business, fix the seed for reproducibility or ensemble the runs for quality.</div>
   <div class="exam-line"><b>&ldquo;The loss is falling but accuracy has not moved for an hour.&rdquo;</b> &rarr; Loss is continuous, accuracy is a threshold. The model is becoming less wrong about its probabilities before any argmax flips; on imbalanced or hard data the loss moves first. Watch both, trust the loss for progress and the metric for value.</div>
+  <div class="exam-line"><b>&ldquo;Which technique when a foundation model lacks the vocabulary of a specialised medical domain?&rdquo;</b> &rarr; Parameter-efficient fine-tuning. Vocabulary and register live in the weights, so prompting cannot re-teach them and retrieval only feeds documents to the same general-purpose reader. An adapter (LoRA) changes the reading itself for a fraction of a percent of the parameter bill.</div>
+  <div class="exam-line"><b>&ldquo;Fine-tune or RAG?&rdquo;</b> &rarr; Ask where the gap lives. Facts, especially facts that change or must be cited, go outside the model: retrieval. Skills, style, format and jargon are behaviour: weights, so fine-tune. Real systems often need both: a fine-tuned reader over a fresh index.</div>
+  <div class="exam-line"><b>&ldquo;After specialising, the model got worse at everything else.&rdquo;</b> &rarr; Catastrophic forgetting: the specialist data contained nothing that defends the old skills. Mix general data back into the fine-tune (replay), lower the learning rate, and gate the release on a general test suite, not only the specialist one. Freezing layers alone does not save you; the fix is in the data mix.</div>
+  <div class="exam-line"><b>&ldquo;Full fine-tuning a 7B model wants over 100 GB of weights and optimiser state; we have one 24 GB card.&rdquo;</b> &rarr; LoRA or QLoRA. Freeze the base (14 GB at 16-bit, under 4 GB squeezed to 4-bit) and train low-rank adapters, typically well under one percent of the parameters, so the optimiser state shrinks by the same factor.</div>
 </div>`;
 
 </script>
