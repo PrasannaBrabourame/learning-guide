@@ -1,6 +1,6 @@
 # Learning Guide
 
-A static learning guide for Technical Lead & AI Engineer topics, covering 272 topics. No build step, no dependencies, no external requests, just serve the folder.
+A static learning guide for Technical Lead & AI Engineer topics, covering 273 topics. No build step, no dependencies, no external requests, just serve the folder.
 
 Each topic is broken down into:
 - 🧠 Technical answer
@@ -128,7 +128,7 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, lab-to-topic mapping
-data/topics.json  The 272 topics as plain JSON (incl. per-topic difficulty)
+data/topics.json  The 273 topics as plain JSON (incl. per-topic difficulty)
 ```
 
 There are 232 simulations across the sixteen labs. Every one carries a
@@ -199,7 +199,7 @@ somebody deciding whether to open it. The detail lives in the lab; the card only
 has to be scannable alongside seventeen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
-the 272 topics that lab actually covers, 50 for the Cloud lab, 37 for
+the 273 topics that lab actually covers, 50 for the Cloud lab, 37 for
 Evaluation, 33 for the diagram lab. Clicking it opens the browse view filtered
 to just those, rather than the whole pile. The map from lab to categories lives
 in `assets/app.js` (`LABS`); the counts are computed from `data/topics.json` at
