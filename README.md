@@ -78,6 +78,13 @@ train.html        Training lab: watch a model learn, live in the page. The
                   XOR / spiral with the boundary forming, the overfitting
                   U-curve, early stopping as a game, and why batching is a
                   hardware decision
+classic.html      Classical ML lab: four little machines that still run the
+                  world. Three kinds of learning, nearest neighbours with a
+                  poisoned memory, a decision tree you build and destabilise,
+                  k-means as food trucks with a genuine local-optimum trap,
+                  the perceptron to margin to logistic confidence, PCA as a
+                  lamp whose brightest shadow can hide the meaning, and which
+                  machine for which job
 llm.html          LLM internals lab, the generation loop, tokenisation and
                   BPE, embeddings and position, attention (Q/K/V, heads,
                   the attention sink), the transformer block and what breaks
@@ -122,7 +129,7 @@ assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
 data/topics.json  The 267 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 219 simulations across the fifteen labs. Every one carries a
+There are 229 simulations across the sixteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in

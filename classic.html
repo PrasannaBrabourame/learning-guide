@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classical ML lab, four little machines that still run the world</title>
+<link rel="stylesheet" href="assets/lab.css">
+<style>
+  /* page-specific: the scatter plots and their overlays */
+  .clplot{width:100%;height:auto;border-radius:9px;background:var(--panel2)}
+  .clbig{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .clchip{display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.05em; padding:2px 8px;
+    border-radius:99px; border:1px solid var(--line2)}
+  .clchip.ok{color:var(--green); border-color:var(--green)}
+  .clchip.bad{color:var(--red); border-color:var(--red)}
+  .clchip.warn{color:var(--amber); border-color:var(--amber)}
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" style="fill:var(--wire)"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=classic">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark (d)">&#127769; theme</button>
+      <span class="tn tn-quiet" title="Find a section on this page"><b>&#8984;K</b> find</span>
+    </nav>
+    <div class="eyebrow">neighbours &middot; questions &middot; groups &middot; lines &middot; shadows</div>
+    <h1>Before the network: <span class="thin">four little machines that still run the world</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">The training lab taught the gradient loop, and it is easy to leave it believing everything learns that way. Almost nothing does. Most of the decisions machines make about you today (the fraud hold on your card, the queue your support ticket lands in, the price band on your insurance) come from machines that are older, smaller and stranger: one that refuses to learn anything and just remembers, one that plays twenty questions, one that finds groups nobody labelled, and one straight line from 1958. This lab is those four, plus the trick for seeing high-dimensional data at all. Same world as the metrics lab: a reading screener&rsquo;s learners, plotted by minutes read a day against comprehension.</p>
+    <div class="note" style="margin-top:14px"><b>Two neighbours.</b> The <a href="train.html">training lab</a> is the gradient story this lab deliberately is not. The <a href="metrics.html">metrics lab</a> is how you would judge any of these machines once built. Either order works.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="cstart" role="tab">Start here</button>
+    <button class="tab" data-pane="cknn" role="tab">The new kid</button>
+    <button class="tab" data-pane="ctree" role="tab">Twenty questions</button>
+    <button class="tab" data-pane="ckmeans" role="tab">The food trucks</button>
+    <button class="tab" data-pane="cline" role="tab">The 1958 machine</button>
+    <button class="tab" data-pane="cpca" role="tab">The lamp and the shadow</button>
+    <button class="tab" data-pane="cpick" role="tab">Which machine</button>
+    <button class="tab" data-pane="cexam" role="tab">Exam angle</button>
+  </div>
+
+  <section class="pane on" id="pane-cstart"><div id="sec-cstart"></div></section>
+  <section class="pane" id="pane-cknn"><div id="sec-cknn"></div></section>
+  <section class="pane" id="pane-ctree"><div id="sec-ctree"></div></section>
+  <section class="pane" id="pane-ckmeans"><div id="sec-ckmeans"></div></section>
+  <section class="pane" id="pane-cline"><div id="sec-cline"></div></section>
+  <section class="pane" id="pane-cpca"><div id="sec-cpca"></div></section>
+  <section class="pane" id="pane-cpick"><div id="sec-cpick"></div></section>
+  <section class="pane" id="pane-cexam"><div id="sec-cexam"></div></section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="train.html">training lab</a> &middot; <a href="metrics.html">metrics lab</a> &middot; <a href="llm.html">llm lab</a> &middot; <a href="gpu.html">gpu lab</a> &middot; <a href="serving.html">serving lab</a> &middot; <a href="fleet.html">fleet lab</a> &middot; <a href="cloud.html">cloud lab</a> &middot; <a href="evals.html">evals lab</a> &middot; <a href="agentcore.html">agentcore lab</a> &middot; <a href="agentbuild.html">agents lab</a> &middot; <a href="adk.html">adk lab</a> &middot; <a href="gemini.html">gemini lab</a> &middot; <a href="govern.html">govern lab</a> &middot; <a href="design.html">diagram lab</a> &middot; <a href="peakweek.html">peak week lab</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:500 12px Inter,Helvetica,Arial,sans-serif";
+const D=(vb,label,body,cap)=>`<div class="diagram"><svg viewBox="${vb}" role="img" aria-label="${label}">${body}</svg><div class="diagcap"><b>How to read it:</b> ${cap}</div></div>`;
+const box=(x,y,w,hh,stroke,fill)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" style="fill:${fill||'var(--panel2)'};stroke:${stroke}"/>`;
+const t=(x,y,s,style,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${style};fill:var(--text)">${s}</text>`;
+const tm=(x,y,s,fill,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${MONO};fill:${fill||'var(--muted)'}">${s}</text>`;
+const raf = typeof requestAnimationFrame!=='undefined' ? (fn=>requestAnimationFrame(fn)) : (fn=>setTimeout(fn,16));
+const mulberry32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let z=Math.imul(a^a>>>15,1|a);z=z+Math.imul(z^z>>>7,61|z)^z;return((z^z>>>14)>>>0)/4294967296;};
+const gauss=r=>Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r());
+/* the shared classroom: minutes read a day (x, 0..60) vs comprehension (y, 0..100) */
+const PX=x=>30+x/60*400, PY=y=>320-y/100*290;
+/* ================= 1 · START HERE ================= */
+document.getElementById('sec-cstart').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Three kinds of learning, and only one needs a gradient</h2>
+  <div class="plain-line"><b>In plain English:</b> before choosing a machine, ask what you actually have. If somebody already labelled the right answers, a machine can <b>learn a rule</b> from them. If nobody labelled anything, a machine can still <b>find structure</b>: groups that were always there. And sometimes the winning move is to <b>skip the rule entirely</b> and just compare each new case with the ones you remember. The four machines in this lab split across those three moves, and picking the wrong move wastes more projects than picking the wrong machine.</div>
+  ${D('0 0 660 150','Three kinds of learning: learn a rule from labels, find structure without labels, or compare to memory.',
+   `${box(14,40,196,64,'var(--teal)')}${t(112,64,'learn a rule',SANS)}${tm(112,84,'needs labelled examples','var(--dim)')}
+    ${box(240,40,196,64,'var(--violet)')}${t(338,64,'find structure',SANS)}${tm(338,84,'needs no labels at all','var(--dim)')}
+    ${box(466,40,180,64,'var(--amber)')}${t(556,64,'compare to memory',SANS)}${tm(556,84,'labels, no training step','var(--dim)')}
+    ${tm(112,124,'trees, lines, networks','var(--dim)')}${tm(338,124,'k-means, PCA','var(--dim)')}${tm(556,124,'nearest neighbours','var(--dim)')}`,
+   'Every machine in this lab sits in one of the three boxes. The gradient loop from the training lab lives only in the first.')}
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: what do you actually have?</h2>
+  <div class="plain-line"><b>Try this:</b> six jobs from the learning centres. For each, say which move fits. The trap is that all six sound like &ldquo;prediction&rdquo; until you ask whether anyone ever wrote down a right answer.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A new colleague asks &ldquo;how do I decide this?&rdquo; Sometimes you hand them the policy manual (a rule), sometimes you say &ldquo;look how the folders are already organised&rdquo; (structure), and sometimes you say &ldquo;find the most similar past case and do what we did then&rdquo; (memory).</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read job one and ask the only question that matters: <b>did anyone label the right answers?</b></span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>label</b> the recorded right answer for one example, written by a person</span><span class="sp-w"><b>supervised</b> learning a rule from labelled examples</span><span class="sp-w"><b>unsupervised</b> finding structure in data nobody labelled</span><span class="sp-w"><b>lazy learning</b> no rule and no training: store the examples, compare at question time</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clSortOut"></div></div>
+    <div><div id="clSortCtl"></div>
+      <div id="clSortNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: what do you actually have --- */
+(function(){
+  const out=document.getElementById('clSortOut'), note=document.getElementById('clSortNote'),
+        ctl=document.getElementById('clSortCtl');
+  if(!out) return;
+  const MOVES=[['rule','learn a rule'],['struct','find structure'],['mem','compare to memory']];
+  const JOBS=[
+    {j:'Predict which learners will need support next term, using last year&rsquo;s recorded outcomes', a:'rule',
+     why:'Last year&rsquo;s outcomes ARE labels. A tree or a line can learn the rule and explain it.'},
+    {j:'Split this year&rsquo;s intake into reading groups that make sense, before any assessment has run', a:'struct',
+     why:'No labels exist yet. Group-finding needs none: the groups are already in the data.'},
+    {j:'A learner joins mid-term; decide today which existing group fits them best', a:'mem',
+     why:'One case, decided now, against remembered examples. No rule was ever trained and none is needed.'},
+    {j:'Flag sessions that look like the ones tutors previously marked as needing review', a:'rule',
+     why:'&ldquo;Previously marked&rdquo; means labelled. Learn the rule the markers were applying.'},
+    {j:'Sort incoming parent messages by theme before anyone has read them', a:'struct',
+     why:'Nobody has labelled themes. Clustering finds them; a person names them afterwards.'},
+    {j:'Given one learner&rsquo;s numbers, find the five most similar past learners and show what helped them', a:'mem',
+     why:'The question IS &ldquo;who is most similar&rdquo;. Memory plus a distance beats any rule here.'}
+  ];
+  let cur=0, score=0, answered=false, results=[];
+  function render(){
+    if(cur>=JOBS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of 6.</b></div>'
+        +'<div style="margin-top:10px">'+JOBS.map((jb,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+        +'<span style="flex:1">'+jb.j+'</span><span class="k" style="color:var(--accent)">'+MOVES.find(m=>m[0]===jb.a)[1]+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="clSortAgain" style="width:100%;font-size:12px">&#9654; again</button>';
+      document.getElementById('clSortAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> The first machine-learning question is never &ldquo;which algorithm&rdquo;. It is &ldquo;what do you actually have&rdquo;: labels, structure, or memories.</div>';
+      return;
+    }
+    const jb=JOBS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">JOB '+(cur+1)+' OF 6</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet)"><b style="font-size:13.5px">'+jb.j+'</b></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +MOVES.map(m=>'<button class="seg" data-k="'+m[0]+'" style="text-align:left;font-size:12px">'+m[1]+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(answered) return;
+      answered=true;
+      const right=b.dataset.k===jb.a;
+      if(right) score++;
+      results.push(right);
+      b.classList.add('on');
+      note.innerHTML=(right?'<div class="ok"><b>Yes.</b> ':'<div class="lzbad"><b>Not this one.</b> ')+jb.why+'</div>'
+        +'<button class="seg" id="clSortNext" style="width:100%;margin-top:10px;font-size:12px">next job &rarr;</button>';
+      document.getElementById('clSortNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+    });
+  }
+  render();
+})();
+
+/* ================= 2 · THE NEW KID (KNN) ================= */
+document.getElementById('sec-cknn').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: place the new kid, then poison a memory</h2>
+  <div class="plain-line"><b>Try this:</b> the machine that refuses to learn. It stores every past learner and, when a new one arrives, asks the k most similar ones to vote. Click anywhere on the chart to place the new learner and watch the vote. Then corrupt a single memory and find the one value of k that lets it lie to you.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Moving to a new town and asking the neighbours where to buy bread. Ask exactly one neighbour and you inherit their mistakes. Ask seven and one crank cannot mislead you. Ask the whole town and you get the average answer to a question about your street.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>click near the middle of the chart at <b>k = 1</b>, then press <b>corrupt one record</b> and click there again.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>k</b> how many nearest stored examples get a vote</span><span class="sp-w"><b>nearest</b> closest on the chart: most similar minutes and comprehension</span><span class="sp-w"><b>needs support</b> the red learners; <b>on track</b> the teal ones</span><span class="sp-w"><b>lazy learner</b> no training step at all: all the work happens when a question arrives</span><span class="sp-w"><b>decision regions</b> the map of which verdict each spot on the chart would get</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clKnnOut"></div></div>
+    <div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:4px">ask k = <b id="clKnnKv" style="color:var(--accent)">1</b> neighbours</label>
+      <input id="clKnnK" type="range" min="0" max="7" step="1" value="0" style="width:100%">
+      <button class="seg" id="clKnnPoison" style="width:100%;margin-top:10px;font-size:12px">corrupt one record</button>
+      <button class="seg" id="clKnnMap" style="width:100%;margin-top:8px;font-size:12px">show the decision regions</button>
+      <div id="clKnnNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: k nearest neighbours --- */
+(function(){
+  const out=document.getElementById('clKnnOut'), note=document.getElementById('clKnnNote'),
+        kEl=document.getElementById('clKnnK'), kv=document.getElementById('clKnnKv'),
+        poisonB=document.getElementById('clKnnPoison'), mapB=document.getElementById('clKnnMap');
+  if(!out) return;
+  const KS=[1,3,5,7,9,11,13,15];
+  const r=mulberry32(61);
+  const PTS=[];
+  for(let i=0;i<15;i++) PTS.push({x:10+r()*18+gauss(r)*2, y:28+r()*26+gauss(r)*3, c:0});   /* needs support */
+  for(let i=0;i<15;i++) PTS.push({x:32+r()*22+gauss(r)*2, y:58+r()*32+gauss(r)*3, c:1});   /* on track */
+  /* the corruptible record: an on-track learner sitting deep in red territory once flipped */
+  const POISON_IDX=PTS.length; PTS.push({x:18, y:40, c:0, poison:true});
+  let q={x:22,y:47}, poisoned=false, showMap=false;
+  const dist=(a,b)=>Math.hypot((a.x-b.x)/60*400,(a.y-b.y)/100*290);
+  function vote(pt,k){
+    const sorted=PTS.map((p,i)=>({p,i,d:dist(pt,p)})).sort((a,b)=>a.d-b.d).slice(0,k);
+    const forSupport=sorted.filter(s=>eff(s.p)===0).length;
+    return {sorted, forSupport, verdict: forSupport>k/2?0:1};
+  }
+  const eff=p=>p.poison&&poisoned?1:p.c;   /* the corrupted record claims on-track */
+  function render(){
+    const k=KS[+kEl.value]; kv.textContent=k;
+    const v=vote(q,k);
+    let cells='';
+    if(showMap){
+      for(let i=0;i<26;i++) for(let j=0;j<20;j++){
+        const cx=(i+0.5)*60/26, cy=(j+0.5)*100/20;
+        const vv=vote({x:cx,y:cy},k);
+        cells+='<rect x="'+(30+i*400/26)+'" y="'+(320-(j+1)*290/20)+'" width="'+(400/26+0.5)+'" height="'+(290/20+0.5)
+          +'" style="fill:var(--'+(vv.verdict===0?'red':'teal')+');opacity:.14"/>';
+      }
+    }
+    out.innerHTML='<svg id="clKnnSvg" class="clplot" viewBox="0 0 460 340" role="img" aria-label="Learners plotted by minutes read against comprehension, with the new learner and their nearest neighbours.">'
+      +cells
+      +'<line x1="30" y1="320" x2="430" y2="320" style="stroke:var(--line2)"/><line x1="30" y1="30" x2="30" y2="320" style="stroke:var(--line2)"/>'
+      +tm(230,336,'minutes read a day &rarr;','var(--dim)')
+      +'<text x="12" y="180" text-anchor="middle" transform="rotate(-90 12 180)" style="'+MONO+';fill:var(--dim)">comprehension &rarr;</text>'
+      +v.sorted.map(s=>'<line x1="'+PX(q.x)+'" y1="'+PY(q.y)+'" x2="'+PX(s.p.x)+'" y2="'+PY(s.p.y)+'" style="stroke:var(--amber);opacity:.6;stroke-dasharray:3 3"/>').join('')
+      +PTS.map((p,i)=>'<circle cx="'+PX(p.x)+'" cy="'+PY(p.y)+'" r="'+(p.poison?7:5)+'" style="fill:var(--'+(eff(p)===0?'red':'teal')+');stroke:var(--bg);stroke-width:1.4'
+        +(p.poison&&poisoned?';stroke:var(--amber);stroke-width:2.5':'')+'"/>').join('')
+      +'<circle cx="'+PX(q.x)+'" cy="'+PY(q.y)+'" r="8" style="fill:var(--'+(v.verdict===0?'red':'teal')+');stroke:var(--text);stroke-width:2"/>'
+      +tm(PX(q.x),PY(q.y)-14,'the new kid','var(--text)')
+      +'</svg>'
+      +'<div style="display:flex;gap:14px;align-items:baseline;margin-top:8px;flex-wrap:wrap" class="clbig">'
+      +'<span style="font-size:12px;color:var(--muted)">the vote: <b style="font-size:17px">'+v.forSupport+'</b> needs support, <b style="font-size:17px">'+(KS[+kEl.value]-v.forSupport)+'</b> on track</span>'
+      +'<span class="clchip '+(v.verdict===0?'bad':'ok')+'">verdict: '+(v.verdict===0?'needs support':'on track')+'</span></div>';
+    const svg=document.getElementById('clKnnSvg');
+    svg.addEventListener('click',e=>{
+      const rct=svg.getBoundingClientRect();
+      const vx=(e.clientX-rct.left)/rct.width*460, vy=(e.clientY-rct.top)/rct.height*340;
+      q={x:Math.max(0,Math.min(60,(vx-30)/400*60)), y:Math.max(0,Math.min(100,(320-vy)/290*100))};
+      render();
+    });
+    const k1=vote(q,1), k7=vote(q,7);
+    note.innerHTML = poisoned
+      ? (k===1 && k1.verdict!==k7.verdict
+        ? '<div class="lzbad"><b>One wrong record just decided a learner&rsquo;s support.</b> At k=1 the corrupted memory (the ringed dot) is the only voice, and it lies. Slide to k=7: the same corrupted record is outvoted six to one and the verdict rights itself. That is the whole k trade in one click.</div>'
+        : '<div class="ok"><b>The corrupted record is being outvoted.</b> At k='+k+', one bad memory cannot swing the vote unless the new kid lands almost exactly on it. Try k=1 and click right next to the ringed dot.</div>')
+      : '<div class="simnote"><b>No training happened.</b> There is no rule anywhere: just thirty-one stored learners and a tape measure. Small k trusts few voices and draws twitchy borders; big k is calm but blurs real local pockets. Press <b>show the decision regions</b> and drag k to watch the map smooth out.</div>'
+      +'<div class="simnote" style="margin-top:10px"><b>The cost nobody mentions.</b> A lazy learner answers by measuring distance to everything it has ever seen, at question time, every time. Thirty-one learners is free; thirty-one million is a search problem, which is exactly the problem vector databases exist to solve.</div>';
+  }
+  kEl.addEventListener('input',render);
+  poisonB.onclick=()=>{poisoned=!poisoned;poisonB.textContent=poisoned?'repair the record':'corrupt one record';render();};
+  mapB.onclick=()=>{showMap=!showMap;mapB.textContent=showMap?'hide the decision regions':'show the decision regions';render();};
+  render();
+})();
+
+/* ================= 3 · TWENTY QUESTIONS (DECISION TREE) ================= */
+document.getElementById('sec-ctree').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: build the tree, overgrow it, then move one learner</h2>
+  <div class="plain-line"><b>Try this:</b> a decision tree is twenty questions played against data: each question splits the class in two, and a good question leaves each half purer than the mix it started from. Choose the first question yourself, let greed grow the rest, then push the depth until the tree memorises, and finally move a single learner and watch the whole tree change its mind about everything.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A triage nurse&rsquo;s flowchart. &ldquo;Fever above 38?&rdquo; is a good first question because each branch is more decided than the waiting room was. &ldquo;Born on a Tuesday?&rdquo; splits the room and decides nothing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>click each candidate question once and compare the <b>purity</b> it buys, then pick one and grow.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>split</b> one yes/no question that divides the learners in two</span><span class="sp-w"><b>purity</b> how one-sided a group is: all red or all teal is pure, half and half is not</span><span class="sp-w"><b>greedy</b> always taking the best next question, never looking two questions ahead</span><span class="sp-w"><b>depth</b> how many questions deep the tree may go</span><span class="sp-w"><b>held-out learners</b> twelve kept aside to test the tree on people it never saw</span><span class="sp-w"><b>unstable</b> a small change in the data rebuilding the whole tree</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clTreeOut"></div></div>
+    <div>
+      <div id="clTreeQ"></div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:12px 0 4px">grow to depth <b id="clTreeDv" style="color:var(--accent)">1</b></label>
+      <input id="clTreeD" type="range" min="1" max="6" step="1" value="1" style="width:100%">
+      <button class="seg" id="clTreeMove" style="width:100%;margin-top:10px;font-size:12px">one learner moves house</button>
+      <div id="clTreeNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: the decision tree --- */
+(function(){
+  const out=document.getElementById('clTreeOut'), note=document.getElementById('clTreeNote'),
+        qEl=document.getElementById('clTreeQ'), dEl=document.getElementById('clTreeD'),
+        dv=document.getElementById('clTreeDv'), moveB=document.getElementById('clTreeMove');
+  if(!out) return;
+  const r=mulberry32(83);
+  const TRAIN=[], TEST=[];
+  for(let i=0;i<13;i++) TRAIN.push({x:8+r()*20, y:30+r()*28, c:0});
+  for(let i=0;i<13;i++) TRAIN.push({x:30+r()*24, y:56+r()*34, c:1});
+  /* a little genuine overlap, so perfection requires memorising */
+  TRAIN.push({x:34,y:50,c:0},{x:25,y:62,c:1},{x:39,y:47,c:0},{x:22,y:69,c:1});
+  for(let i=0;i<6;i++) TEST.push({x:8+r()*20, y:30+r()*28, c:0});
+  for(let i=0;i<6;i++) TEST.push({x:30+r()*24, y:56+r()*34, c:1});
+  const CANDS=[
+    {ax:'x', t:24, n:'reads fewer than 24 minutes?'},
+    {ax:'x', t:36, n:'reads fewer than 36 minutes?'},
+    {ax:'y', t:54, n:'comprehension under 54?'},
+    {ax:'y', t:74, n:'comprehension under 74?'}
+  ];
+  let moved=false, rootPick=null;
+  const data=()=>{
+    const d=TRAIN.map(p=>({...p}));
+    if(moved){ d[26].x=18; d[26].y=58; }   /* one borderline red learner moves */
+    return d;
+  };
+  const gini=g=>{ if(!g.length) return 0; const p=g.filter(q=>q.c===0).length/g.length; return 2*p*(1-p); };
+  const gain=(g,ax,t)=>{
+    const L=g.filter(p=>p[ax]<t), R=g.filter(p=>p[ax]>=t);
+    return gini(g)-(L.length*gini(L)+R.length*gini(R))/g.length;
+  };
+  const THX=[10,15,20,25,30,35,40,45,50], THY=[40,45,50,55,60,65,70,75,80,85];
+  function bestSplit(g){
+    let bs=null;
+    for(const ax of ['x','y']) for(const t of (ax==='x'?THX:THY)){
+      const L=g.filter(p=>p[ax]<t);
+      if(!L.length||L.length===g.length) continue;
+      const gn=gain(g,ax,t);
+      if(!bs||gn>bs.gn) bs={ax,t,gn};
+    }
+    return bs;
+  }
+  function grow(g,depth,forced){
+    if(depth===0||gini(g)===0||g.length<2) return {leaf:true, c:g.filter(p=>p.c===0).length>=g.length/2?0:1, n:g.length};
+    const s=forced||bestSplit(g);
+    if(!s||s.gn<=0.0001) return {leaf:true, c:g.filter(p=>p.c===0).length>=g.length/2?0:1, n:g.length};
+    return {leaf:false, ax:s.ax, t:s.t,
+      L:grow(g.filter(p=>p[s.ax]<s.t),depth-1),
+      R:grow(g.filter(p=>p[s.ax]>=s.t),depth-1)};
+  }
+  const classify=(node,p)=>node.leaf?node.c:classify(p[node.ax]<node.t?node.L:node.R,p);
+  const acc=(node,pts)=>pts.filter(p=>classify(node,p)===p.c).length/pts.length;
+  function regions(node,x0,x1,y0,y1,acc2){
+    if(node.leaf){ acc2.push({x0,x1,y0,y1,c:node.c}); return acc2; }
+    if(node.ax==='x'){ regions(node.L,x0,node.t,y0,y1,acc2); regions(node.R,node.t,x1,y0,y1,acc2); }
+    else { regions(node.L,x0,x1,y0,node.t,acc2); regions(node.R,x0,x1,node.t,y1,acc2); }
+    return acc2;
+  }
+  function render(){
+    const d=+dEl.value; dv.textContent=d;
+    const g=data();
+    const forced=rootPick!==null?CANDS[rootPick]:null;
+    const tree=grow(g,d,forced?{...forced,gn:gain(g,forced.ax,forced.t)}:null);
+    const regs=regions(tree,0,60,0,100,[]);
+    const trA=acc(tree,g), teA=acc(tree,TEST);
+    qEl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE FIRST QUESTION'+(rootPick===null?' (greedy picks if you do not)':'')+'</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +CANDS.map((c,i)=>{
+        const gn=gain(g,c.ax,c.t);
+        return '<button class="seg'+(rootPick===i?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px">'+c.n
+          +' <span class="k" style="font-size:10px;color:'+(gn>0.25?'var(--green)':gn>0.1?'var(--amber)':'var(--red)')+'">purity bought: '+gn.toFixed(2)+'</span></button>';
+      }).join('')+'</div>';
+    qEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{rootPick=rootPick===+b.dataset.i?null:+b.dataset.i;render();});
+    out.innerHTML='<svg class="clplot" viewBox="0 0 460 340" role="img" aria-label="The class with the tree&rsquo;s decision regions drawn behind it.">'
+      +regs.map(rg=>'<rect x="'+PX(rg.x0)+'" y="'+PY(rg.y1)+'" width="'+(PX(rg.x1)-PX(rg.x0))+'" height="'+(PY(rg.y0)-PY(rg.y1))
+        +'" style="fill:var(--'+(rg.c===0?'red':'teal')+');opacity:.16;stroke:var(--line2);stroke-width:.6"/>').join('')
+      +g.map((p,i)=>'<circle cx="'+PX(p.x)+'" cy="'+PY(p.y)+'" r="5" style="fill:var(--'+(p.c===0?'red':'teal')+');stroke:var(--bg);stroke-width:1.2'
+        +(moved&&i===26?';stroke:var(--amber);stroke-width:2.5':'')+'"/>').join('')
+      +TEST.map(p=>'<circle cx="'+PX(p.x)+'" cy="'+PY(p.y)+'" r="4.5" style="fill:none;stroke:var(--'+(p.c===0?'red':'teal')+');stroke-width:1.6"/>').join('')
+      +tm(230,336,'minutes read a day &rarr;','var(--dim)')
+      +'</svg>'
+      +'<div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap" class="clbig">'
+      +'<span style="font-size:12px;color:var(--muted)">on the learners it studied <b style="font-size:17px;color:'+(trA>0.97?'var(--amber)':'var(--text)')+'">'+Math.round(trA*100)+'%</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">on the held-out twelve (hollow) <b style="font-size:17px;color:'+(teA<trA-0.12?'var(--red)':'var(--green)')+'">'+Math.round(teA*100)+'%</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">regions <b style="font-size:17px">'+regs.length+'</b></span></div>';
+    note.innerHTML =
+      (d>=5&&trA>0.97&&teA<trA-0.1
+        ? '<div class="lzbad"><b>Memorised.</b> The tree has carved '+regs.length+' rectangles, several existing to capture exactly one learner. Perfect on the class it studied, worse on the hollow twelve. Depth is capacity, and this is the training lab&rsquo;s U-curve wearing rectangles.</div>'
+        : d===1
+        ? '<div class="simnote"><b>One question, two regions.</b> Compare the purity each candidate buys: the best first question is worth roughly triple the worst. That difference IS the algorithm: a tree is nothing but this comparison, applied greedily, over and over.</div>'
+        : '<div class="ok"><b>Depth '+d+': '+regs.length+' regions.</b> Everything after your first question was chosen greedily: best split now, no looking ahead. Greed is why trees are fast, and why the tree can never fix a bad early question later. Keep growing.</div>')
+      +(moved?'<div class="lzwarn" style="margin-top:10px"><b>One learner moved house, and the map redrew itself.</b> The ringed dot changed by a few minutes a day, and question boundaries shifted across the whole chart, because one different greedy choice early cascades into every choice after it. This instability is real, and it is why forests of many trees, each voting, beat any single tree.</div>'
+             :'<div class="simnote" style="margin-top:10px"><b>Why anyone forgives all this.</b> The tree is the one machine here a teacher can read aloud: fewer than 24 minutes and comprehension under 54, so flag. When a decision must be explained to a person, that sentence is worth several points of accuracy.</div>');
+  }
+  dEl.addEventListener('input',render);
+  moveB.onclick=()=>{moved=!moved;moveB.textContent=moved?'move them back':'one learner moves house';render();};
+  render();
+})();
+
+/* ================= 4 · THE FOOD TRUCKS (K-MEANS) ================= */
+document.getElementById('sec-ckmeans').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: park the trucks, then serve the crowd</h2>
+  <div class="plain-line"><b>Try this:</b> sixty learners, no labels anywhere, and a suspicion that natural reading groups exist. k-means is two moves repeated: every learner walks to their nearest truck, then every truck drives to the middle of its crowd. Step it by hand and watch the total walking distance only ever fall. Then reseed until you find the parking that traps it.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Food trucks at a festival. Park anywhere, watch where the queues form, move to the middle of your queue, repeat. Nobody labels the crowds; the crowds are simply there, and the trucks find them, unless two trucks start in the same corner and split one crowd forever.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>step</b> repeatedly and watch the two-beat rhythm: crowds walk, trucks drive.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>k</b> how many trucks (groups) you decided to look for</span><span class="sp-w"><b>assign</b> every learner joins their nearest truck&rsquo;s group</span><span class="sp-w"><b>update</b> every truck moves to the centre of its own group</span><span class="sp-w"><b>total distance</b> everyone&rsquo;s walk added up: the number each step shrinks</span><span class="sp-w"><b>local trap</b> a parking the two moves cannot escape, even though a better one exists</span><span class="sp-w"><b>unlabelled</b> nobody wrote answers: the groups come from the data alone</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clKmOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="clKmK" style="flex-direction:row"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="seg" id="clKmStep" style="flex:1;font-size:12px;color:var(--accent)"><b>step</b></button>
+        <button class="seg" id="clKmSeed" style="flex:1;font-size:12px">re-park the trucks</button>
+      </div>
+      <div id="clKmNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: k-means by hand --- */
+(function(){
+  const out=document.getElementById('clKmOut'), note=document.getElementById('clKmNote'),
+        kEl=document.getElementById('clKmK'), stepB=document.getElementById('clKmStep'),
+        seedB=document.getElementById('clKmSeed');
+  if(!out) return;
+  const r=mulberry32(29);
+  const PTS=[];
+  for(let i=0;i<20;i++) PTS.push({x:6+r()*10,  y:28+r()*16});   /* strugglers, off on their own */
+  for(let i=0;i<20;i++) PTS.push({x:36+r()*12, y:58+r()*16});   /* steady */
+  for(let i=0;i<20;i++) PTS.push({x:46+r()*12, y:80+r()*16});   /* flyers, next door to steady */
+  const COLS=['var(--red)','var(--amber)','var(--teal)','var(--violet)','var(--blue)','var(--green)'];
+  /* seeds: 0 and 1 are fair; 2 is the trap: two trucks in one corner */
+  const SEEDS=[
+    [[10,35],[40,65],[52,88]],
+    [[20,50],[45,60],[50,92]],
+    [[8,31],[13,41],[46,75]]
+  ];
+  let k=3, seedI=0, trucks=[], assign=[], phase='assign', iter=0, hist=[];
+  function reset(){
+    trucks=(k===3?SEEDS[seedI%SEEDS.length].map(t=>({x:t[0],y:t[1]})):
+      Array.from({length:k},(_,i)=>({x:12+i*40/Math.max(1,k-1), y:35+i*55/Math.max(1,k-1)})));
+    assign=PTS.map(()=>-1); phase='assign'; iter=0; hist=[];
+  }
+  const d2=(p,t)=>((p.x-t.x)/60*400)**2+((p.y-t.y)/100*290)**2;
+  function inertia(){ return PTS.reduce((s,p,i)=>s+(assign[i]>=0?Math.sqrt(d2(p,trucks[assign[i]])):0),0); }
+  function step(){
+    if(phase==='assign'){
+      assign=PTS.map(p=>{let bi=0,bd=Infinity;trucks.forEach((t,i)=>{const dd=d2(p,t);if(dd<bd){bd=dd;bi=i;}});return bi;});
+      hist.push(Math.round(inertia())); phase='update';
+    } else {
+      trucks=trucks.map((t,i)=>{
+        const mine=PTS.filter((p,j)=>assign[j]===i);
+        return mine.length?{x:mine.reduce((s,p)=>s+p.x,0)/mine.length, y:mine.reduce((s,p)=>s+p.y,0)/mine.length}:t;
+      });
+      phase='assign'; iter++;
+    }
+  }
+  function render(){
+    kEl.innerHTML=[2,3,4].map(kk=>'<button class="seg'+(kk===k?' on':'')+'" data-k="'+kk+'" style="flex:1;font-size:12px">'+kk+' trucks</button>').join('');
+    kEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{k=+b.dataset.k;reset();render();});
+    const inr=hist.length?hist[hist.length-1]:null;
+    out.innerHTML='<svg class="clplot" viewBox="0 0 460 340" role="img" aria-label="Sixty unlabelled learners and the trucks finding their groups.">'
+      +PTS.map((p,i)=>'<circle cx="'+PX(p.x)+'" cy="'+PY(p.y)+'" r="4.5" style="fill:'+(assign[i]>=0?COLS[assign[i]]:'var(--wire)')+';opacity:.75"/>').join('')
+      +trucks.map((t,i)=>'<rect x="'+(PX(t.x)-9)+'" y="'+(PY(t.y)-9)+'" width="18" height="18" rx="4" style="fill:'+COLS[i]+';stroke:var(--text);stroke-width:1.6"/>').join('')
+      +tm(230,336,'minutes read a day &rarr;','var(--dim)')
+      +'</svg>'
+      +'<div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap" class="clbig">'
+      +'<span style="font-size:12px;color:var(--muted)">next move: <b style="color:var(--accent)">'+(phase==='assign'?'crowds walk to nearest truck':'trucks drive to their crowd&rsquo;s centre')+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">round <b>'+iter+'</b></span>'
+      +(inr!==null?'<span style="font-size:12px;color:var(--muted)">total walking distance <b style="font-size:16px">'+inr.toLocaleString('en-GB')+'</b></span>':'')
+      +'</div>'
+      +(hist.length>1?'<div class="k" style="font-size:10.5px;color:var(--dim);margin-top:4px">so far: '+hist.join(' &rarr; ')+' (it can only fall)</div>':'');
+    const converged=hist.length>2 && hist[hist.length-1]===hist[hist.length-2];
+    note.innerHTML =
+      (converged
+        ? (seedI%SEEDS.length===2&&k===3
+          ? '<div class="lzbad"><b>Trapped at '+inr.toLocaleString('en-GB')+', and no amount of stepping escapes.</b> The best parking scores about 1,268; this one settles 78% worse. Two trucks started among the strugglers and split that one crowd between them, while a single truck serves both other groups from halfway. Every move was locally sensible; the parking is still wrong, because the two moves only ever improve and so cannot climb out. Re-park and compare.</div>'
+          : '<div class="ok"><b>Settled: nothing moves any more.</b> Every learner is with their nearest truck AND every truck is at its crowd&rsquo;s centre, so both moves are out of improvements. Note what happened without a single label: the reading groups were found, not taught. Naming them is still a human&rsquo;s job.</div>')
+        : '<div class="simnote"><b>The rhythm.</b> Assign, update, assign, update. Each beat can only shrink the total walking distance, which is why the thing always settles, and also why it settles in the nearest valley rather than the best one.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>Choosing k is your job, not the machine&rsquo;s.</b> Two trucks under-serve three crowds; four trucks split a real crowd in half and the distance still falls. More trucks ALWAYS reduces walking distance, so never pick k by that number alone: look for the k where adding one more truck stops buying much, and sanity-check the groups with your own eyes.</div>';
+  }
+  stepB.onclick=()=>{step();render();};
+  seedB.onclick=()=>{seedI++;reset();render();};
+  reset(); render();
+})();
+
+/* ================= 5 · THE 1958 MACHINE (PERCEPTRON) ================= */
+document.getElementById('sec-cline').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: one line, three eras</h2>
+  <div class="plain-line"><b>Try this:</b> the oldest learning machine still in service: a straight line that moves only when it is wrong. Feed it mistakes and watch the line lurch into place. Then face the question 1958 could not answer (all these lines are perfect, so which one?) and the modern answer: stop drawing a hard line and shade your confidence instead.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Learning to park by nudging: every time you clip the kerb you turn a little away from the mistake, and you never adjust after a clean park. It works, it is crude, and it stops improving the moment it stops failing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>show it a mistake</b> until the lurching stops, then switch to <b>which perfect line?</b></span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>perceptron</b> the 1958 machine: a line nudged by each mistake, never by success</span><span class="sp-w"><b>converged</b> no mistakes left to show it, so it stops forever</span><span class="sp-w"><b>margin</b> the gap between the line and the nearest learner on either side</span><span class="sp-w"><b>confidence</b> how far a learner sits from the line, turned into a probability</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clPerOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="clPerMode" style="flex-direction:column;align-items:stretch"></div>
+      <div id="clPerCtl" style="margin-top:10px"></div>
+      <div id="clPerNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: perceptron, margin, confidence --- */
+(function(){
+  const out=document.getElementById('clPerOut'), note=document.getElementById('clPerNote'),
+        modeEl=document.getElementById('clPerMode'), ctl=document.getElementById('clPerCtl');
+  if(!out) return;
+  const r=mulberry32(47);
+  const PTS=[];
+  for(let i=0;i<12;i++) PTS.push({x:10+r()*18, y:32+r()*24, c:-1});
+  for(let i=0;i<12;i++) PTS.push({x:34+r()*20, y:62+r()*28, c:1});
+  /* features scaled to comparable ranges for a fair nudge */
+  const fx=p=>p.x/60, fy=p=>p.y/100;
+  let w=[0.2,-1,0.35], mistakes=0, done=false;   /* w0*fx + w1*fy + w2 */
+  const side=p=>w[0]*fx(p)+w[1]*fy(p)+w[2];
+  /* all three verified perfect on this data; margins 2.2 / 14.9 / 1.5 */
+  const LINES=[{w:[0.4226,0.9063,-0.6431],n:'line A'},{w:[0.7660,0.6428,-0.7446],n:'line B'},{w:[0.7660,0.6428,-0.8788],n:'line C'}];
+  let mode='learn', pick=1, shade=false;
+  const marginOf=ww=>{
+    const nrm=Math.hypot(ww[0],ww[1]);
+    return Math.min(...PTS.map(p=>Math.abs(ww[0]*fx(p)+ww[1]*fy(p)+ww[2])/nrm));
+  };
+  const perfect=ww=>PTS.every(p=>(ww[0]*fx(p)+ww[1]*fy(p)+ww[2])*p.c>0);
+  function lineSeg(ww){
+    /* intersect w0*x/60 + w1*y/100 + w2 = 0 with the plot box */
+    const ptsOn=[];
+    for(const X of [0,60]){ const Y=-(ww[0]*X/60+ww[2])/ww[1]*100; if(Y>=0&&Y<=100) ptsOn.push([X,Y]); }
+    for(const Y of [0,100]){ const X=-(ww[1]*Y/100+ww[2])/ww[0]*60; if(X>=0&&X<=60) ptsOn.push([X,Y]); }
+    return ptsOn.slice(0,2);
+  }
+  function render(){
+    modeEl.innerHTML=[['learn','1958: learn by mistakes'],['which','all perfect: which line?'],['conf','the modern move: confidence']]
+      .map(([kk,n])=>'<button class="seg'+(mode===kk?' on':'')+'" data-k="'+kk+'" style="text-align:left;font-size:12px">'+n+'</button>').join('');
+    modeEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mode=b.dataset.k;render();});
+    const ww = mode==='learn'?w:LINES[pick].w;
+    const seg=lineSeg(ww);
+    let bands='';
+    if(mode==='conf'){
+      const nrm=Math.hypot(ww[0],ww[1]);
+      for(let i=0;i<26;i++) for(let j=0;j<20;j++){
+        const cx=(i+0.5)*60/26, cy=(j+0.5)*100/20;
+        const dd=(ww[0]*cx/60+ww[1]*cy/100+ww[2])/nrm;
+        const pr=1/(1+Math.exp(-dd*14));
+        bands+='<rect x="'+(30+i*400/26)+'" y="'+(320-(j+1)*290/20)+'" width="'+(400/26+0.5)+'" height="'+(290/20+0.5)
+          +'" style="fill:var(--'+(pr>0.5?'teal':'red')+');opacity:'+(Math.abs(pr-0.5)*0.5).toFixed(2)+'"/>';
+      }
+    }
+    out.innerHTML='<svg class="clplot" viewBox="0 0 460 340" role="img" aria-label="Two groups of learners and a separating line.">'
+      +bands
+      +PTS.map(p=>'<circle cx="'+PX(p.x)+'" cy="'+PY(p.y)+'" r="5" style="fill:var(--'+(p.c<0?'red':'teal')+');stroke:var(--bg);stroke-width:1.2'
+        +(mode==='learn'&&side(p)*p.c<=0?';stroke:var(--amber);stroke-width:2.5':'')+'"/>').join('')
+      +(seg.length===2?'<line x1="'+PX(seg[0][0])+'" y1="'+PY(seg[0][1])+'" x2="'+PX(seg[1][0])+'" y2="'+PY(seg[1][1])+'" style="stroke:var(--text);stroke-width:2.2"/>':'')
+      +tm(230,336,'minutes read a day &rarr;','var(--dim)')
+      +'</svg>'
+      +(mode==='learn'
+        ?'<div class="clbig" style="font-size:12px;color:var(--muted);margin-top:8px">nudges so far <b style="font-size:17px">'+mistakes+'</b>'
+          +' &middot; still wrong about <b style="font-size:17px">'+PTS.filter(p=>side(p)*p.c<=0).length+'</b> learners (ringed)</div>'
+        :'<div class="clbig" style="font-size:12px;color:var(--muted);margin-top:8px">'+LINES[pick].n+' margin: <b style="font-size:17px">'
+          +(marginOf(LINES[pick].w)*100).toFixed(1)+'</b> (bigger = safer for next term&rsquo;s learners)</div>');
+    if(mode==='learn'){
+      ctl.innerHTML='<button class="seg" id="clPerStep" style="width:100%;font-size:12px;color:var(--accent)"><b>show it a mistake</b></button>'
+        +'<button class="seg" id="clPerReset" style="width:100%;margin-top:8px;font-size:12px">forget everything</button>';
+      document.getElementById('clPerStep').onclick=()=>{
+        const wrong=PTS.filter(p=>side(p)*p.c<=0);
+        if(!wrong.length){ done=true; render(); return; }
+        const p=wrong[0];
+        w=[w[0]+p.c*fx(p), w[1]+p.c*fy(p), w[2]+p.c];
+        mistakes++; render();
+      };
+      document.getElementById('clPerReset').onclick=()=>{w=[0.2,-1,0.35];mistakes=0;done=false;render();};
+    } else {
+      ctl.innerHTML='<div class="segmented" style="flex-direction:row">'
+        +LINES.map((l,i)=>'<button class="seg'+(i===pick?' on':'')+'" data-i="'+i+'" style="flex:1;font-size:12px">'+l.n+'</button>').join('')+'</div>';
+      ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{pick=+b.dataset.i;render();});
+    }
+    const wrongN=PTS.filter(p=>side(p)*p.c<=0).length;
+    note.innerHTML = mode==='learn'
+      ? (wrongN===0
+        ? '<div class="ok"><b>Converged after '+mistakes+' nudges, and now it will never move again.</b> The perceptron only learns from failure, so a perfect line, however barely perfect, is its final answer. Nothing in it prefers a safe line to a lucky one. Switch to <b>which line?</b> to meet the problem that took decades to answer properly.</div>'
+        : '<div class="simnote"><b>Each press: find one learner on the wrong side, tilt the line away from the mistake.</b> That is the entire 1958 algorithm. On separable classes like these, a classic proof says the lurching must eventually stop.</div>')
+      : mode==='which'
+      ? '<div class="ok"><b>All three lines are perfect on these learners: zero mistakes each.</b> But their margins differ almost tenfold, and next term&rsquo;s learners will not land exactly on this term&rsquo;s dots. The widest margin buys the most room to be slightly wrong. That one idea (choose the line by its margin, not just its correctness) carried classical ML for a decade.</div>'
+      : '<div class="ok"><b>The line is still there; the hard edge is gone.</b> Shading is distance from the line squashed into a probability: deep colour is confidence, the pale corridor is honest doubt. A screener that says 51% and one that says 99% should be treated differently, and a hard line cannot say which is which. This is logistic regression, and it is still the first model any sensible team tries.</div>';
+  }
+  render();
+})();
+
+/* ================= 6 · THE LAMP AND THE SHADOW (PCA) ================= */
+document.getElementById('sec-cpca').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: rotate the lamp, read the shadow</h2>
+  <div class="plain-line"><b>Try this:</b> you cannot look at forty columns of numbers, but you can look at a shadow. Project the class onto a single line and you get one: rotate the lamp and the shadow keeps more or less of the original spread. Then load the second dataset, let the machine pick its favourite angle, and catch it choosing a bright shadow that hides exactly the thing you cared about.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Holding an object up to a lamp. Some angles throw a shadow that keeps the shape recognisable; some flatten it to a blob. The object never changes: only how much of it survives the flattening.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drag the lamp angle and watch the <b>spread kept</b> bar, then press <b>find the brightest angle</b>.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>projection</b> flattening the points onto one line: the shadow</span><span class="sp-w"><b>spread</b> how much the points differ from each other: what the shadow can keep or lose</span><span class="sp-w"><b>spread kept</b> the share of the original spread surviving in the shadow</span><span class="sp-w"><b>principal component</b> the angle that keeps the most spread: the machine&rsquo;s favourite</span><span class="sp-w"><b>dimension</b> one column of the data; this chart has two, real data has hundreds</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clPcaOut" class="live"></div></div>
+    <div>
+      <div class="segmented" id="clPcaData" style="flex-direction:column;align-items:stretch"></div>
+      <label class="ctl" style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:12px 0 4px">lamp angle: <b id="clPcaAv" style="color:var(--accent)">0&deg;</b></label>
+      <input id="clPcaA" type="range" min="0" max="180" step="1" value="0" style="width:100%">
+      <button class="seg" id="clPcaBest" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>find the brightest angle</b></button>
+      <div id="clPcaNote" class="cidr-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>`;
+
+/* --- SIM: PCA as a lamp --- */
+(function(){
+  const out=document.getElementById('clPcaOut'), note=document.getElementById('clPcaNote'),
+        aEl=document.getElementById('clPcaA'), av=document.getElementById('clPcaAv'),
+        dEl=document.getElementById('clPcaData'), bestB=document.getElementById('clPcaBest');
+  if(!out) return;
+  const r=mulberry32(101);
+  const DS=[
+    {n:'one story', d:'minutes and comprehension rise together', pts:(()=>{const a=[];
+      for(let i=0;i<30;i++){const t=r();a.push({x:8+t*44+gauss(r)*3, y:30+t*58+gauss(r)*6, c:t>0.5?1:0});}return a;})()},
+    {n:'the trap', d:'the spread is sideways, the meaning is vertical', pts:(()=>{const a=[];
+      for(let i=0;i<15;i++)a.push({x:5+r()*50, y:38+gauss(r)*4, c:0});
+      for(let i=0;i<15;i++)a.push({x:5+r()*50, y:70+gauss(r)*4, c:1});return a;})()}
+  ];
+  let di=0, animT=0;
+  const fx=p=>p.x/60, fy=p=>p.y/100;
+  function keptAt(pts,deg){
+    const th=deg*Math.PI/180, a=Math.cos(th), b=Math.sin(th);
+    const mx=pts.reduce((s,p)=>s+fx(p),0)/pts.length, my=pts.reduce((s,p)=>s+fy(p),0)/pts.length;
+    let along=0, tot=0;
+    for(const p of pts){ const dx=fx(p)-mx, dy=fy(p)-my;
+      along+=(a*dx+b*dy)**2; tot+=dx*dx+dy*dy; }
+    return tot?along/tot:0;
+  }
+  function bestAngle(pts){ let ba=0,bk=-1;
+    for(let d=0;d<180;d++){ const k=keptAt(pts,d); if(k>bk){bk=k;ba=d;} } return ba; }
+  function render(){
+    const pts=DS[di].pts, deg=+aEl.value; av.innerHTML=deg+'&deg;';
+    dEl.innerHTML=DS.map((d,i)=>'<button class="seg'+(i===di?' on':'')+'" data-i="'+i+'" style="text-align:left;font-size:12px"><b>'+d.n+'</b>, <span style="color:var(--dim)">'+d.d+'</span></button>').join('');
+    dEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{di=+b.dataset.i;render();});
+    const th=deg*Math.PI/180, a=Math.cos(th), b=Math.sin(th);
+    const mx=pts.reduce((s,p)=>s+fx(p),0)/pts.length, my=pts.reduce((s,p)=>s+fy(p),0)/pts.length;
+    const kept=keptAt(pts,deg);
+    /* the projection line through the mean, and each point's shadow on it */
+    const cx=PX(mx*60), cy=PY(my*100);
+    const LX=200*a, LY=-200*b*(290/100)/(400/60);   /* aspect-corrected direction on screen */
+    const nl=Math.hypot(LX,LY), ux=LX/nl, uy=LY/nl;
+    out.innerHTML='<svg class="clplot" viewBox="0 0 460 340" role="img" aria-label="The class, a projection line, and each learner&rsquo;s shadow on it.">'
+      +'<line x1="'+(cx-ux*210)+'" y1="'+(cy-uy*210)+'" x2="'+(cx+ux*210)+'" y2="'+(cy+uy*210)+'" style="stroke:var(--text);stroke-width:1.6;opacity:.7"/>'
+      +pts.map(p=>{
+        const px=PX(p.x), py=PY(p.y);
+        const d=(px-cx)*ux+(py-cy)*uy, sx=cx+ux*d, sy=cy+uy*d;
+        return '<line x1="'+px+'" y1="'+py+'" x2="'+sx+'" y2="'+sy+'" style="stroke:var(--wire);opacity:.35"/>'
+          +'<circle cx="'+px+'" cy="'+py+'" r="4" style="fill:var(--'+(p.c?'teal':'red')+');opacity:.45"/>'
+          +'<circle cx="'+sx+'" cy="'+sy+'" r="4.5" style="fill:var(--'+(p.c?'teal':'red')+');stroke:var(--bg);stroke-width:1"/>';
+      }).join('')
+      +tm(230,336,'faint dots: the class &middot; solid dots: its shadow on the line','var(--dim)')
+      +'</svg>'
+      +'<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'
+      +'<span>spread kept in the shadow</span><span class="clbig" style="color:'+(kept>0.75?'var(--green)':kept>0.45?'var(--amber)':'var(--red)')+'">'+Math.round(kept*100)+'%</span></div>'
+      +'<div style="height:10px;background:var(--panel2);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+(kept*100)+'%;background:var(--accent);border-radius:99px"></div></div></div>';
+    const ba=bestAngle(pts);
+    const atBest=Math.abs(deg-ba)<=2;
+    note.innerHTML = di===0
+      ? (atBest
+        ? '<div class="ok"><b>The brightest angle, about '+ba+'&deg;: roughly '+Math.round(keptAt(pts,ba)*100)+'% of the spread in one line.</b> Because minutes and comprehension mostly tell one story here, one shadow carries nearly all of it. That is the whole trade of dimensionality reduction: hundreds of columns, one or two shadows, most of the spread kept.</div>'
+        : '<div class="simnote"><b>Rotate and watch the bar breathe.</b> The points never move: only the lamp does. Somewhere near the diagonal is an angle where the shadow keeps almost everything.</div>')
+      : (atBest
+        ? '<div class="lzbad"><b>The machine&rsquo;s favourite angle, and the shadow is a lie.</b> This is the brightest shadow on offer, because minutes vary wildly, but look at the solid dots: red and teal are shuffled together. The thing you cared about (two distinct groups) ran top to bottom, and the brightest shadow flattened it away. Drag to 90&deg;: the bar drops, and the groups separate perfectly.</div>'
+        : Math.abs(deg-90)<=4
+        ? '<div class="ok"><b>90&deg;: the dimmer, truer shadow.</b> Only '+Math.round(kept*100)+'% of the spread survives, and yet red and teal sit in two clean runs, because the meaning lived in the vertical column all along. Now press the button and see which angle the machine prefers.</div>'
+        : '<div class="simnote">Same lamp, nastier object. Try the button, then try 90&deg;, and compare what each shadow shows about the two colours.</div>')
+      +'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> The machine keeps <em>spread</em>, because spread is all it can see. Whether the spread carries the <em>meaning</em> is your job to check, by colouring the shadow with something you care about before trusting it. This is also exactly how 4,096-dimension embeddings get drawn as 2D maps: everything you see there is a shadow too.</div>';
+  }
+  function toBest(){
+    const pts=DS[di].pts, ba=bestAngle(pts);
+    const from=+aEl.value, dist=ba-from, steps=24; let k=0;
+    (function tick(){ if(k>=steps){aEl.value=ba;render();return;}
+      k++; aEl.value=Math.round(from+dist*k/steps); render(); raf(tick); })();
+  }
+  aEl.addEventListener('input',render);
+  bestB.onclick=toBest;
+  render();
+})();
+
+/* ================= 7 · WHICH MACHINE ================= */
+document.getElementById('sec-cpick').innerHTML=`
+<div class="card">
+  <h2 class="sec">Try it: six jobs, pick the machine</h2>
+  <div class="plain-line"><b>Try this:</b> six real requests from the learning centres. Every machine in this lab is on the shelf, plus the neural network from the training lab. Each job has one best answer, and every wrong option is the right answer to a different job.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Nobody carries one tool. The electrician&rsquo;s question is never &ldquo;what is the best tool&rdquo;, it is &ldquo;what is this job&rsquo;s awkward constraint&rdquo;: the space, the material, the deadline.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>find each job&rsquo;s awkward constraint before touching the shelf.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool / machine</b> one of the lab&rsquo;s learners-of-rules, plus the network next door</span><span class="sp-w"><b>explainable</b> a person can read the rule aloud and defend it</span><span class="sp-w"><b>features</b> the columns each learner is described by</span><span class="sp-w"><b>probability</b> a confidence between 0 and 1, not just a yes or no</span><span class="sp-w"><b>retrain</b> rebuild the machine on fresh data</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="clPickOut"></div></div>
+    <div><div id="clPickCtl"></div>
+      <div id="clPickNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: which machine --- */
+(function(){
+  const out=document.getElementById('clPickOut'), note=document.getElementById('clPickNote'),
+        ctl=document.getElementById('clPickCtl');
+  if(!out) return;
+  const TOOLS=['nearest neighbours','a decision tree','k-means','a logistic line','a shadow first (PCA)','a neural network'];
+  const JOBS=[
+    {j:'The board wants every flag explainable in one sentence a teacher can read aloud and defend', a:1,
+     key:'explainable, read aloud, defend',
+     why:'A tree IS its explanation: fewer than 24 minutes and comprehension under 54, so flag. No other machine turns into a sentence.'},
+    {j:'No assessments have run yet; find the natural reading groups so staffing can be planned', a:2,
+     key:'no labels exist yet',
+     why:'Group-finding without labels is the one purely unsupervised job here, and it is exactly the two-move truck dance.'},
+    {j:'Forty columns per learner and nobody can chart it; see the shape of the data before any modelling', a:4,
+     key:'see forty columns',
+     why:'Flatten first, look second. The shadow shows clusters, outliers and nonsense before a single model is chosen, as long as you colour it and check.'},
+    {j:'Thirty learners, oddly shaped pockets of need, and a decision required today with no time to train anything', a:0,
+     key:'tiny data, odd pockets, no training time',
+     why:'Store the thirty, measure distance, let the neighbours vote. No training step exists, and odd pockets are exactly what local voting handles.'},
+    {j:'A per-learner probability, scored in microseconds on cheap hardware, retrained nightly without drama', a:3,
+     key:'probability, microseconds, boring retraining',
+     why:'The logistic line is one multiply-add per column plus a squash: calibrated confidence, trivially fast, and the retrain is a solved problem. The boring choice, deliberately.'},
+    {j:'Raw audio of learners reading aloud, and the job is to flag who is struggling from the sound alone', a:5,
+     key:'raw audio, no ready-made columns',
+     why:'Every other machine on the shelf needs someone to hand it columns. When the features themselves must be learned from raw signal, that is the network&rsquo;s one unfair advantage, and the training lab is next door.'}
+  ];
+  let cur=0, score=0, answered=false, results=[];
+  function render(){
+    if(cur>=JOBS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of 6.</b> The routing:</div>'
+        +'<div style="margin-top:10px">'+JOBS.map((jb,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+        +'<span style="flex:1">'+jb.key+'</span><span class="k" style="color:var(--accent)">'+TOOLS[jb.a]+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="clPickAgain" style="width:100%;font-size:12px">&#9654; again</button>';
+      document.getElementById('clPickAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> The network won exactly one of six jobs, and it was the one where nobody could write the columns down. Everything else went to a machine that is smaller, faster, cheaper to run, and easier to defend in a meeting. That ratio is roughly honest about the industry.</div>';
+      return;
+    }
+    const jb=JOBS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">JOB '+(cur+1)+' OF 6</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet)"><b style="font-size:13.5px">'+jb.j+'</b></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE SHELF</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +TOOLS.map((t2,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+t2+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(answered) return;
+      answered=true;
+      const right=+b.dataset.i===jb.a;
+      if(right) score++;
+      results.push(right);
+      b.classList.add('on');
+      note.innerHTML=(right?'<div class="ok"><b>Yes: '+TOOLS[jb.a]+'.</b> ':'<div class="lzbad"><b>The constraint was <em>'+jb.key+'</em>, which points at '+TOOLS[jb.a]+'.</b> ')+jb.why+'</div>'
+        +'<button class="seg" id="clPickNext" style="width:100%;margin-top:10px;font-size:12px">next job &rarr;</button>';
+      document.getElementById('clPickNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+    });
+  }
+  render();
+})();
+
+/* ================= 8 · EXAM ANGLE ================= */
+document.getElementById('sec-cexam').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: drill the scenarios instead of reading them</h2>
+  <div class="plain-line"><b>Try this:</b> the same scenarios as below, one at a time, with the answer hidden. The alternatives are real answers to <em>other</em> scenarios here.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Flashcards versus a revision guide. Recognising an answer and producing one are different skills.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way an exam or an interviewer would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is a real answer to something else</span></span></div></div>
+  <div id="drillHost"></div>
+</div>
+
+<div class="card">
+  <h2 class="sec">The scenarios</h2>
+  <div class="exam-line"><b>&ldquo;Our nearest-neighbour model is 99% accurate in the demo and unusably slow in production.&rdquo;</b> &rarr; Lazy learning pays at question time: every prediction measures distance to every stored example. Small memory, fine; millions of rows, and you need an approximate-neighbour index, which is the entire reason vector databases exist.</div>
+  <div class="exam-line"><b>&ldquo;Should k be 1 for maximum sensitivity?&rdquo;</b> &rarr; k=1 means one voice decides, so one mislabelled record owns a region of the map forever. Odd and modest (5 to 15) outvotes bad records; enormous k blurs real local pockets into the majority. Tune it on held-out data, never on vibes.</div>
+  <div class="exam-line"><b>&ldquo;Our distance-based model got worse when we added income in dollars next to age in years.&rdquo;</b> &rarr; Distance treats every column&rsquo;s units as comparable, so the biggest-ranged column silently owns the metric. Scale features to comparable ranges before anything that measures distance: neighbours, k-means, and friends.</div>
+  <div class="exam-line"><b>&ldquo;The decision tree changed completely after one week of new data. Is it broken?&rdquo;</b> &rarr; No, it is a tree. One different greedy split near the root cascades into a different tree everywhere below. That instability is the price of readable rules, and averaging many trees (a forest) is the standard cure, at the cost of the readability you built it for.</div>
+  <div class="exam-line"><b>&ldquo;Why not let the tree grow until it is perfect on training data?&rdquo;</b> &rarr; A deep enough tree carves one rectangle per learner and memorises noise: perfect in rehearsal, worse on the held-out set. Depth is capacity; cap it, or prune, and judge only on data the tree never saw.</div>
+  <div class="exam-line"><b>&ldquo;k-means put a third of one obvious group in another cluster and the score still improved.&rdquo;</b> &rarr; Its score is walking distance, and the two moves only ever shrink it, so it settles in the nearest valley, not the best one. Restart from several parkings and keep the best; treat any single run as one opinion.</div>
+  <div class="exam-line"><b>&ldquo;What k do we pass to k-means?&rdquo;</b> &rarr; The machine cannot tell you: more clusters always reduce the distance. Look for the k where one more cluster stops buying much, then eyeball the groups: unsupervised output is a proposal, and naming or rejecting the groups is a human step.</div>
+  <div class="exam-line"><b>&ldquo;The perceptron trained forever and never settled.&rdquo;</b> &rarr; It only converges when a perfect straight line exists. If the classes genuinely overlap, mistakes never run out and the line lurches forever. Overlapping classes want the probabilistic line (logistic) or a bendier machine, not more patience.</div>
+  <div class="exam-line"><b>&ldquo;Two models are both 100% on training data. Are they interchangeable?&rdquo;</b> &rarr; Correct is not the same as safe. Of many perfect lines, the one with the widest margin has the most room for next term&rsquo;s slightly different learners. Correctness is a pass mark; margin is the safety rating.</div>
+  <div class="exam-line"><b>&ldquo;We projected the data to 2D, the plot looked like one blob, so we concluded there are no groups.&rdquo;</b> &rarr; The projection keeps spread, not meaning. Groups separated along a low-spread direction flatten into the blob. Colour the shadow with anything you know, and try more than one angle, before concluding anything from it.</div>
+  <div class="exam-line"><b>&ldquo;Why are we using a 1950s line instead of a neural network?&rdquo;</b> &rarr; Because the job has ready-made columns, needs a calibrated probability, must retrain nightly and be audited quarterly. The network earns its complexity when features must be learned from raw signal; when a line matches it, the line ships faster, runs cheaper and explains itself.</div>
+</div>`;
+
+</script>
+<script src="assets/version.js" defer></script>
+<script src="assets/lab.js" defer></script>
+</body>
+</html>

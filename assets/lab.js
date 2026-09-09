@@ -334,6 +334,7 @@
     { name:'Under the hood', labs:[
       ['gpu.html',     'The machine underneath'],
       ['train.html',   'Wrong, then less wrong: watch a model learn'],
+      ['classic.html', 'Before the network: four little machines'],
       ['llm.html',     'One token at a time'],
       ['serving.html', 'The engine, not the model'],
       ['fleet.html',   'Twenty engines, one endpoint'] ] }
