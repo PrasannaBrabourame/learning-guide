@@ -126,7 +126,7 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
                   tab deep links, the scenario drill, the navigation rail,
                   the labs menu and the track line
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
-                  mode, flashcard drills, command palette (Cmd/Ctrl+K),
+                  mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, lab-to-topic mapping
 data/topics.json  The 272 topics as plain JSON (incl. per-topic difficulty)
 ```

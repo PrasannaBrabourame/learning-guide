@@ -31,10 +31,6 @@
     apply(mode);
     try{ localStorage.setItem(KEY, JSON.stringify(mode)) }catch{}
   };
-  addEventListener('keydown',e=>{
-    if(e.key==='d' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName))
-      document.getElementById('themeBtn').click();
-  });
 })();
 
 /* deep links: cloud.html#pane-cheat should open that tab, and the URL should follow the tab */
@@ -292,18 +288,7 @@
 
   /* --- keyboard --- */
   window.addEventListener('keydown',e=>{
-    const typing=/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'');
-    if(e.key==='Escape'){ close(); return; }
-    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); open(); return; }
-    if(typing) return;
-    if(e.key==='/'){ e.preventDefault(); open(); return; }
-    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
-      const all=[...tabsEl.querySelectorAll('.tab')];
-      const i=all.findIndex(t=>t.classList.contains('on'));
-      if(i<0) return;
-      const n=all[(i+(e.key==='ArrowRight'?1:-1)+all.length)%all.length];
-      n.click(); setTimeout(afterSwitch,0); n.focus&&n.focus();
-    }
+    if(e.key==='Escape') close();   /* closing an open overlay is dialog behaviour, not a shortcut */
   });
  }catch(err){ if(window.console) console.warn('interface enhancements unavailable:', err); }
 })();
