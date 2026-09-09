@@ -7911,5 +7911,102 @@
       "Judge scores never calibrated with humans"
     ],
     "memory": "Trace every generation end-to-end, score sampled quality, watch input and output drift, and treat traces as sensitive data."
+  },
+  {
+    "id": "genai-business-vs-technical",
+    "title": "Business Requirements vs Technical Implementation Details",
+    "category": "AI & GenAI",
+    "difficulty": "Medium",
+    "question": "When planning a generative AI solution, which factors belong in the business case as core requirements, and which are technical implementation details? Classify these: a CSAT target, model choice, ticket deflection rate, context window size, cost per resolved conversation, RAG vs fine-tuning.",
+    "technical": [
+      "Core business requirements state the outcome without naming any technology: a target CSAT or NPS movement, ticket deflection or containment rate, average handle time, first-contact resolution, cost per resolved conversation, revenue or conversion impact, plus hard constraints such as regulatory compliance, data residency, brand voice and supported languages.",
+      "Technical implementation details are the choices engineering makes to hit those numbers, and they can change without re-opening the business case: model family and size, RAG vs fine-tuning, embedding model, chunking strategy, vector store, prompt design, token budgets, serving hardware.",
+      "The classification test: if changing it forces the sponsor to re-approve the business case, it is a requirement; if the team can swap it mid-sprint while the metrics hold, it is an implementation detail.",
+      "Requirements must be measurable and baselined before anything is built: today's CSAT, today's cost per ticket, today's handle time. A project without a baseline cannot prove it worked.",
+      "Exam framing: among options like 'which model to use', 'embedding dimensionality', 'vector database choice' and 'target customer satisfaction score', the core business requirement is the CSAT target; everything else is implementation."
+    ],
+    "layman": "A restaurant owner specifies 'diners rate us 4.5 stars and a meal costs under 8 pounds to make'. Which oven the chef buys is the chef's call, and swapping ovens never needs the owner's signature.",
+    "usecases": [
+      "Writing the business case for a gen AI assistant",
+      "Scoping a support-bot pilot with a sponsor",
+      "Certification and interview questions on solution planning",
+      "Steering-committee updates that survive a model swap"
+    ],
+    "code": "Requirement sheet, two columns:\n\nBusiness requirement (sponsor signs)   Technical detail (team decides)\nCSAT +0.3 on assisted chats            model family and size\n30% tier-1 ticket deflection           RAG vs fine-tuning\ncost per resolved chat under $0.40     embedding model, chunk size\nanswers only from the approved KB      vector store, reranker\nPII never leaves the region            prompt template, token budget",
+    "followups": [
+      "Which of your requirements is a constraint rather than a target, and what happens when a target and a constraint conflict?",
+      "How would you baseline CSAT before launch?",
+      "Who owns a requirement after launch: product or platform?"
+    ],
+    "redflags": [
+      "The business case names a model or a vector database",
+      "Success defined as 'launch the chatbot' with no measurable target",
+      "No baseline measured before the pilot starts"
+    ],
+    "memory": "The sponsor buys outcomes (CSAT, deflection, cost); engineering picks the machinery."
+  },
+  {
+    "id": "genai-business-kpis",
+    "title": "Business KPIs for Generative AI: CSAT, Deflection, Cost per Resolution",
+    "category": "Evaluation & Metrics",
+    "difficulty": "Medium",
+    "question": "Name the business KPIs a generative AI assistant is typically judged on, and explain which are leading and which are lagging.",
+    "technical": [
+      "Customer satisfaction: CSAT (post-interaction survey, share satisfied) and NPS (would you recommend, scored -100 to +100). Both are lagging: they move weeks after quality changes and are diluted by everything else the company does.",
+      "Workload KPIs: deflection or containment rate (share of contacts resolved with no human), first-contact resolution, average handle time, escalation rate. These lead CSAT and are measurable per conversation, per week.",
+      "Economics: cost per resolved conversation, all-in (tokens, infrastructure, and the human escalations it still causes) against the human-only baseline. Margin per interaction is the number finance signs.",
+      "Adoption and trust: weekly active users, retry and abandonment rates, thumbs-down rate, and for agent-assist tools the acceptance rate (how often the human keeps the drafted answer).",
+      "Every KPI needs a baseline and a counterfactual (an A/B or a holdout group), or the improvement will be claimed by whoever shipped anything that quarter."
+    ],
+    "layman": "A clinic judges a new triage nurse two ways: patient satisfaction surveys, which arrive months later, and how many patients were sorted correctly today. You steer with today's numbers and prove value with the survey.",
+    "usecases": [
+      "Quarterly business review for an AI assistant",
+      "Pilot go/no-go decision",
+      "Choosing what the executive dashboard shows"
+    ],
+    "code": "KPI sheet with baselines:\n\nKPI                        baseline   target    cadence   type\nCSAT (assisted chats)      3.9 / 5    4.2 / 5   monthly   lagging\ndeflection rate            0%         30%       weekly    leading\nfirst-contact resolution   62%        70%       weekly    leading\ncost per resolved chat     $4.10      $0.40     weekly    leading\nescalation complaints      n/a        under 2%  weekly    guardrail",
+    "followups": [
+      "Why can deflection rise while CSAT falls, and which guardrail catches it?",
+      "What is a containment rate worth if the contained users simply gave up?",
+      "What survey response rate makes a CSAT movement believable?"
+    ],
+    "redflags": [
+      "Deflection celebrated without a 'was it actually resolved' check",
+      "CSAT quoted from a 3% survey response rate with no honesty band",
+      "Only token spend reported, never cost per resolution"
+    ],
+    "memory": "Steer weekly with deflection, resolution and cost; prove quarterly with CSAT."
+  },
+  {
+    "id": "kpi-metric-chain",
+    "title": "The Metric Chain: Business KPI to Online Proxy to Offline Eval",
+    "category": "Evaluation & Metrics",
+    "difficulty": "High",
+    "question": "Your sponsor cares about CSAT. Your CI pipeline scores groundedness. Connect them: what is the chain from business KPI down to offline eval, and where does it break?",
+    "technical": [
+      "Three layers at three cadences: business KPIs (CSAT, deflection, cost per resolution) judge the initiative per quarter; online proxies (thumbs-down rate, retries, escalations, reopen rate) move per release; offline evals (groundedness, task success on a golden set) run per commit.",
+      "You cannot A/B test CSAT per pull request: it is too slow, too noisy and too diluted. Each layer exists because the layer above is unmeasurable at that cadence.",
+      "The chain is validated, never assumed: check that offline gains correlate with proxy gains release over release, and proxy gains with KPI movement quarter over quarter. A proxy that no longer correlates is a vanity metric.",
+      "Each layer needs a guardrail from the layer above. Shipping on offline scores alone invites Goodhart's law (when a measure becomes a target, it stops being a good measure): the system learns the rubric, not the customer.",
+      "When the chain breaks (offline up, online flat), suspect in order: the golden set no longer represents live traffic, the judge has saturated near the top of its scale, or the proxy measures effort rather than outcome."
+    ],
+    "layman": "A school steers weekly with mock tests, termly with report cards and yearly with university admissions. Mocks only matter because they historically predict the rest, and a mock everyone aces stops predicting anything.",
+    "usecases": [
+      "Designing the eval program for a support assistant",
+      "Explaining to a sponsor why CI does not measure CSAT",
+      "Auditing whether a proxy metric is still connected to value"
+    ],
+    "code": "per commit    offline eval    groundedness, task success on the golden set\nper release   online proxy    thumbs-down, retries, escalation, reopen rate\nper quarter   business KPI    CSAT, deflection, cost per resolution\n\nvalidate the joints:\n  offline gain -> proxy gain?   check release over release\n  proxy gain   -> KPI gain?     check quarter over quarter\n\noffline up, online flat -> golden set drifted, or the judge saturated",
+    "followups": [
+      "How would you detect that the golden set has drifted away from live traffic?",
+      "Which single online proxy would you pick for a support bot, and why?",
+      "What does judge saturation look like on a dashboard?"
+    ],
+    "redflags": [
+      "Ships on offline scores with no online confirmation",
+      "Treats thumbs-up rate as CSAT",
+      "Golden set never refreshed since launch"
+    ],
+    "memory": "Commit-time evals, release-time proxies, quarter-time KPIs, and the joints are checked, not assumed."
   }
 ]
