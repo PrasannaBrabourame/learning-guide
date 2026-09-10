@@ -304,6 +304,7 @@
   const TRACKS = [
     { name:'Build, run and govern an agent', labs:[
       ['adk.html',       'ADK, building an agent that behaves'],
+      ['frames.html',    'Pick your frame: five ways to build the same agent'],
       ['agentcore.html', 'AgentCore. An agent you can trust'],
       ['agentbuild.html','Agents building agents'],
       ['evals.html',     'Evaluation, how do you know it got better?'],

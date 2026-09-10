@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent frameworks lab, five ways to build the same agent</title>
+<link rel="stylesheet" href="assets/lab.css">
+<style>
+  /* page-specific: the graph runner, timelines and the stack sorter */
+  .fwnode{transition:opacity .15s}
+  .fwbig{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .fwrow{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:8px;font-size:12px}
+  .fwrow .who{min-width:96px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .fwrow.mgr{background:var(--sel)}
+  .fwstate td{padding:3px 10px 3px 0;font-family:var(--mono);font-size:11.5px;vertical-align:top}
+  .fwchip{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.04em;padding:2px 8px;
+    border-radius:99px;border:1px solid var(--line2);cursor:pointer}
+  .fwchip.on{border-color:var(--accent);color:var(--accent)}
+  .fwchip.done{opacity:.45;cursor:default}
+  .fwslot{border:1.5px dashed var(--line2);border-radius:9px;padding:8px 10px;margin-top:8px;cursor:pointer;font-size:12px}
+  .fwslot:hover{border-color:var(--accent)}
+  .fwslot.filled{border-style:solid;cursor:default}
+  .fwslot .k2{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.05em;display:block;margin-bottom:2px}
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" style="fill:var(--wire)"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=frames">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark">&#127769; theme</button>
+      <button class="tn tn-quiet" id="findBtn" type="button" title="Find a section on this page">&#8981; find</button>
+    </nav>
+    <div class="eyebrow">graphs &middot; crews &middot; loops &middot; self-editors &middot; one family of names</div>
+    <h1>Pick your frame: <span class="thin">five ways to build the same agent</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">Underneath every agent framework is the same small loop: show the model the situation, let it think, maybe call a tool, feed the result back, repeat. You could write it in an afternoon, and for some jobs you should. What a framework actually sells is an opinion about <b>who owns the next step</b>: a graph you drew, a crew you cast, the model itself, a full kit with a deploy path, or an agent that edits its own tomorrow. This lab builds the same support-ticket agent behind each opinion, so the differences stop being brand names and start being trade-offs, and it ends by untangling the one family of names everyone mixes up.</p>
+    <div class="note" style="margin-top:14px"><b>Three neighbours.</b> The <a href="adk.html">ADK lab</a> is one of these frames explored in depth. The <a href="agentbuild.html">agents-building-agents lab</a> is what you do with a frame once picked, and the <a href="evals.html">evaluation lab</a> is how you judge the result regardless of frame.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="fstart" role="tab">Start here</button>
+    <button class="tab" data-pane="fgraph" role="tab">The map you drew</button>
+    <button class="tab" data-pane="fcrew" role="tab">The cast you hired</button>
+    <button class="tab" data-pane="floop" role="tab">The model drives</button>
+    <button class="tab" data-pane="fhermes" role="tab">The self-editor</button>
+    <button class="tab" data-pane="fpick" role="tab">Which frame</button>
+    <button class="tab" data-pane="flang" role="tab">The Lang family</button>
+    <button class="tab" data-pane="fexam" role="tab">Exam angle</button>
+  </div>
+
+  <section class="pane on" id="pane-fstart"><div id="sec-fstart"></div></section>
+  <section class="pane" id="pane-fgraph"><div id="sec-fgraph"></div></section>
+  <section class="pane" id="pane-fcrew"><div id="sec-fcrew"></div></section>
+  <section class="pane" id="pane-floop"><div id="sec-floop"></div></section>
+  <section class="pane" id="pane-fhermes"><div id="sec-fhermes"></div></section>
+  <section class="pane" id="pane-fpick"><div id="sec-fpick"></div></section>
+  <section class="pane" id="pane-flang"><div id="sec-flang"></div></section>
+  <section class="pane" id="pane-fexam"><div id="sec-fexam"></div></section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="adk.html">adk lab</a> &middot; <a href="agentbuild.html">agents lab</a> &middot; <a href="agentcore.html">agentcore lab</a> &middot; <a href="evals.html">evals lab</a> &middot; <a href="metrics.html">metrics lab</a> &middot; <a href="govern.html">govern lab</a> &middot; <a href="peakweek.html">peak week lab</a> &middot; <a href="llm.html">llm lab</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:500 12px Inter,Helvetica,Arial,sans-serif";
+const D=(vb,label,body,cap)=>`<div class="diagram"><svg viewBox="${vb}" role="img" aria-label="${label}">${body}</svg><div class="diagcap"><b>How to read it:</b> ${cap}</div></div>`;
+const box=(x,y,w,hh,stroke,fill)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" style="fill:${fill||'var(--panel2)'};stroke:${stroke}"/>`;
+const t=(x,y,s,style,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${style};fill:var(--text)">${s}</text>`;
+const tm=(x,y,s,fill,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${MONO};fill:${fill||'var(--muted)'}">${s}</text>`;
+
+/* ================= 1 · START HERE ================= */
+document.getElementById('sec-fstart').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Every framework wraps the same loop; the product is who owns the next step</h2>
+  <div class="plain-line"><b>In plain English:</b> the loop is always the same. The agent shows the model the situation so far, the model thinks, it either calls a tool or answers, and whatever the tool says goes back in for the next round. Nobody needs a framework for that. What you are actually choosing is <b>who decides what happens next</b>: a map you drew in advance, a crew of roles you cast, the model itself on every turn, a full kit that also brings the runway, or an agent allowed to edit its own manual. Each choice buys something and bills you for it.</div>
+  ${D('0 0 660 178','The bare agent loop in the middle, with five framing philosophies around it.',
+   `${box(230,62,200,54,'var(--accent)')}${t(330,86,'the loop',SANS)}${tm(330,104,'situation &rarr; model &rarr; tool &rarr; back','var(--dim)')}
+    ${box(14,14,180,44,'var(--blue)')}${t(104,32,'graph-first',SANS)}${tm(104,48,'you drew the map','var(--dim)')}
+    ${box(14,120,180,44,'var(--violet)')}${t(104,138,'crew-first',SANS)}${tm(104,154,'you cast the roles','var(--dim)')}
+    ${box(466,14,180,44,'var(--teal)')}${t(556,32,'model-first',SANS)}${tm(556,48,'the model drives','var(--dim)')}
+    ${box(466,120,180,44,'var(--amber)')}${t(556,138,'kit-first',SANS)}${tm(556,154,'loop + evals + deploy path','var(--dim)')}
+    ${box(240,14,180,32,'var(--red)')}${t(330,34,'self-editing',SANS)}
+    <path d="M196 36 L262 66" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M196 142 L262 112" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M464 36 L398 66" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M464 142 L398 112" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+    <path d="M330 48 L330 60" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>`,
+   'Five opinions about the same loop. The named products this lab uses to teach them: LangGraph (graph-first), CrewAI (crew-first), Strands Agents (model-first), ADK (kit-first) and the Hermes-style self-improving agent (self-editing).')}
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: five sentences, five philosophies</h2>
+  <div class="plain-line"><b>Try this:</b> each sentence is one framework&rsquo;s worldview said plainly. Match it to the frame. Wrong guesses teach more than right ones here, because every wrong answer explains what that frame actually believes instead.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Five builders quote for the same extension. One arrives with blueprints, one with a crew and job titles, one says &ldquo;let the site foreman decide day by day&rdquo;, one brings a whole portable cabin of kit and inspectors, and one proposes a robot that redesigns itself mid-build. Same wall at the end; very different weeks.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read sentence one and ask <b>who is deciding the next step</b>: your drawing, your casting, the model, the kit, or the agent itself.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>framework</b> a library that runs the agent loop for you and adds structure around it</span><span class="sp-w"><b>agent</b> an AI system that answers in steps, calling tools along the way</span><span class="sp-w"><b>tool</b> a helper the agent can call mid-task: a search box, a database, or a connection into another system (an API)</span><span class="sp-w"><b>orchestration</b> the deciding and sequencing of steps: the thing the five frames disagree about</span><span class="sp-w"><b>control flow</b> the path a run takes through the steps: who branches, who loops, who stops</span><span class="sp-w"><b>graph</b> steps drawn as boxes and arrows the run must follow</span><span class="sp-w"><b>crew</b> several agents given roles and tasks, working one brief together</span><span class="sp-w"><b>kit</b> a framework that also ships the surroundings: evaluation, sessions, a deploy path</span><span class="sp-w"><b>evals</b> short for evaluations: scoring an agent&rsquo;s answers against a set of test cases, to see if a change helped or hurt</span><span class="sp-w"><b>self-editing</b> an agent allowed to change its own instructions, memory or skills over time</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="fsOut"></div></div>
+    <div><div id="fsCtl"></div>
+      <div id="fsNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: five sentences, five philosophies --- */
+(function(){
+  const out=document.getElementById('fsOut'), ctl=document.getElementById('fsCtl'), note=document.getElementById('fsNote');
+  if(!out) return;
+  const FR=['LangGraph','CrewAI','Strands Agents','ADK','Hermes-style self-editor'];
+  const QS=[
+   {a:0, s:'The control flow is a picture I drew before the first run. The model fills in the judgement calls at the nodes; it never redraws the arrows.',
+    why:'Graph-first: you own the map, the model owns the judgement inside each box. Auditors love it, because the flow exists on paper before any run.'},
+   {a:2, s:'I hand over three things: a model, a prompt, a bag of tools. From there the model itself decides every next move, and my orchestration code is nearly empty.',
+    why:'Model-first: the loop is exposed and tiny, planning lives in the model. Least code to own, most behaviour to gate with evals.'},
+   {a:1, s:'I hire a researcher, an analyst and a writer, describe their jobs in plain prose, and the library runs the meeting between them.',
+    why:'Crew-first: the unit of design is a role with a task, readable by people who will never open the code. The meeting itself is the part you control least.'},
+   {a:3, s:'The loop is maybe a tenth of what I need. This one ships the rest of the building: sessions, memory, an eval harness, and a managed place to deploy.',
+    why:'Kit-first: an opinionated batteries-included kit with a runway to production on its home cloud. You trade some freedom for the surroundings.'},
+   {a:4, s:'The agent that runs in month three is not the one I reviewed in month one: it has written itself new skills and curated its own memory. My job became gates, versions and rollback.',
+    why:'Self-editing: genuinely powerful for one person&rsquo;s long-running assistant, and it breaks the deploy-review-release rhythm, so operations become continuous evaluation and history-reading.'}
+  ];
+  let cur=0, score=0, answered=false, results=[];
+  function render(){
+    if(cur>=QS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+QS.length+' first pick.</b> The five worldviews:</div>'
+        +'<div style="margin-top:10px">'+QS.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+        +'<span style="flex:1">'+q.s.slice(0,72)+'&hellip;</span><span class="k" style="color:var(--accent);white-space:nowrap">'+FR[q.a]+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="fsAgain" style="width:100%;font-size:12px">&#9654; back to sentence one</button>';
+      document.getElementById('fsAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Ask one question of any agent framework, however it brands itself: who owns the next step? The answer places it on this map, and the rest of the lab is what each answer costs.</div>';
+      return;
+    }
+    const q=QS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">WORLDVIEW '+(cur+1)+' OF '+QS.length+'</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet);font-size:13.5px;line-height:1.7">&ldquo;'+q.s+'&rdquo;</div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">WHOSE WORLDVIEW IS IT?</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +FR.map((f,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+f+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const pick=+b.dataset.i, right=pick===q.a;
+      if(!answered){answered=true; if(right) score++; results.push(right);}
+      if(right){
+        b.classList.add('on');
+        ctl.querySelectorAll('.seg').forEach(x=>{if(x!==b)x.disabled=true;});
+        note.innerHTML='<div class="ok"><b>Yes: '+FR[q.a]+'.</b> '+q.why+'</div>'
+          +'<button class="seg" id="fsNext" style="width:100%;margin-top:10px;font-size:12px">next worldview &rarr;</button>';
+        document.getElementById('fsNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+      } else {
+        b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65';
+        const own=QS.find(x=>x.a===pick);
+        note.innerHTML='<div class="lzbad"><b>That is '+FR[pick]+', whose worldview is:</b> &ldquo;'+own.s+'&rdquo; Try again.</div>';
+      }
+    });
+  }
+  render();
+})();
+
+/* ================= 2 · THE MAP YOU DREW (LANGGRAPH) ================= */
+document.getElementById('sec-fgraph').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">LangGraph: the run follows arrows you drew, and the state is one shared object</h2>
+  <div class="plain-line"><b>In plain English:</b> you draw the process as boxes and arrows: each box (a <b>node</b>) is a step, each arrow (an <b>edge</b>) says what may follow, and a <b>conditional edge</b> is a fork decided by data. One shared <b>state</b> object flows through: every node reads it and returns only the fields it changed, and the framework merges those updates between rounds. After every round it writes a <b>checkpoint</b>, which is why a crashed run can resume mid-process instead of restarting, the single feature that sells this frame to anyone running long or regulated processes.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: run the ticket through the graph, crash it, and make two branches collide</h2>
+  <div class="plain-line"><b>Try this:</b> a five-node support-ticket graph. Step through it and watch the state grow one merged update at a time. Then do the two things slides never show: <b>crash it mid-run and resume from the checkpoint</b>, and switch on the parallel branch so two nodes write the same state field in the same round, which is the collision every LangGraph team meets in week one.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A mortgage application folder moving desk to desk. Each clerk adds pages to the one folder and passes it on along printed routing arrows. The folder is photocopied after every desk, so when a clerk goes home ill, tomorrow&rsquo;s clerk starts from the last photocopy, not from a blank folder.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>step</b> five times, then <b>reset</b>, run two steps, press <b>crash</b>, and then <b>resume from checkpoint</b>.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>node</b> one box: a step that reads the state and returns the fields it changed</span><span class="sp-w"><b>edge</b> an arrow: what may follow what</span><span class="sp-w"><b>conditional edge</b> a fork chosen by looking at the data, here the ticket&rsquo;s category</span><span class="sp-w"><b>state</b> the one shared folder of fields the whole run reads and writes</span><span class="sp-w"><b>super-step</b> one round of the run: the nodes due now execute, then their updates merge</span><span class="sp-w"><b>checkpoint</b> a saved copy of the state after each round, the thing resume reads</span><span class="sp-w"><b>reducer</b> the merge rule for one field when several updates hit it, such as append to a list</span><span class="sp-w"><b>parallel branches</b> two nodes running in the same round, legal until they write the same field</span><span class="sp-w"><b>KB</b> knowledge base: the company&rsquo;s own file of written policies and past answers the agent can search</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="fgOut"></div></div>
+    <div>
+      <div style="display:flex;gap:8px">
+        <button class="seg" id="fgStep" style="flex:1;font-size:12px;color:var(--accent)">&#9654; <b>step</b></button>
+        <button class="seg" id="fgReset" style="flex:1;font-size:12px">reset</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="seg" id="fgCrash" style="flex:1;font-size:12px">&#128165; crash</button>
+        <button class="seg" id="fgResume" style="flex:1;font-size:12px" disabled>resume from checkpoint</button>
+      </div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">EVIDENCE GATHERING</div>
+      <div class="segmented" id="fgPar" style="flex-direction:column;align-items:stretch"></div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">IF TWO NODES WRITE THE SAME FIELD</div>
+      <div class="segmented" id="fgRed" style="flex-direction:column;align-items:stretch"></div>
+      <div id="fgNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the graph runner --- */
+(function(){
+  const out=document.getElementById('fgOut'), note=document.getElementById('fgNote'),
+        stepB=document.getElementById('fgStep'), resetB=document.getElementById('fgReset'),
+        crashB=document.getElementById('fgCrash'), resumeB=document.getElementById('fgResume'),
+        parEl=document.getElementById('fgPar'), redEl=document.getElementById('fgRed');
+  if(!out) return;
+  let par=0, red=0, step=0, crashed=false, dead=false, ckpts=[];
+  const freshState=()=>({ticket:'&ldquo;Invoice 4417 charged me twice&rdquo;', category:'&mdash;', evidence:[], draft:'&mdash;', approved:'&mdash;'});
+  let S=freshState();
+  /* plan: each super-step = list of node executions */
+  function plan(){
+    const evid = par
+      ? [[{n:'invoice_lookup',f:'evidence',v:'invoice 4417: &pound;42 charged twice'},{n:'kb_search',f:'evidence',v:'policy file: duplicate-charge refund policy'}]]
+      : [[{n:'invoice_lookup',f:'evidence',v:'invoice 4417: &pound;42 charged twice'}]];
+    return [
+      [{n:'classify',f:'category',v:'billing'}],
+      ...evid,
+      [{n:'draft',f:'draft',v:'&ldquo;We are refunding the duplicate &pound;42&hellip;&rdquo;'}],
+      [{n:'policy_gate',f:'approved',v:'yes: no promise beyond policy'}]
+    ];
+  }
+  const NODEPOS={classify:[60,60], invoice_lookup:[210,20], kb_search:[210,100], draft:[370,60], policy_gate:[520,60]};
+  function draw(){
+    const P=plan(), total=P.length;
+    const doneNodes=new Set(); P.slice(0,step).forEach(ss=>ss.forEach(x=>doneNodes.add(x.n)));
+    const activeNodes=new Set(); if(step<total&&!dead) P[step].forEach(x=>activeNodes.add(x.n));
+    let g='';
+    for(const [name,[x,y]] of Object.entries(NODEPOS)){
+      if(name==='kb_search'&&!par) continue;
+      const on=doneNodes.has(name), act=activeNodes.has(name);
+      g+='<g class="fwnode" style="opacity:'+(on||act?1:.45)+'">'
+        +'<rect x="'+x+'" y="'+y+'" width="120" height="40" rx="8" style="fill:var(--panel2);stroke:var(--'+(act?'accent':on?'green':'line2')+');stroke-width:'+(act?2:1.4)+'"/>'
+        +'<text x="'+(x+60)+'" y="'+(y+24)+'" text-anchor="middle" style="'+MONO+';fill:var(--text)">'+name+'</text></g>';
+    }
+    const A=(x1,y1,x2,y2)=>'<path d="M'+x1+' '+y1+' L'+x2+' '+y2+'" style="stroke:var(--wire);stroke-width:1.5" marker-end="url(#ah)"/>';
+    g+=A(12,80,58,80)+A(180,80,208,52); 
+    if(par) g+=A(180,80,208,108)+A(330,108,368,88);
+    g+=A(330,44,368,72)+A(490,80,518,80)+A(640,80,652,80);
+    g+=tm(30,70,'START','var(--dim)')+(par?tm(193,86,'both','var(--amber)'):tm(193,70,'billing?','var(--dim)'));
+    const rows=Object.entries(S).map(([k,v])=>'<tr><td style="color:var(--muted)">'+k+'</td><td>'+(Array.isArray(v)?(v.length?v.map(e=>'&bull; '+e).join('<br>'):'[]'):v)+'</td></tr>').join('');
+    out.innerHTML='<svg viewBox="0 0 660 150" role="img" aria-label="A five-node ticket graph, finished nodes green, active nodes highlighted." style="width:100%;height:auto">'+g+'</svg>'
+      +'<div style="display:flex;gap:16px;margin:6px 0" class="fwbig">'
+      +'<span style="font-size:12px;color:var(--muted)">super-step <b style="font-size:16px;color:var(--text)">'+step+' / '+total+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">checkpoints saved <b style="font-size:16px;color:var(--text)">'+ckpts.length+'</b></span>'
+      +(dead?'<span style="font-size:12px;color:var(--red)" class="k">&#128165; process died</span>':'')
+      +(step>=total?'<span style="font-size:12px;color:var(--green)" class="k">&#10003; END reached</span>':'')
+      +'</div>'
+      +'<div class="k" style="font-size:10.5px;color:var(--dim);margin:8px 0 4px">THE STATE (one shared folder)</div>'
+      +'<table class="fwstate">'+rows+'</table>';
+  }
+  function render(){
+    parEl.innerHTML=[['one branch (invoice lookup only)',0],['parallel: invoice lookup + KB search',1]].map(([l,v])=>'<button class="seg'+(par===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    redEl.innerHTML=[['no rule: refuse and error',0],['append reducer: merge into the list',1]].map(([l,v])=>'<button class="seg'+(red===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    parEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{par=+b.dataset.v;reset(false);render();});
+    redEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{red=+b.dataset.v;reset(false);render();});
+    draw();
+  }
+  function reset(clearNote){
+    step=0; dead=false; crashed=false; ckpts=[]; S=freshState(); resumeB.disabled=true;
+    if(clearNote!==false) note.innerHTML='';
+    draw();
+  }
+  stepB.onclick=()=>{
+    const P=plan();
+    if(dead){ note.innerHTML='<div class="lzbad"><b>The process is dead.</b> That is the point: press <b>resume from checkpoint</b> and watch it continue from the last photocopy instead of restarting.</div>'; return; }
+    if(step>=P.length){ note.innerHTML='<div class="ok"><b>END was reached.</b> Reset to run again, or crash it next time to see the checkpoint earn its keep.</div>'; return; }
+    const ss=P[step];
+    if(ss.length===2 && !red){
+      dead=true;
+      note.innerHTML='<div class="lzbad"><b>Collision: two nodes wrote &ldquo;evidence&rdquo; in the same super-step.</b> LangGraph refuses to guess whose update wins and raises an error instead, because silently dropping one clerk&rsquo;s pages would be worse. The fix is not &ldquo;avoid parallel work&rdquo;: it is declaring a merge rule. Switch on the <b>append reducer</b> and run again.</div>';
+      draw(); return;
+    }
+    for(const x of ss){ if(x.f==='evidence') S.evidence.push(x.v); else S[x.f]=x.v; }
+    step++; ckpts.push(step);
+    if(step>=P.length) note.innerHTML='<div class="ok"><b>END reached, '+ckpts.length+' checkpoints on disk.</b> Every super-step left a photocopy. Nothing in the run needed them; the crash button is where they stop being overhead.</div>';
+    else if(ss.length===2) note.innerHTML='<div class="ok"><b>Both branches ran in one super-step, and the reducer merged them.</b> The evidence list now holds both updates: append is the declared rule, so parallel work is legal. This is the exact difference between a list field with a reducer and a plain field without one.</div>';
+    else note.innerHTML='';
+    draw();
+  };
+  resetB.onclick=()=>reset();
+  crashB.onclick=()=>{
+    if(step===0||step>=plan().length||dead){ note.innerHTML='<div class="simnote">Crash it mid-run: take at least one step first, and not after END.</div>'; return; }
+    crashed=true; dead=true; resumeB.disabled=false;
+    note.innerHTML='<div class="lzwarn"><b>&#128165; The process died after super-step '+step+'.</b> The in-memory run is gone. The '+ckpts.length+' checkpoints are not: they were written to storage as the run went. Press <b>resume from checkpoint</b>.</div>';
+    draw();
+  };
+  resumeB.onclick=()=>{
+    if(!crashed) return;
+    dead=false; crashed=false; resumeB.disabled=true;
+    note.innerHTML='<div class="ok"><b>Resumed at super-step '+step+' from the last checkpoint.</b> The category and evidence survived the crash because they lived in the checkpointed state, not in the process. This is the feature that decides the frame for long, regulated or human-paced runs: a three-day approval wait is just a long gap between checkpoints.</div>';
+    draw();
+  };
+  render();
+})();
+
+/* ================= 3 · THE CAST YOU HIRED (CREWAI) ================= */
+document.getElementById('sec-fcrew').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">CrewAI: you design roles, not arrows, and the meeting runs itself</h2>
+  <div class="plain-line"><b>In plain English:</b> the unit of design is a <b>role</b> written in plain prose (a researcher who digs, an analyst who weighs, a writer who lands the message) each holding a <b>task</b>. You choose a <b>process</b>: <b>sequential</b> passes work down the line in order; <b>hierarchical</b> adds a manager agent that plans, delegates and reviews. The prose is genuinely the interface, which is why non-engineers can read a crew definition. The bill is control: the conversation between agents is the part you script least, and the manager is another model with opinions and a token bill of its own. When most of your process is actually fixed, this frame&rsquo;s own answer is Flows: put the deterministic rail back in code and fence the crew into the genuinely fuzzy middle.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: run the same brief through both processes and read the bill</h2>
+  <div class="plain-line"><b>Try this:</b> one brief (&ldquo;should we switch payment provider?&rdquo;), the same three specialists, two processes. Run both and compare what actually happened: who spoke, in what order, and what the manager&rsquo;s supervision cost in this toy crew. The numbers are illustrative; the shape of the difference is not.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A small agency job. Sequential is three freelancers passing a folder down the line. Hierarchical hires a project manager too: the work improves a little, meetings appear everywhere, and the invoice grows a new line called &ldquo;coordination&rdquo;.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>run <b>sequential</b>, then <b>hierarchical</b>, and compare the step counts and token bills.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>role</b> one agent&rsquo;s job description, written in prose: it is the actual interface</span><span class="sp-w"><b>task</b> the piece of work a role owns, with an expected output</span><span class="sp-w"><b>process</b> how the crew runs: in a fixed order, or under a manager</span><span class="sp-w"><b>sequential</b> each task&rsquo;s output feeds the next, in the order you listed them</span><span class="sp-w"><b>hierarchical</b> a manager agent plans, delegates to the crew and reviews the results</span><span class="sp-w"><b>delegate</b> the manager handing a task to a crew member</span><span class="sp-w"><b>tokens</b> the currency every step is billed in, manager turns included</span><span class="sp-w"><b>deterministic</b> the same input always takes the same path: fixed, not decided by a model</span><span class="sp-w"><b>Flows</b> CrewAI&rsquo;s deterministic layer: fixed steps in code, the crew fenced into the fuzzy part</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="fcOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">PROCESS</div>
+      <div class="segmented" id="fcMode" style="flex-direction:column;align-items:stretch"></div>
+      <button class="seg" id="fcRun" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>run the crew</b></button>
+      <div id="fcNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the crew run --- */
+(function(){
+  const out=document.getElementById('fcOut'), note=document.getElementById('fcNote'),
+        mEl=document.getElementById('fcMode'), runB=document.getElementById('fcRun');
+  if(!out) return;
+  let mode='seq', ran={};
+  const SEQ=[
+    ['researcher','digs: pulls pricing, uptime history and migration guides for both providers',1200],
+    ['analyst','weighs: fees vs volume, switching cost against a two-year horizon',900],
+    ['writer','lands it: a one-page recommendation with the three numbers that matter',700]
+  ];
+  const HIER=[
+    ['manager','plans: splits the brief into three assignments',420,1],
+    ['researcher','digs (delegated): pricing, uptime, migration guides',1200,0],
+    ['manager','reviews: sends one gap back (&ldquo;no uptime data for provider B&rdquo;)',280,1],
+    ['researcher','fills the gap: provider B uptime history',350,0],
+    ['analyst','weighs (delegated): fees vs volume, switching cost',900,0],
+    ['manager','reviews: accepts',220,1],
+    ['writer','lands it (delegated): the one-page recommendation',700,0],
+    ['manager','final review: signs the crew&rsquo;s answer off',300,1]
+  ];
+  function render(){
+    mEl.innerHTML=[['seq','sequential: down the line'],['hier','hierarchical: a manager runs it']].map(([v,l])=>'<button class="seg'+(mode===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mode=b.dataset.v;render();});
+    const R=ran[mode];
+    if(!R){ out.innerHTML='<div class="simnote">Brief: <b>&ldquo;Should we switch payment provider?&rdquo;</b> Crew: a researcher, an analyst, a writer'+(mode==='hier'?', plus a manager the process adds':'')+'. Press <b>run the crew</b>.</div>'; return; }
+    const rows=R.map(r=>'<div class="fwrow'+(r[3]?' mgr':'')+'"><span class="who">'+r[0]+'</span><span style="flex:1">'+r[1]+'</span><span class="k" style="color:var(--muted);white-space:nowrap">'+r[2].toLocaleString('en-GB')+' tok</span></div>').join('');
+    const tot=R.reduce((s,r)=>s+r[2],0), mgr=R.filter(r=>r[3]).reduce((s,r)=>s+r[2],0);
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">'+(mode==='seq'?'SEQUENTIAL':'HIERARCHICAL')+' RUN &middot; WHO SPOKE, IN ORDER</div>'
+      +rows
+      +'<div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap" class="fwbig">'
+      +'<span style="font-size:12px;color:var(--muted)">steps <b style="font-size:17px">'+R.length+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">total <b style="font-size:17px">'+tot.toLocaleString('en-GB')+' tok</b></span>'
+      +(mgr?'<span style="font-size:12px;color:var(--muted)">of which manager <b style="font-size:17px;color:var(--amber)">'+mgr.toLocaleString('en-GB')+' tok</b></span>':'')
+      +'</div>';
+  }
+  runB.onclick=()=>{
+    ran[mode] = mode==='seq' ? SEQ.map(r=>[...r,0]) : HIER;
+    render();
+    if(mode==='seq') note.innerHTML='<div class="ok"><b>Three steps, 2,800 tokens, zero coordination.</b> Sequential is the crew at its most predictable: the order is yours, each output feeds the next, and the bill is just the work. What you did not get: nobody noticed the missing uptime data, because nobody&rsquo;s job was to check anybody.</div>'
+      +(ran.hier?'':'<div class="simnote" style="margin-top:10px">Now run <b>hierarchical</b> and see what supervision buys and costs.</div>');
+    else note.innerHTML='<div class="lzwarn"><b>Eight steps, 4,370 tokens, and 1,220 of them are the manager talking.</b> Supervision caught the missing uptime data (a real catch), and it billed roughly 28% of this toy run in pure coordination, added latency at every hand-off, and made the run order the manager&rsquo;s choice, not yours. That trade is the whole hierarchical decision.</div>'
+      +'<div class="simnote" style="margin-top:10px"><b>And the third option the frame itself recommends:</b> when most of the process is fixed, put those rails in code (Flows) and give the crew only the genuinely fuzzy middle, with its own budget. Determinism where you have it, agents where you need them.</div>';
+  };
+  render();
+})();
+
+/* ================= 4 · THE MODEL DRIVES (STRANDS) ================= */
+document.getElementById('sec-floop').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Strands Agents: three ingredients, and the model plans every next move</h2>
+  <div class="plain-line"><b>In plain English:</b> the model-first bet, and the reason an agent here is barely any code: you supply <b>a model, a prompt and a bag of tools</b>, and on every turn the model itself decides whether to call a tool, which one, or whether it is done. There is no map to draw and no crew to cast, because planning is treated as something modern models are already good at. The loop stays fully visible to you (every decision, call and result can be traced), which matters, because when the model owns the control flow, <b>watching it and gating it with evaluations is the part you still own</b>.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: the same two tickets, a map versus a driver</h2>
+  <div class="plain-line"><b>Try this:</b> run a standard ticket and then a weird one, first through a graph somebody drew last quarter, then through a model-driven loop with the same tools. The standard ticket makes the graph look great. The weird ticket is where the two philosophies stop being interchangeable.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A bus versus a taxi. The bus route was planned in advance: cheap, predictable, and it does not go to the new hospital until someone repaints the route map. The taxi driver just goes: anywhere, today, for more money, by a route you will only know afterwards.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>run <b>standard ticket</b> under both styles, then switch to the <b>weird ticket</b> and run both again.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>model-driven loop</b> the model decides every next step at run time; no pre-drawn flow exists</span><span class="sp-w"><b>graph-first</b> the flow was drawn in code beforehand; the run must follow it</span><span class="sp-w"><b>turn</b> one round of the loop: the model reads the situation and picks the next move</span><span class="sp-w"><b>tool</b> a helper the agent can call mid-task: a lookup, a calculation, or a connection into another system (an API)</span><span class="sp-w"><b>trace</b> the recorded list of decisions, tool calls and results a run took</span><span class="sp-w"><b>predictability</b> how similar two runs of the same input are, in route, waiting time and cost</span><span class="sp-w"><b>control flow</b> the order the steps run in: who decides what happens next, and when the run stops</span><span class="sp-w"><b>latency</b> how long a run takes to answer: the delay you sit through</span><span class="sp-w"><b>code change</b> the thing a graph needs before it can handle a case nobody drew</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="flOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">CONTROL STYLE</div>
+      <div class="segmented" id="flMode" style="flex-direction:column;align-items:stretch"></div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">THE TICKET</div>
+      <div class="segmented" id="flTicket" style="flex-direction:column;align-items:stretch"></div>
+      <button class="seg" id="flRun" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>run it</b></button>
+      <div id="flNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: map versus driver --- */
+(function(){
+  const out=document.getElementById('flOut'), note=document.getElementById('flNote'),
+        mEl=document.getElementById('flMode'), tEl=document.getElementById('flTicket'),
+        runB=document.getElementById('flRun');
+  if(!out) return;
+  let mode='graph', ticket='std', shown=null;
+  const RUNS={
+   'graph|std':{ok:1,steps:[['classify','billing'],['invoice_lookup','&pound;42 duplicate found'],['draft','refund of &pound;42 drafted'],['policy_gate','approved']],
+     n:'<div class="ok"><b>Four steps, the same four every time.</b> On the route it was drawn for, the graph is unbeatable: predictable path, predictable bill, and the trace reads like the diagram. This is why fixed processes love maps.</div>'},
+   'graph|weird':{ok:0,steps:[['classify','billing'],['invoice_lookup','charge found: &yen;6,800, cancelled order'],['draft','&#10007; no edge handles currency conversion or cancelled orders']],
+     n:'<div class="lzbad"><b>The run stopped: the map has no road here.</b> Nobody drew an arrow for &ldquo;refund in yen for a cancelled duplicate&rdquo;, so the graph can only fail politely and wait for an engineer to add nodes and redeploy. The map&rsquo;s strength and its weakness are the same fact: nothing happens that was not drawn.</div>'},
+   'loop|std':{ok:1,steps:[['model turn 1','&ldquo;billing issue: I will look up the invoice&rdquo; &rarr; invoice_lookup'],['model turn 2','&ldquo;&pound;42 duplicate confirmed: drafting refund&rdquo;'],['model turn 3','&ldquo;draft complies with policy: done&rdquo;']],
+     n:'<div class="ok"><b>Three turns: the driver skipped the stop the bus always makes.</b> The model saw no need for a knowledge-base search and went straight through. Slightly cheaper today; a different route tomorrow is also possible, and that variance is part of the deal.</div>'},
+   'loop|weird':{ok:1,steps:[['model turn 1','&ldquo;billing, but the charge is in yen and the order was cancelled: I will look it up&rdquo; &rarr; invoice_lookup'],['model turn 2','&ldquo;I need this in sterling&rdquo; &rarr; currency_convert'],['model turn 3','&ldquo;cancelled order changes the policy path: checking&rdquo; &rarr; kb_search'],['model turn 4','&ldquo;refund &pound;35.90 under the cancellation clause: drafting&rdquo;'],['model turn 5','&ldquo;draft complies: done&rdquo;']],
+     n:'<div class="lzwarn"><b>Five turns, no code change, handled today.</b> The driver found a route no one drew, using the same bag of tools. The bill: more turns, a path you learn only from the trace, and no guarantee tomorrow&rsquo;s weird ticket takes the same route. Model-first buys adaptability and pays in predictability, which is why its natural partners are tracing and evaluation gates rather than more orchestration code.</div>'}
+  };
+  function render(){
+    mEl.innerHTML=[['graph','a graph somebody drew'],['loop','model-driven loop (Strands-style)']].map(([v,l])=>'<button class="seg'+(mode===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    tEl.innerHTML=[['std','standard: &ldquo;charged twice, &pound;42&rdquo;'],['weird','weird: &ldquo;refund in yen, order was cancelled&rdquo;']].map(([v,l])=>'<button class="seg'+(ticket===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mode=b.dataset.v;shown=null;note.innerHTML='';render();});
+    tEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ticket=b.dataset.v;shown=null;note.innerHTML='';render();});
+    if(!shown){ out.innerHTML='<div class="simnote">Style and ticket are set. Press <b>run it</b>.</div>'; return; }
+    const R=RUNS[shown];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">'+(shown.startsWith('graph')?'THE MAP&rsquo;S RUN':'THE DRIVER&rsquo;S RUN')+'</div>'
+      +R.steps.map((s,i)=>'<div class="lzhop" style="border-left-color:'+(i===R.steps.length-1?(R.ok?'var(--green)':'var(--red)'):'var(--amber)')+'"><span class="n2">'+(i+1)+'</span><span><b style="font-weight:500;font-size:12.5px">'+s[0]+'</b><br><span style="color:var(--muted);font-size:12px">'+s[1]+'</span></span></div>').join('')
+      +'<div style="display:flex;gap:16px;margin-top:8px" class="fwbig">'
+      +'<span style="font-size:12px;color:var(--muted)">steps <b style="font-size:16px">'+R.steps.length+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">outcome <b style="font-size:16px;color:var(--'+(R.ok?'green':'red')+'">'+(R.ok?'resolved':'stuck')+'</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">control flow owned by <b style="font-size:16px">'+(shown.startsWith('graph')?'your code':'the model')+'</b></span></div>';
+  }
+  runB.onclick=()=>{ shown=mode+'|'+ticket; render(); note.innerHTML=RUNS[shown].n; };
+  render();
+})();
+
+/* ================= 5 · THE SELF-EDITOR (HERMES) ================= */
+document.getElementById('sec-fhermes').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">The self-editing agent: the thing you deployed is not the thing that runs next month</h2>
+  <div class="plain-line"><b>In plain English:</b> a Hermes-style agent improves itself as it works: it writes new <b>skills</b> (reusable code it will run later), curates its own <b>memory</b>, and refines its own instructions. That closed loop is genuinely valuable for one person&rsquo;s long-running assistant, and it quietly breaks the oldest rule of production software: <em>review, then release</em>. The artefact changes without a deploy. So the operator&rsquo;s job changes shape: from reviewing code to running <b>continuous evaluation</b>, keeping <b>versioned history</b> of every self-change, and holding a working <b>rollback</b>. And one attack gets sharper: a false fact written into memory is not one bad answer, it is a <b>durable</b> bad answer, repeating until someone finds the entry.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: a month of self-changes, one poisoned</h2>
+  <div class="plain-line"><b>Try this:</b> five self-change proposals arrive over a month. You hold two controls: an <b>eval gate</b> that scores each proposal against a pinned test set before it lands, and your own approve/reject judgement. On this pinned set, 80% and up is healthy and below 72% is trouble, and the month opens at 78%, a shade low. One of the five is a poisoned memory that the gate will score as harmless, because the gate can only test what its test set asks. Run the month and deal with what follows.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>An assistant who updates their own procedures binder each week. Mostly the binder gets better. One week a caller dictates a &ldquo;new supplier address&rdquo; into it, and every parcel afterwards goes to the wrong place until someone reads the binder&rsquo;s change log and finds the week it turned.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>leave the <b>eval gate on</b>, then judge each proposal with approve or reject as it arrives.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>skill</b> reusable code the agent wrote for itself and will run later with real permissions</span><span class="sp-w"><b>memory</b> facts the agent saved for future runs; wrong ones repeat until removed</span><span class="sp-w"><b>memory poisoning</b> planting a false fact in that memory, an attack that persists</span><span class="sp-w"><b>eval gate</b> a pinned test set every self-change must pass before it lands</span><span class="sp-w"><b>pinned test set</b> the same questions every time, so scores are comparable week to week</span><span class="sp-w"><b>version history</b> the log of every self-change: what changed, when, and what score it carried</span><span class="sp-w"><b>rollback</b> removing one landed change and returning to the version before it</span><span class="sp-w"><b>provenance</b> where a memory or skill came from: the field that catches the poison</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="fhOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE EVAL GATE</div>
+      <div class="segmented" id="fhGate" style="flex-direction:row"></div>
+      <div id="fhCtl" style="margin-top:10px"></div>
+      <div id="fhNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: a month of self-changes --- */
+(function(){
+  const out=document.getElementById('fhOut'), note=document.getElementById('fhNote'),
+        gEl=document.getElementById('fhGate'), ctl=document.getElementById('fhCtl');
+  if(!out) return;
+  const PROPS=[
+    {w:'week 1',kind:'new skill',desc:'parse_bank_pdf: extracts totals from statement PDFs it kept failing on',src:'written by the agent after 3 failures',d:+4},
+    {w:'week 1',kind:'memory write',desc:'&ldquo;user prefers weekly summaries, Mondays&rdquo;',src:'from the user, in chat',d:+1},
+    {w:'week 2',kind:'instruction edit',desc:'&ldquo;be more concise: skip caveats and confidence notes&rdquo;',src:'agent&rsquo;s own idea after user said &ldquo;too wordy&rdquo; once',d:-6},
+    {w:'week 3',kind:'memory write',desc:'&ldquo;supplier payment queries go to accounts@pay-desk.example&rdquo;',src:'from a retrieved customer document',d:0,poison:1},
+    {w:'week 4',kind:'skill refactor',desc:'parse_bank_pdf v2: handles two more bank layouts',src:'written by the agent',d:+2}
+  ];
+  let gate=1, cur=0, q=78, hist=[], done=false, incident=false, rolled=false;
+  function draw(){
+    const rows=hist.map((h,i)=>'<div class="fwrow'+(h.poisonHit?' mgr':'')+'"><span class="who">'+h.w+'</span><span style="flex:1">'+(h.ok?'&#10003; ':'&#10007; ')+h.kind+': '+h.desc.slice(0,58)+'&hellip;'+(h.rolledBack?' <b style="color:var(--green)">(rolled back)</b>':'')+'</span><span class="k" style="color:'+(h.d>0?'var(--green)':h.d<0?'var(--red)':'var(--muted)')+';white-space:nowrap">'+(h.gated?(h.d>0?'+':'')+h.d+' on evals':'not scored')+'</span></div>').join('');
+    out.innerHTML='<div style="display:flex;gap:16px;margin-bottom:8px" class="fwbig">'
+      +'<span style="font-size:12px;color:var(--muted)">agent quality (pinned set) <b style="font-size:18px;color:'+(q>=80?'var(--green)':q>=72?'var(--amber)':'var(--red)')+'">'+q+'%</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">version <b style="font-size:18px">v'+(hist.filter(h=>h.ok&&!h.rolledBack).length+1)+'</b></span></div>'
+      +'<div class="k" style="font-size:10.5px;color:var(--dim);margin:4px 0">VERSION HISTORY (every self-change, landed or not)</div>'
+      +(rows||'<div class="simnote">No changes yet. The first proposal is waiting on the right.</div>');
+  }
+  function render(){
+    gEl.innerHTML=[['on',1],['off (fly blind)',0]].map(([l,v])=>'<button class="seg'+(gate===v?' on':'')+'" data-v="'+v+'" style="flex:1;font-size:12px">'+l+'</button>').join('');
+    gEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ if(cur===0&&!done){gate=+b.dataset.v;render();} else note.innerHTML='<div class="simnote">The gate is set for this month. Reset to change it.</div>'; });
+    if(incident&&!rolled){
+      ctl.innerHTML='<div class="lzbad" style="font-size:12.5px"><b>&#128680; Week 5 incident.</b> A customer&rsquo;s payment query was sent to <b>accounts@pay-desk.example</b>, an address that belongs to nobody you know. Quality on the pinned set never moved, because no pinned question asks about supplier addresses.</div>'
+        +'<button class="seg" id="fhTrace" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; read the version history</button>';
+      document.getElementById('fhTrace').onclick=()=>{
+        rolled=true;
+        hist.forEach(h=>{ if(h.poison&&h.ok){h.rolledBack=true; h.poisonHit=true;} });
+        note.innerHTML='<div class="ok"><b>Found by history, not by code.</b> The week-3 memory write came <em>from a retrieved customer document</em>: provenance nobody checked at approval time. Rolled back, and the lesson lands: the gate scored it harmless because the pinned set never asks about supplier addresses, so a self-editing agent needs provenance rules for memory (documents do not get to write facts), not just an eval gate.</div>';
+        done=true; ctl.innerHTML='<button class="seg" id="fhAgain" style="width:100%;font-size:12px">&#9654; run the month again</button>';
+        document.getElementById('fhAgain').onclick=reset; draw(); return;
+      };
+      return;
+    }
+    if(cur>=PROPS.length){
+      done=true;
+      const landedPoison=hist.some(h=>h.poison&&h.ok);
+      const landedReg=hist.some(h=>h.d<0&&h.ok);
+      if(landedPoison){ incident=true; render(); return; }
+      ctl.innerHTML='<button class="seg" id="fhAgain" style="width:100%;font-size:12px">&#9654; run the month again</button>';
+      document.getElementById('fhAgain').onclick=reset;
+      note.innerHTML=landedReg
+        ? (gate
+          ? '<div class="lzwarn"><b>The month ends at '+q+'%.</b> The gate warned you, -6 on the pinned set, and the change shipped anyway. A gate only protects you if its score can veto a change, not merely annotate one.</div>'
+          : '<div class="lzwarn"><b>The month ends at '+q+'%.</b> With the gate off you approved a change that quietly cost 6 points, and nothing told you. That silence is the whole argument for continuous evaluation on a system that changes without deploys.</div>')
+        : '<div class="ok"><b>The month ends at '+q+'%: better than it started, nothing poisoned, everything versioned.</b> This is the healthy loop: the agent proposes, the gate scores, provenance is checked, and history can undo any single week. Self-improvement with the brakes fitted.</div>';
+      draw(); return;
+    }
+    const p=PROPS[cur];
+    ctl.innerHTML='<div class="lzhop" style="display:block;padding:11px 13px;border-left-color:var(--violet)"><b style="font-size:12.5px">'+p.w+' &middot; '+p.kind+'</b><br>'
+      +'<span style="font-size:12.5px">'+p.desc+'</span><br>'
+      +'<span class="k" style="font-size:10.5px;color:var(--dim)">source: '+p.src+'</span><br>'
+      +'<span class="k" style="font-size:11px;color:'+(gate?(p.d>0?'var(--green)':p.d<0?'var(--red)':'var(--muted)'):'var(--dim)')+'">'
+      +(gate?('eval gate: '+(p.d>0?'+':'')+p.d+' points on the pinned set'):'eval gate off: no score')+'</span></div>'
+      +'<div style="display:flex;gap:8px;margin-top:10px">'
+      +'<button class="seg" id="fhYes" style="flex:1;font-size:12px;color:var(--green)">approve</button>'
+      +'<button class="seg" id="fhNo" style="flex:1;font-size:12px;color:var(--red)">reject</button></div>';
+    document.getElementById('fhYes').onclick=()=>decide(true);
+    document.getElementById('fhNo').onclick=()=>decide(false);
+  }
+  function decide(ok){
+    const p=PROPS[cur];
+    hist.push({...p, ok, gated:!!gate});
+    if(ok) q+=p.d;
+    if(ok&&p.poison) note.innerHTML='<div class="simnote"><b>Landed.</b> The gate had no objection'+(gate?' (0 points: no pinned question touches supplier addresses)':'')+'. Keep going.</div>';
+    else if(!ok&&p.d>0) note.innerHTML='<div class="lzwarn"><b>Rejected a genuine improvement.</b> That is a real cost of caution: +'+p.d+' points forgone. The gate exists so caution can be spent where the score is bad, not everywhere.</div>';
+    else if(ok&&p.d<0) note.innerHTML=gate?'<div class="lzbad"><b>You approved a change the gate scored as a step backwards, a regression.</b> The gate told you: -6 on the pinned set. Conciseness that deletes caveats is a quality cut wearing a style hat.</div>':'<div class="simnote"><b>Landed, unscored.</b> With the gate off you will only meet this change&rsquo;s consequences later.</div>';
+    else if(!ok&&p.d<0) note.innerHTML='<div class="ok"><b>Rightly rejected'+(gate?': the gate&rsquo;s -6 did its job':' on instinct, with no gate to back you')+'.</b></div>';
+    else note.innerHTML='<div class="ok"><b>Landed.</b> '+(p.d>0?'+'+p.d+' on the pinned set.':'A harmless preference, remembered.')+'</div>';
+    cur++; draw(); render();
+  }
+  function reset(){ cur=0; q=78; hist=[]; done=false; incident=false; rolled=false; note.innerHTML=''; draw(); render(); }
+  draw(); render();
+})();
+
+/* ================= 6 · WHICH FRAME ================= */
+document.getElementById('sec-fpick').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Five frames, one loop, and the honest sixth option</h2>
+  <div class="plain-line"><b>In plain English:</b> the same table people wish existed. Every row is a real decision axis, and the last column is the one nobody prints: sometimes the right framework is no framework, because the loop really is an afternoon of code and every dependency is a security review you now own.</div>
+  <div style="overflow-x:auto"><table class="osi"><thead><tr><th>Frame</th><th>Who owns the next step</th><th>Its signature</th><th>Reach for it when</th><th>The bill</th></tr></thead><tbody>
+    <tr><td><b>LangGraph</b></td><td>the graph you drew</td><td>typed shared state, checkpoints, resume mid-run</td><td>the process is knowable and long, regulated or human-paced</td><td>you draw and maintain the map; verbose for simple jobs</td></tr>
+    <tr><td><b>CrewAI</b></td><td>roles you cast, or a manager</td><td>plain-prose roles and tasks; Flows for the fixed parts</td><td>the work maps to human job titles and non-engineers must read it</td><td>the inter-agent meeting is what you control least</td></tr>
+    <tr><td><b>Strands Agents</b></td><td>the model, every turn</td><td>model + prompt + tools, loop exposed, almost no orchestration code</td><td>the task is open-ended and you trust a strong model to plan</td><td>predictability; you pay it back in tracing and eval gates</td></tr>
+    <tr><td><b>ADK</b></td><td>you, inside a full kit</td><td>batteries included: sessions, memory, evals, a managed deploy path</td><td>you want the runway to production, especially on its home cloud</td><td>an opinionated kit and some lock-in to its surroundings</td></tr>
+    <tr><td><b>Hermes-style</b></td><td>the agent, over time</td><td>writes its own skills and curates its own memory</td><td>one person&rsquo;s long-running assistant, high trust, low blast radius</td><td>review-then-release breaks; ops becomes continuous eval</td></tr>
+    <tr><td><b>No framework</b></td><td>you, in plain code</td><td>a while-loop, your tools, your logging</td><td>one or two tools, a short loop, and you value owning every line</td><td>you rebuild sessions, retries and eval yourself as you grow</td></tr>
+  </tbody></table></div>
+  <div class="simnote" style="margin-top:10px">Names change yearly; the axes do not. A framework that cannot answer &ldquo;who owns the next step&rdquo; in one sentence is selling you a brand, not a philosophy.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: six jobs, six frames</h2>
+  <div class="plain-line"><b>Try this:</b> six real briefs, one best frame each, and yes, one of them is best served by no framework at all. Read for the deciding constraint, the same skill the whole guide keeps drilling: it is usually one clause, not the whole paragraph.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Choosing a vehicle for a job: the constraint picks it. Daily fixed route, a bus. Anywhere today, a taxi. Move a piano, a van. Nobody argues buses versus taxis in the abstract; they argue about the trip.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>find each brief&rsquo;s hard constraint before you look at the frames.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>frame</b> a framework, chosen by who owns the next step</span><span class="sp-w"><b>constraint</b> the one requirement that eliminates most options</span><span class="sp-w"><b>durable run</b> a process that survives crashes and long waits, resuming where it stopped</span><span class="sp-w"><b>blast radius</b> how much damage a wrong action can do; small radius allows more autonomy</span><span class="sp-w"><b>lock-in</b> how hard it is to leave later; a kit&rsquo;s surroundings are the stickiest part</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="fmpOut"></div></div>
+    <div><div id="fmpCtl"></div>
+      <div id="fmpNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: which frame matcher --- */
+(function(){
+  const out=document.getElementById('fmpOut'), ctl=document.getElementById('fmpCtl'), note=document.getElementById('fmpNote');
+  if(!out) return;
+  const FR=['LangGraph','CrewAI','Strands Agents','ADK','Hermes-style self-editor','No framework'];
+  const HOME=['a knowable process that must survive crashes and waits','work that maps to human job titles for non-engineers','an open-ended task you trust a strong model to plan','a kit with sessions, evals and a managed deploy path','one person&rsquo;s long-running self-improving assistant','a two-tool loop where you value owning every line'];
+  const JOBS=[
+   {a:0, key:'a regulated loan process that pauses days for human approval and must resume exactly where it stopped after any crash',
+    j:'A loan-adjudication agent: a fixed sequence of checks, a mandatory human sign-off that can take three days, and an auditor who wants the flow on paper. A crash must never restart the applicant from scratch.',
+    why:'Durable, resumable, drawn-in-advance: checkpoints and typed state are the whole reason this frame exists. The three-day wait is just a long gap between checkpoints.'},
+   {a:2, key:'an open-ended research task where you cannot pre-draw the steps and trust a strong model to plan',
+    j:'A research assistant that, given any question, decides for itself what to look up, in what order, using a bag of search and calculation tools. You cannot enumerate the paths in advance, and one of the newest, strongest models plans well.',
+    why:'Model-first: no map to draw, planning delegated to the model, orchestration code near empty. Pair it with tracing and eval gates, which is where its cost lands.'},
+   {a:1, key:'work a non-engineer domain team must read and edit as job roles',
+    j:'A market-research crew a non-technical insights team will own: they must be able to read who does what and tweak the brief without touching code. The work splits cleanly into researcher, analyst and writer.',
+    why:'Crew-first: prose roles are the interface, which is exactly what lets non-engineers read and edit it. The trade is least control over the meeting between agents.'},
+   {a:3, key:'you want the deploy runway and managed surroundings, on a specific cloud',
+    j:'A team standardising every internal agent on one cloud, who want sessions, memory, an eval harness and a managed deploy target out of the box, and accept the platform&rsquo;s opinions to get them.',
+    why:'Kit-first: the loop is a tenth of the need, and this brings the other nine tenths plus a runway to production. The bill is opinionation and some lock-in to the surroundings.'},
+   {a:5, key:'two tools, a short loop, and a team that wants to own every line and add no dependencies',
+    j:'A tiny internal tool: read a ticket, call two internal APIs, post a summary. The team is small, security review of dependencies is expensive here, and the loop is genuinely an afternoon of code.',
+    why:'No framework: the honest answer. A while-loop and two tools owe nothing to a library, and every dependency avoided is a supply-chain review avoided. Reach for a frame when sessions, retries and eval start costing more to hand-roll than to adopt.'},
+   {a:4, key:'a single trusted user&rsquo;s assistant that should get better on its own, with a small blast radius',
+    j:'A personal ops assistant for one power user, who wants it to learn their workflows and build its own shortcuts over months. It touches only that user&rsquo;s own low-risk systems.',
+    why:'Self-editing: the closed improvement loop shines for one user with a small blast radius. It breaks review-then-release, so the price is continuous evaluation, versioned history and a working rollback.'}
+  ];
+  let cur=0, score=0, answered=false, results=[];
+  function render(){
+    if(cur>=JOBS.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+JOBS.length+' first pick.</b> The routing:</div>'
+        +'<div style="margin-top:10px">'+JOBS.map((jb,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)">'
+        +'<span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'
+        +'<span style="flex:1">'+jb.key+'</span><span class="k" style="color:var(--accent);white-space:nowrap">'+FR[jb.a]+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="fpAgain" style="width:100%;font-size:12px">&#9654; back to brief one</button>';
+      document.getElementById('fpAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Every brief was decided by one constraint, not by which framework is fashionable. Durability picked LangGraph, readability CrewAI, open-endedness Strands, surroundings ADK, self-improvement Hermes, and smallness picked no framework at all.</div>';
+      return;
+    }
+    const jb=JOBS[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">BRIEF '+(cur+1)+' OF '+JOBS.length+'</div>'
+      +'<div class="lzhop" style="display:block;padding:12px 14px;border-left-color:var(--violet);font-size:13.5px;line-height:1.7">'+jb.j+'</div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE FRAME</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +FR.map((f,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+f+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const pick=+b.dataset.i, right=pick===jb.a;
+      if(!answered){answered=true; if(right) score++; results.push(right);}
+      if(right){
+        b.classList.add('on');
+        ctl.querySelectorAll('.seg').forEach(x=>{if(x!==b)x.disabled=true;});
+        note.innerHTML='<div class="ok"><b>Yes: '+FR[jb.a]+'.</b> '+jb.why+'</div>'
+          +'<button class="seg" id="fpNext" style="width:100%;margin-top:10px;font-size:12px">next brief &rarr;</button>';
+        document.getElementById('fpNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+      } else {
+        b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65';
+        note.innerHTML='<div class="lzbad"><b>'+FR[pick]+' is home to a different brief:</b> '+HOME[pick]+'. This brief&rsquo;s deciding constraint was <em>'+jb.key+'</em>. Try again.</div>';
+      }
+    });
+  }
+  render();
+})();
+
+/* ================= 7 · THE LANG FAMILY ================= */
+document.getElementById('sec-flang').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Lang-this, Lang-that: the suffix tells you nothing, the layer tells you everything</h2>
+  <div class="plain-line"><b>In plain English:</b> five products, four beginning &ldquo;Lang&rdquo;, endlessly confused because the names rhyme. They are not competitors on one shelf; they sit on <b>different layers</b> of the same stack, and two of them are not even made by the same company as the other three. Sort them by layer once and the confusion never comes back.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: put each product on its layer</h2>
+  <div class="plain-line"><b>Try this:</b> five products, five layers. Read each product&rsquo;s one-line job and drop it on the layer it belongs to. Wrong drops explain why the rhyme misleads. When all five are placed, the map is yours for good.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A kitchen. Someone hands you a recipe framework, a wiring diagram for a multi-course dinner, a dashboard of what every pan is doing, a drag-and-drop menu designer, and a second independent dashboard from a different supplier. Rhyming brand names, five different jobs.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drop <b>LangSmith</b> and <b>Langfuse</b> and notice they claim the <em>same</em> layer from two different companies.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>library</b> code you import to build with, the framework layer</span><span class="sp-w"><b>orchestration</b> wiring steps into a controlled flow, here the stateful-graph layer</span><span class="sp-w"><b>observability</b> tracing and evaluating a running app: watching, not building</span><span class="sp-w"><b>low-code / visual</b> building by dragging boxes instead of writing code</span><span class="sp-w"><b>vendor</b> the company behind a product; two here are not the LangChain company</span><span class="sp-w"><b>tool</b> a helper an agent can call: a search, a database, a connection to another system</span><span class="sp-w"><b>chain</b> a fixed sequence of steps wired together, model then tool then model: LangChain&rsquo;s original building block</span><span class="sp-w"><b>trace</b> the recorded steps of one run, the raw material observability reads</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="flgOut"></div></div>
+    <div><div id="flgCtl"></div>
+      <div id="flgNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: place each product on its layer --- */
+(function(){
+  const out=document.getElementById('flgOut'), ctl=document.getElementById('flgCtl'), note=document.getElementById('flgNote');
+  if(!out) return;
+  const LAYERS=[
+    {id:'lib', name:'Framework library', sub:'the toolbox you import to build agents and chains'},
+    {id:'orch', name:'Stateful orchestration', sub:'wiring steps into a controlled, resumable graph'},
+    {id:'obs', name:'Observability & evals', sub:'tracing and scoring a running app, not building it'},
+    {id:'visual', name:'Low-code visual builder', sub:'assembling flows by dragging boxes'}
+  ];
+  const PROD=[
+    {n:'LangChain', layer:'lib', vendor:'LangChain', one:'the original library of building blocks: models, prompts, tools, chains, memory',
+     why:'The framework layer. Everything else in this family either builds on it, watches it, or draws it. It is the toolbox, not the workshop.'},
+    {n:'LangGraph', layer:'orch', vendor:'LangChain', one:'stateful graphs with typed state, checkpoints and resume, from the same company',
+     why:'The orchestration layer, and tab two of this lab. Same vendor as LangChain, one layer up: when a chain needs branches, loops, state and durability, this is where it goes.'},
+    {n:'LangSmith', layer:'obs', vendor:'LangChain', one:'managed tracing, evaluation and monitoring, deepest for LangChain apps',
+     why:'The observability layer. It does not build the agent; it watches and scores one, with near-zero setup for LangChain and LangGraph apps. Closed source, hosted.'},
+    {n:'Langflow', layer:'visual', vendor:'not the LangChain company', one:'drag-and-drop canvas for building flows visually, a separate project',
+     why:'The visual layer, and the first trap: despite the name, Langflow is a different company&rsquo;s open-source project, not a LangChain product. Great for prototyping a flow without writing code.'},
+    {n:'Langfuse', layer:'obs', vendor:'not the LangChain company', one:'open-source tracing and evaluation, framework-agnostic',
+     why:'The observability layer again, and the second trap: Langfuse is an independent open-source competitor to LangSmith, not part of the family at all. Same job, different vendor, and it will trace any stack, LangChain or not.'}
+  ];
+  let placed={}, order=[0,1,2,3,4], sel=0;
+  function render(){
+    // layers as drop targets
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:8px">THE FOUR LAYERS (two products share one)</div>'
+      +LAYERS.map(L=>{
+        const here=PROD.map((p,i)=>({p,i})).filter(x=>placed[x.i]===L.id);
+        return '<div class="fwslot'+(here.length?' filled':'')+'" data-layer="'+L.id+'"><span class="k2">'+L.name+' &middot; '+L.sub+'</span>'
+          +(here.length?here.map(x=>'<span class="fwchip on" style="margin:2px 4px 0 0">'+x.p.n+' <span style="color:var(--dim)">('+x.p.vendor+')</span></span>').join(''):'<span style="color:var(--dim)">drop a product here</span>')+'</div>';
+      }).join('');
+    // remaining products as buttons
+    const rem=order.filter(i=>placed[i]===undefined);
+    if(!rem.length){
+      ctl.innerHTML='<button class="seg" id="flgAgain" style="width:100%;font-size:12px">&#9654; clear the board</button>';
+      document.getElementById('flgAgain').onclick=()=>{placed={};sel=0;note.innerHTML='';render();};
+      const traps=PROD.filter(p=>p.vendor!=='LangChain').map(p=>p.n).join(' and ');
+      note.innerHTML='<div class="ok"><b>All five placed. The map that ends the confusion:</b> LangChain builds, LangGraph orchestrates, LangSmith and Langfuse both watch, Langflow draws. The two you should never call LangChain products are <b>'+traps+'</b>: different companies entirely. The suffix rhymes; the layer is what matters.</div>';
+      return;
+    }
+    ctl.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">PLACE THIS PRODUCT</div>'
+      +'<div class="lzhop" style="display:block;padding:11px 13px;border-left-color:var(--violet)"><b style="font-size:13px">'+PROD[rem[sel]].n+'</b><br><span style="font-size:12px;color:var(--muted)">'+PROD[rem[sel]].one+'</span></div>'
+      +'<div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">DROP IT ON A LAYER</div>'
+      +'<div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +LAYERS.map(L=>'<button class="seg" data-layer="'+L.id+'" style="text-align:left;font-size:12px">'+L.name+'</button>').join('')+'</div>'
+      +(rem.length>1?'<button class="seg" id="flgSkip" style="width:100%;margin-top:8px;font-size:11px;color:var(--muted)">&#8635; a different product first</button>':'');
+    ctl.querySelectorAll('.seg[data-layer]').forEach(b=>b.onclick=()=>drop(rem[sel], b.dataset.layer));
+    const sk=document.getElementById('flgSkip'); if(sk) sk.onclick=()=>{sel=(sel+1)%rem.length;render();};
+  }
+  function drop(i, layer){
+    const p=PROD[i];
+    if(layer===p.layer){
+      placed[i]=layer; sel=0;
+      note.innerHTML='<div class="ok"><b>'+p.n+' &rarr; '+LAYERS.find(L=>L.id===layer).name+'.</b> '+p.why+'</div>';
+    } else {
+      note.innerHTML='<div class="lzbad"><b>Not '+LAYERS.find(L=>L.id===layer).name+'.</b> '+p.n+' is '+p.one+'. '+p.why+'</div>';
+    }
+    render();
+  }
+  render();
+})();
+
+/* ================= 8 · EXAM ANGLE ================= */
+document.getElementById('sec-fexam').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: drill the scenarios instead of reading them</h2>
+  <div class="plain-line"><b>Try this:</b> the same scenarios as below, one at a time, with the answer hidden. The alternatives are real answers to <em>other</em> scenarios here.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Flashcards versus a revision guide. Recognising an answer and producing one are different skills.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way an exam or an interviewer would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is a real answer to something else</span></span></div></div>
+  <div id="drillHost"></div>
+</div>
+
+<div class="card">
+  <h2 class="sec">The questions worth being ready for</h2>
+  <div class="exam-line"><b>&ldquo;Why do you even need a framework? Is it not just a while-loop?&rdquo;</b> &rarr; The loop is a while-loop, and for one or two tools you should write it. A framework sells an opinion about who owns the next step (a graph, a crew, the model, a kit) plus the surroundings you would otherwise rebuild: sessions, retries, streaming, human-in-the-loop, evaluation. Adopt one when hand-rolling those costs more than the dependency does.</div>
+  <div class="exam-line"><b>&ldquo;LangGraph or CrewAI?&rdquo;</b> &rarr; Ask who should own the flow. A knowable process that must survive crashes and long human waits wants LangGraph&rsquo;s drawn graph, typed state and checkpoints. Work that maps to human job titles and must be read by non-engineers wants CrewAI&rsquo;s prose roles. Answering &ldquo;it depends&rdquo; without naming the axis is the miss.</div>
+  <div class="exam-line"><b>&ldquo;What does model-first (Strands-style) actually give up?&rdquo;</b> &rarr; Predictability. Letting the model own the control flow means the least orchestration code and the most run-to-run variance in path, latency and cost, which is why its natural partners are tracing and evaluation gates, not more orchestration.</div>
+  <div class="exam-line"><b>&ldquo;A LangGraph run crashed mid-process. What survives?&rdquo;</b> &rarr; Whatever was in the checkpointed state after the last completed super-step. LangGraph writes a checkpoint each super-step, so the run resumes from there rather than restarting; a multi-day human approval is simply a long gap between checkpoints.</div>
+  <div class="exam-line"><b>&ldquo;Two parallel LangGraph nodes wrote the same state key and it errored. Why, and the fix?&rdquo;</b> &rarr; With no merge rule, LangGraph refuses to guess whose update wins and raises rather than silently dropping one. The fix is a reducer on that key (append to a list, add messages), which makes the parallel write legal. It is a data-model decision, not &ldquo;avoid parallelism&rdquo;.</div>
+  <div class="exam-line"><b>&ldquo;When is the right answer no framework at all?&rdquo;</b> &rarr; A short loop, one or two tools, a team that values owning every line, and a context where each dependency is a security review you must own. Reach for a frame only when sessions, retries, durability and evaluation start costing more to hand-roll than to adopt.</div>
+  <div class="exam-line"><b>&ldquo;What breaks operationally with a self-improving (Hermes-style) agent?&rdquo;</b> &rarr; Review-then-release. The artefact changes without a deploy, so debugging shifts from reading code to reading version history, evaluation must run continuously against a pinned set rather than once at release, and memory poisoning becomes a durable attack. Give the loop autonomy in proportion to its blast radius.</div>
+  <div class="exam-line"><b>&ldquo;Someone says LangChain, LangSmith, Langflow and Langfuse are competitors. Correct them.&rdquo;</b> &rarr; They sit on different layers: LangChain builds (library), LangGraph orchestrates (stateful graphs), LangSmith and Langfuse both observe (tracing and evals), Langflow draws (low-code canvas). And two are not the LangChain company at all: Langflow is a separate project, and Langfuse is an independent open-source competitor to LangSmith. The rhyme is the only thing they share.</div>
+  <div class="exam-line"><b>&ldquo;ADK versus rolling your own?&rdquo;</b> &rarr; ADK is kit-first: the loop is a tenth of what a production agent needs, and it brings the other nine tenths (sessions, memory, evals, a managed deploy path) plus opinions and some lock-in. Roll your own when you want to own every line and can absorb rebuilding those surroundings as you grow.</div>
+</div>`;
+</script>
+<script src="assets/version.js"></script>
+<script src="assets/lab.js"></script>
+</body>
+</html>
