@@ -5616,7 +5616,7 @@
     "difficulty": "Medium",
     "question": "Explain the ReAct pattern. Why does thinking and acting in turns beat generating the whole answer in one go?",
     "technical": [
-      "ReAct interleaves reasoning/planning with actions and observations rather than generating a complete answer in one pass.",
+      "ReAct's core operational loop is Thought, Action, Observation: reason about what is still needed, take one action (usually a tool call), read the result, and repeat, until the reasoning step decides it can produce the final answer.",
       "The agent can gather missing facts, adapt after tool results and correct a plan.",
       "Production implementations should store structured actions/observations and avoid exposing sensitive private reasoning.",
       "Set step limits and use deterministic checks because more steps also create more failure opportunities."
@@ -5629,7 +5629,8 @@
     "code": "Loop:\nassess state → choose tool → execute → observe → update plan → finish/escalate",
     "followups": [
       "When does ReAct become an expensive loop?",
-      "How are tool failures handled?"
+      "How are tool failures handled?",
+      "How would you stop it repeating the same failing call forever?"
     ],
     "redflags": [
       "Logs unrestricted chain-of-thought",
@@ -5703,7 +5704,8 @@
       "Plan-and-execute creates a higher-level plan then assigns/executes steps; it provides structure but can become stale when observations change.",
       "Iterative ReAct chooses the next action dynamically and adapts well but can wander or loop.",
       "Hybrid systems create a coarse plan, execute with checkpoints and re-plan only when needed.",
-      "Use deterministic workflows for known critical sequences."
+      "Use deterministic workflows for known critical sequences.",
+      "The exam-shaped failure: on long multi-step problems (a chained maths task, a migration) a pure ReAct agent can chase the immediate next step into a dead end and lose the overall goal. Plan-and-execute is the fix, because the written plan holds the goal's shape while execution grinds through the steps, re-planning only when an observation invalidates it."
     ],
     "layman": "One approach writes the full itinerary first; another chooses each next turn using current road conditions.",
     "usecases": [
@@ -5815,7 +5817,8 @@
       "Validate inputs for policy, injection and data classification; validate outputs against schemas and safety requirements.",
       "Run code or browser tools in sandboxed environments with restricted filesystem, network, time and resources.",
       "Use least-privilege scoped credentials and server-side resource authorisation.",
-      "Apply allowlists, rate/cost limits, content/DLP checks, monitoring and human approval."
+      "Apply allowlists, rate/cost limits, content/DLP checks, monitoring and human approval.",
+      "Absolute prohibitions (never name a competitor, never promise a refund) do not belong to prompts or model behaviour at all: enforce them as deterministic output gates, a blocklist or pattern check running after generation and before the user, with the prompt merely reducing how often the gate fires. Weights make it rare; gates make it never."
     ],
     "layman": "Give the agent child-safe tools: limited keys, fenced work areas, spending caps and adult approval for dangerous actions.",
     "usecases": [
@@ -5825,7 +5828,8 @@
     "code": "Guardrail layers:\ninput → policy → model → tool proposal → auth/schema → sandbox → output/DLP → audit",
     "followups": [
       "Can output filtering replace tool permissions?",
-      "How are sandboxes reset?"
+      "How are sandboxes reset?",
+      "Compliance says the agent must never mention competitor names: where does that rule live?"
     ],
     "redflags": [
       "Relies on prompt-only guardrails",
@@ -6179,7 +6183,8 @@
       "Analyse trajectories for planning quality, tool accuracy, unnecessary steps, recovery, policy compliance and human intervention.",
       "Check tool-call accuracy in detail: tool selection, arguments, authorisation and execution outcome.",
       "Benchmarks such as coding or general-assistant suites are useful, but product-specific environments and hidden tests are essential.",
-      "Report success, cost, latency, variance and failure categories across repeated runs."
+      "Report success, cost, latency, variance and failure categories across repeated runs.",
+      "Text-overlap metrics (ROUGE, BLEU) are insufficient for agents: they score wording overlap against a reference, but an agent can be right in countless wordings, fluently wrong in perfect prose, and the final text says nothing about whether the trajectory behind it picked the right tools, in the right order, at an acceptable cost. Score the trajectory and the verified outcome, not n-gram overlap."
     ],
     "layman": "Test whether the team completes the real job safely and efficiently, not just whether its final report sounds good.",
     "usecases": [
@@ -6190,7 +6195,8 @@
     "followups": [
       "How many repeated runs are needed?",
       "How are environment side effects reset?",
-      "How do you score partially completed tasks?"
+      "How do you score partially completed tasks?",
+      "When would ROUGE or BLEU still be an appropriate metric?"
     ],
     "redflags": [
       "One demo run",
@@ -6652,6 +6658,7 @@
     "difficulty": "High",
     "question": "You fan out to three retrieval nodes to save time and the graph dies with an error about receiving more than one value per step. What went wrong, and how do you fan out properly?",
     "technical": [
+      "The base model first: one shared, typed state schema flows through the graph. Each node receives the current state and returns a partial update, LangGraph merges the updates between super-steps, and a checkpointer persists the merged result per thread. Everything below is about what happens when two updates collide.",
       "Two nodes in the same super-step wrote the same state key. LangGraph refuses to guess and raises <code>InvalidUpdateError</code>, because the right answer is a design decision: append, merge, or last-write-wins.",
       "Declare it with a reducer on the key. <code>Annotated[list[Doc], operator.add]</code> concatenates, <code>add_messages</code> appends and updates messages by id, and a custom reducer can dedupe or merge by score. Without one, a key holds a single writer per step.",
       "For dynamic fan-out, where the number of branches depends on the data, use <code>Send</code> from a conditional edge. It creates one task per item with its own input, instead of trying to draw N branches into a static graph.",
@@ -8207,5 +8214,165 @@
       "Golden set never grows from production incidents"
     ],
     "memory": "A gate is trustworthy when the same commit gets the same verdict twice; thresholds live in the gaps, not on the cluster."
+  },
+  {
+    "id": "react-loop-breaker",
+    "title": "Breaking the ReAct Loop",
+    "category": "AI Agents",
+    "difficulty": "Medium",
+    "question": "An agent is stuck in a ReAct loop: the same tool, the same arguments, the same error, round after round, never reaching an answer. What is the best architectural mitigation, and what backs it up?",
+    "technical": [
+      "The root cause: the model sees its failed call in the context but nothing forces a change of course. If the error text is terse or missing, the most probable next action is the same action again, and probability is all the model has.",
+      "The best single mitigation is loop detection in the orchestrator: fingerprint every call (tool name plus normalised arguments), and when a fingerprint repeats, intervene deterministically. Block the duplicate, inject an observation saying this exact call already failed and why, and require a different action or a final answer. This lives in code, not in the prompt.",
+      "Cap the loop anyway: a maximum-iterations budget with a graceful exit (partial answer, escalation to a human) turns an infinite loop into a bounded cost. It is a backstop, not the fix, because it truncates the loop rather than repairing it.",
+      "Make errors informative: a structured tool error saying what failed, why, and what a valid call looks like changes the model's next attempt; a bare status code invites the identical retry. Many 'stuck agents' are really 'mute tools'.",
+      "A reflection step (a critic reviewing the trajectory every few steps) catches the subtler loop: different arguments, same futile strategy. It costs a model call, so reserve it for long-running agents where the loop tax is worth paying."
+    ],
+    "layman": "Someone redialling a number that gives the same busy tone. You do not fix that with advice; the phone itself should notice the third identical dial, refuse it, and say out loud: that number has failed twice, try another route or hang up.",
+    "usecases": [
+      "Hardening a ReAct or tool-calling loop for production",
+      "Certification and interview questions on agent failure modes",
+      "Designing the orchestrator layer around any agent framework"
+    ],
+    "code": "the orchestrator's loop guard:\n\nseen = set()\nfp = hash(tool, canonical(args))\nif fp in seen:\n    block the call\n    observation = \"You already called this tool with these\n      arguments and it failed: <error>. Choose a different\n      action, or give your final answer.\"\nseen.add(fp); steps += 1\nif steps > MAX_STEPS: exit with partial answer, escalate",
+    "followups": [
+      "Why is a max-iterations cap alone not enough?",
+      "What belongs in a good tool error message?",
+      "When does a reflection step earn its extra latency and cost?"
+    ],
+    "redflags": [
+      "Fixes loops purely by prompt engineering",
+      "Ships an agent loop with no iteration cap",
+      "Tools that fail with bare status codes and no reason"
+    ],
+    "memory": "The loop breaks in code, not in the prompt: fingerprint the call, block the repeat, say why."
+  },
+  {
+    "id": "parallel-function-calling",
+    "title": "Parallel Function Calling: Five Cities, One Turn",
+    "category": "AI Agents",
+    "difficulty": "Medium",
+    "question": "An agent must gather weather for five cities using a model's parallel function calling. How is the interaction actually structured, and when does the pattern not apply?",
+    "technical": [
+      "In one model turn the response contains a list of function calls rather than one: here, five calls to the same weather function with five different city arguments, each carrying its own call id.",
+      "The application executes the calls, and because they are independent it can run all five concurrently. Latency becomes the slowest single call, not the sum of five.",
+      "All five results go back to the model together in the next turn, each result matched to its call id, and the model writes one synthesis across them.",
+      "The round-trip arithmetic is the point: one model turn, one concurrent batch of tool work, one closing model turn, instead of ten or more alternating turns. Fewer turns also means fewer chances to wander.",
+      "It does not apply when calls depend on each other: if the second call needs the first call's output (find the flight, then book a hotel for the arrival date), those are sequential turns by nature. The model chooses parallel or sequential from the task's shape, so the executor must handle both."
+    ],
+    "layman": "Ordering all five dishes at once, so the kitchen cooks on five burners, versus ordering the next dish only when the last one lands. Same food, one dinner finishes an hour earlier. But you cannot order a dessert wine to match whatever main happens to arrive: a choice that depends on a result has to wait for it.",
+    "usecases": [
+      "Fan-out data gathering (several cities, several accounts, several documents)",
+      "Cutting agent latency without changing the model",
+      "Designing tool executors that honour call ids"
+    ],
+    "code": "turn 1  model returns: [get_weather(city=Paris),\n         get_weather(city=Oslo), ... 5 calls, each with an id]\n        app runs all five concurrently\nturn 2  app returns five results, each tagged with its call id\n        model writes one answer across all five\n\ndependent calls (flight -> hotel on the arrival date):\n        sequential turns, by nature",
+    "followups": [
+      "How does the executor match results back to calls?",
+      "What should happen when one of the five calls fails?",
+      "Why does the tool schema still describe a single call?"
+    ],
+    "redflags": [
+      "Executes parallel calls one at a time and wonders about latency",
+      "Returns results without their call ids",
+      "Forces parallelism onto calls that depend on each other"
+    ],
+    "memory": "One turn, many calls; one batch, many results; one synthesis. Parallel when independent, sequential when chained."
+  },
+  {
+    "id": "conversation-memory-strategies",
+    "title": "Conversation Memory: Buffer, Window, Summary, and the Hybrid",
+    "category": "LangChain Stack",
+    "difficulty": "Medium",
+    "question": "A long support conversation keeps exceeding the context window, and losing the overarching context is not acceptable. Which memory strategy fits, and what does each classic type trade away?",
+    "technical": [
+      "Buffer memory keeps every turn verbatim: perfect fidelity until the window bursts, which is precisely the failure in the scenario.",
+      "Window memory keeps only the last k turns: bounded forever, but the overarching context (who the customer is, the fault history, what was already promised) falls off the back, the one loss the scenario forbids.",
+      "Summary memory replaces the history with a rolling model-written summary: bounded and theme-preserving, but recent wording blurs and every turn pays an extra summarisation call.",
+      "The fit is the summary-buffer hybrid (LangChain's ConversationSummaryBufferMemory): recent turns stay verbatim under a token budget, and everything older is folded into the rolling summary. Recency stays sharp, the arc of the conversation survives, and the size is bounded.",
+      "The same pattern outlives the class names: in LangGraph, memory is state you manage: a messages channel trimmed by a summarising step, with a checkpointer persisting it per thread. And this is within-conversation memory; remembering a user across sessions is a different problem with a different store."
+    ],
+    "layman": "Minutes of a long meeting: the last ten minutes word for word on your notepad, everything earlier condensed into a tidy paragraph of minutes. You can quote exactly what was just said and still remember what the whole meeting has been about.",
+    "usecases": [
+      "Long-running support and advisory conversations",
+      "Certification questions on LangChain memory types",
+      "Designing the trimming step in a LangGraph state schema"
+    ],
+    "code": "window blown, arc must survive:\n  keep   last N turns verbatim        (token budget)\n  fold   older turns -> rolling summary (model-written)\n  prompt = summary + recent turns\n\nbuffer   all verbatim   bursts the window\nwindow   last k turns   forgets the arc\nsummary  all folded     blurs recency, pays per turn\nhybrid   both halves    the scenario's answer",
+    "followups": [
+      "What does the summariser cost per turn, and which model runs it?",
+      "What is lost forever once a turn is folded into the summary?",
+      "How does this map onto LangGraph state, reducers and checkpointers?"
+    ],
+    "redflags": [
+      "Picks window memory when the arc matters",
+      "Lets the rolling summary itself grow without bound",
+      "Confuses conversation memory with cross-session user memory"
+    ],
+    "memory": "Recent turns verbatim, the rest folded into a running summary: the hybrid keeps the words and the arc."
+  },
+  {
+    "id": "semantic-routing",
+    "title": "Semantic Routing: Triage Without an LLM",
+    "category": "AI Agents",
+    "difficulty": "Medium",
+    "question": "Queries must reach the right specialist agent (Billing, Tech Support, Sales) on a low-latency path. What is the faster alternative to an LLM supervisor, and what do you give up?",
+    "technical": [
+      "An LLM supervisor reads each query and decides where it goes: flexible and able to explain itself, but it costs a full model call (hundreds of milliseconds and real tokens) before any actual work begins.",
+      "The fast alternative is a semantic router: embed the incoming query, compare it against stored example embeddings for each route, and send it to the nearest route above a similarity threshold. Tens of milliseconds, near-zero cost, and the same input always routes the same way.",
+      "There is an even cheaper layer zero: plain rules (keywords, patterns, account flags) for the unambiguous fraction: 'refund' and 'invoice' do not need embeddings to find Billing.",
+      "What you give up is judgement. Similarity is not intent: sarcasm, multi-intent messages and novel phrasings can land near the wrong examples. The honest design is layered: rules, then semantic match, and only the below-threshold residue goes to an LLM supervisor or a clarifying question.",
+      "Routers rot: log misroutes, refresh each route's example utterances from real traffic, and evaluate the router like any classifier, with a confusion matrix per route."
+    ],
+    "layman": "A hospital front desk. The receptionist does not convene a panel of consultants for every walk-in: the broken arm goes to X-ray on sight. The panel is saved for the person whose problem does not look like anything on the signs.",
+    "usecases": [
+      "High-volume support triage in front of specialist agents",
+      "Cutting cost and latency of a supervisor pattern",
+      "Certification questions on multi-agent routing"
+    ],
+    "code": "layer 0  rules: 'refund', 'invoice' -> Billing        ~0 ms\nlayer 1  semantic: embed(query) vs route examples      ~10 ms\n         best similarity above threshold -> route\nlayer 2  fallback: LLM supervisor, or ask the user     ~500 ms\n\nonly the ambiguous residue ever pays for a model call",
+    "followups": [
+      "Where do each route's example utterances come from, and who maintains them?",
+      "What should happen to a genuinely multi-intent query?",
+      "How do you measure misroutes in production?"
+    ],
+    "redflags": [
+      "Pays an LLM call to route 'where is my invoice'",
+      "No fallback below the similarity threshold",
+      "Router never re-evaluated after launch"
+    ],
+    "memory": "Route by similarity, judge by exception: rules first, embeddings second, the LLM only for the residue."
+  },
+  {
+    "id": "nemo-guardrails",
+    "title": "NeMo Guardrails and Colang: Scripting the Conversation's Rails",
+    "category": "Agent Frameworks & Runtimes",
+    "difficulty": "Medium",
+    "question": "What does NeMo Guardrails use to enforce conversational policy, and where does it fit best compared with a deterministic filter or a managed safety service?",
+    "technical": [
+      "NeMo Guardrails is an open-source toolkit that wraps an LLM application in programmable rails: checkpoints where policy runs. There are five: input rails (the user's message), dialog rails (which conversational flows are allowed), retrieval rails (fetched chunks), execution rails (tool calls) and output rails (the final answer).",
+      "Its signature is Colang, a small purpose-built dialogue language: you define canonical user intents and flows ('user asks about competitors, bot politely declines'), and at runtime the user's actual words are matched to those intents by embedding similarity, not by regex.",
+      "Because the rails are dialogue-level, it suits policies about conversational behaviour: steering off forbidden topics, scripting how sensitive subjects are handled, holding a persona, and orchestrating calls to moderation models as actions inside a rail.",
+      "Where it is the wrong tool: a single absolute ban (never output these strings) is a deterministic output gate in ten lines of code; generic harm categories are already covered by managed safety services (cloud content filters, gateway-level screening) with no code at all.",
+      "The honest layering: managed filter for generic safety, dialogue rails for house conversational policy, deterministic gates for absolutes. Rails cost latency (embedding matches plus extra model calls per turn), so they are measured like any other guardrail."
+    ],
+    "layman": "A theatre's front-of-house team works from a script of situations: if a guest asks about the rival theatre, there is a polite line ready for that. The script book is Colang, and it governs conversations. The fire alarm is not in the script book: it is wired to go off regardless, and that is the deterministic gate.",
+    "usecases": [
+      "Dialogue-level policy on self-hosted assistants",
+      "Scripting how regulated topics are handled",
+      "Deciding rails vs gates vs managed filters in a compliance review"
+    ],
+    "code": "the five rail checkpoints:\n  input rail      user message screened or redirected\n  dialog rail     Colang flow decides what may happen next\n  retrieval rail  fetched chunks screened\n  execution rail  tool calls screened\n  output rail     final answer checked\n\ncolang sketch:\n  define user ask competitor\n    \"what do you think of <rival bank>?\"\n  define flow\n    user ask competitor\n    bot decline politely",
+    "followups": [
+      "How are Colang intents matched at runtime, and what does that cost per turn?",
+      "For an absolute output ban, which rail would you use, and would a deterministic gate be better?",
+      "How do rails compose with a managed content filter already on the gateway?"
+    ],
+    "redflags": [
+      "Reaches for a dialogue framework to enforce one banned-words list",
+      "Treats rails as latency-free",
+      "Assumes rails replace authorisation and sandboxing"
+    ],
+    "memory": "Colang scripts the conversation at five rail checkpoints; absolutes still belong to deterministic gates."
   }
 ]
