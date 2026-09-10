@@ -1,6 +1,6 @@
 # Learning Guide
 
-A static learning guide for Technical Lead & AI Engineer topics, covering 283 topics. No build step, no dependencies, no external requests, just serve the folder.
+A static learning guide for Technical Lead & AI Engineer topics, covering 284 topics. No build step, no dependencies, no external requests, just serve the folder.
 
 Each topic is broken down into:
 - 🧠 Technical answer
@@ -53,7 +53,9 @@ frames.html       Agent-frameworks lab: five ways to build the same
                   self-editor), which frame for which job including no
                   framework at all, and the Lang family untangled
                   (LangChain, LangGraph, LangSmith, Langflow, Langfuse)
-                  by layer and vendor
+                  by layer and vendor, and the Runnables and LCEL
+                  bricks (Sequence, Parallel, Passthrough, Lambda,
+                  Branch) that make LangChain compose
 evals.html        Evaluation lab, why testing breaks on generative systems,
                   metrics and autoraters, rubrics, trajectories and golden
                   paths, offline vs online, the managed platform, ADK
@@ -140,10 +142,10 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, lab-to-topic mapping
-data/topics.json  The 283 topics as plain JSON (incl. per-topic difficulty)
+data/topics.json  The 284 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 245 simulations across the nineteen labs. Every one carries a
+There are 247 simulations across the nineteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -211,7 +213,7 @@ somebody deciding whether to open it. The detail lives in the lab; the card only
 has to be scannable alongside seventeen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
-the 283 topics that lab actually covers, 50 for the Cloud lab, 37 for
+the 284 topics that lab actually covers, 50 for the Cloud lab, 37 for
 Evaluation, 33 for the diagram lab. Clicking it opens the browse view filtered
 to just those, rather than the whole pile. The map from lab to categories lives
 in `assets/app.js` (`LABS`); the counts are computed from `data/topics.json` at

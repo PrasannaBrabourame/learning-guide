@@ -56,6 +56,7 @@
     <button class="tab" data-pane="fhermes" role="tab">The self-editor</button>
     <button class="tab" data-pane="fpick" role="tab">Which frame</button>
     <button class="tab" data-pane="flang" role="tab">The Lang family</button>
+    <button class="tab" data-pane="fbricks" role="tab">The five bricks</button>
     <button class="tab" data-pane="fexam" role="tab">Exam angle</button>
   </div>
 
@@ -66,6 +67,7 @@
   <section class="pane" id="pane-fhermes"><div id="sec-fhermes"></div></section>
   <section class="pane" id="pane-fpick"><div id="sec-fpick"></div></section>
   <section class="pane" id="pane-flang"><div id="sec-flang"></div></section>
+  <section class="pane" id="pane-fbricks"><div id="sec-fbricks"></div></section>
   <section class="pane" id="pane-fexam"><div id="sec-fexam"></div></section>
 
   <footer class="lab-foot">
@@ -697,6 +699,138 @@ document.getElementById('sec-flang').innerHTML=`
   render();
 })();
 
+/* ================= 7b · THE FIVE BRICKS (LCEL) ================= */
+document.getElementById('sec-fbricks').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">One socket, five bricks: what actually makes LangChain a framework</h2>
+  <div class="plain-line"><b>In plain English:</b> the Lang-family tab called LangChain &ldquo;the library&rdquo;. This is the idea that turns a pile of parts into a framework. Every piece (a prompt, a model, a parser, a plain function) is wrapped as a <b>Runnable</b>, and every Runnable has the <em>same three sockets</em>: <b>invoke</b> (one input), <b>batch</b> (a list at once) and <b>stream</b> (token by token), with async versions thrown in free. Because the sockets match, any brick snaps onto any other, and the <b>pipe</b> symbol <code>|</code> is just shorthand for &ldquo;feed the left brick&rsquo;s output into the right one&rsquo;s input&rdquo;. That chain of pipes is called <b>LCEL</b>. There are only five bricks worth knowing, and they differ in exactly one thing: what they do to the data passing through.</div>
+  ${D('0 0 660 120','Four different pieces, all wearing the same Runnable socket, snapping together with the pipe operator.',
+   `${box(20,40,120,44,'var(--blue)')}${t(80,60,'prompt',SANS)}${tm(80,76,'Runnable','var(--dim)')}
+    ${box(180,40,120,44,'var(--violet)')}${t(240,60,'model',SANS)}${tm(240,76,'Runnable','var(--dim)')}
+    ${box(340,40,120,44,'var(--teal)')}${t(400,60,'parser',SANS)}${tm(400,76,'Runnable','var(--dim)')}
+    ${box(500,40,140,44,'var(--amber)')}${t(570,60,'your function',SANS)}${tm(570,76,'Runnable','var(--dim)')}
+    ${t(160,66,'|',SANS)}${t(320,66,'|',SANS)}${t(480,66,'|',SANS)}`,
+   'Different jobs, identical connectors. The pipe between them is the whole trick: output of one becomes input of the next, and the result is itself a Runnable you can pipe into something bigger.')}
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: run each brick and watch the data change shape</h2>
+  <div class="plain-line"><b>Try this:</b> the five bricks, each on its own real example. Press <b>run</b> and follow the data from input to output: the only thing to watch is <em>how the shape changes</em>, because that shape is the entire difference between the five.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A kitchen&rsquo;s prep line where every gadget has the same clip-on fitting. A peeler, a grater, a splitter that sends one carrot down two chutes, a plain hand-chopping station: all clip to the same rail, so you rearrange the line freely. The bricks are the gadgets; the rail is the shared socket.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>run <b>RunnableSequence</b> first, then <b>RunnableParallel</b>, and compare what comes out: one value versus a labelled bundle.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>Runnable</b> any piece wrapped with the standard sockets, so it can be piped to any other</span><span class="sp-w"><b>invoke / batch / stream</b> the three shared sockets: one input, a list at once, token by token</span><span class="sp-w"><b>pipe (|)</b> feed the left brick&rsquo;s output into the right brick&rsquo;s input</span><span class="sp-w"><b>LCEL</b> LangChain Expression Language: chains written as bricks joined by pipes</span><span class="sp-w"><b>dict</b> a labelled bundle of values, like {topic: &ldquo;AI&rdquo;}: the shape most bricks pass around</span><span class="sp-w"><b>prompt</b> a template that turns a dict into the text sent to the model</span><span class="sp-w"><b>parser</b> a brick that turns the model&rsquo;s raw reply into clean text, or into tidy labelled fields you can reuse</span><span class="sp-w"><b>lambda / function</b> a plain piece of your own code wrapped as a brick</span><span class="sp-w"><b>message</b> the model&rsquo;s full reply: the words plus hidden labels wrapped around them</span><span class="sp-w"><b>string / plain text</b> a plain run of text with nothing wrapped around it</span><span class="sp-w"><b>concurrent</b> done at the same moment, side by side rather than one after another</span><span class="sp-w"><b>routed</b> sent down one chosen path, not the others</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="fbOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE BRICK</div>
+      <div class="segmented" id="fbPick" style="flex-direction:column;align-items:stretch"></div>
+      <div id="fbSub" style="margin-top:10px"></div>
+      <button class="seg" id="fbRun" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>run this brick</b></button>
+      <div id="fbNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+<div class="card">
+  <h2 class="sec">Try it: build the RAG chain, and lose the question</h2>
+  <div class="plain-line"><b>Try this:</b> the example every LangChain tutorial reaches for, and the reason Passthrough exists. A retrieval-augmented answer needs two things at the prompt: the fetched <b>context</b> and the user&rsquo;s original <b>question</b>. Assemble the chain, then toggle the question&rsquo;s Passthrough off and watch the prompt arrive half-empty, because the retrieval brick only produces context and the question is thrown away unless something carries it forward.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A librarian who fetches the right three books but forgets what you asked. The books are on the desk (the context) and the question that sent them there is gone, so the answer is confidently about the wrong thing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>leave both branches on and press <b>run the chain</b>, then switch the <b>question branch</b> off and run it again.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>RAG</b> retrieval-augmented generation: fetch relevant documents, then answer from them</span><span class="sp-w"><b>retriever</b> the brick that fetches documents related to the question</span><span class="sp-w"><b>context</b> the fetched documents, formatted into text for the prompt</span><span class="sp-w"><b>format_docs</b> a RunnableLambda that joins the fetched documents into one block of text</span><span class="sp-w"><b>Passthrough</b> the brick carrying the untouched question alongside the context</span><span class="sp-w"><b>prompt slot</b> a blank in the template, like {question}, filled by the value that carries the matching label</span><span class="sp-w"><b>parser</b> the last brick, which tidies the model&rsquo;s reply into plain text</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="frgOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE PARALLEL BRANCHES INTO THE PROMPT</div>
+      <div class="segmented" id="frgCtl" style="flex-direction:column;align-items:stretch"></div>
+      <button class="seg" id="frgRun" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>run the chain</b></button>
+      <div id="frgNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the brick bench --- */
+(function(){
+  const out=document.getElementById('fbOut'), note=document.getElementById('fbNote'),
+        pickEl=document.getElementById('fbPick'), subEl=document.getElementById('fbSub'), runB=document.getElementById('fbRun');
+  if(!out) return;
+  const B={
+    seq:{n:'RunnableSequence  (the pipe |)', code:'chain = prompt | model | parser\nchain.invoke({"topic": "machine learning"})',
+      flow:[['input','{topic: &ldquo;machine learning&rdquo;}','dict'],['prompt','&ldquo;Tell me a joke about machine learning.&rdquo;','prompt text'],['model','AIMessage(&ldquo;Why did the neural network break up with the dataset?&rdquo;)','message'],['parser','&ldquo;Why did the neural network break up with the dataset?&rdquo;','plain text']],
+      note:'<div class="ok"><b>Linear: each brick&rsquo;s output is the next brick&rsquo;s input.</b> Watch the shape change: a dict becomes the prompt text, the model wraps its reply in a message object (words plus hidden labels), and the parser strips that back to plain words. There is only ever one value in flight. <code>prompt | model | parser</code> IS a RunnableSequence: the pipe is just a friendly shorthand, and the RunnableSequence is the real thing it builds.</div>'},
+    par:{n:'RunnableParallel  (one in, many out)', code:'RunnableParallel(\n  tweet=tweet_chain,\n  linkedin=linkedin_chain\n).invoke({"topic": "AI agents"})',
+      flow:[['input','{topic: &ldquo;AI agents&rdquo;}','dict'],['both branches get the SAME input','tweet_chain &nbsp;&amp;&nbsp; linkedin_chain run at once','concurrent'],['output','{tweet: &ldquo;AI agents just automated my job 🤖&rdquo;, linkedin: &ldquo;Three ways AI agents change delivery: 1)&hellip;&rdquo;}','dict']],
+      note:'<div class="ok"><b>One input in, a labelled bundle out.</b> Every branch receives the <em>identical</em> input and they run at the same time; the result is a dict keyed by the names you gave. This is how you get several independent things from one input without you having to arrange the all-at-once part yourself.</div>'},
+    pass:{n:'RunnablePassthrough  (keep the input)', code:'RunnableParallel(\n  original=RunnablePassthrough(),\n  joke=(prompt | model | parser)\n).invoke({"topic": "AI"})',
+      flow:[['input','{topic: &ldquo;AI&rdquo;}','dict'],['passthrough','{topic: &ldquo;AI&rdquo;}  (unchanged)','dict'],['output','{original: {topic: &ldquo;AI&rdquo;}, joke: &ldquo;Why did the AI cross the road?&rdquo;}','dict']],
+      note:'<div class="ok"><b>It does nothing, on purpose.</b> Passthrough hands its input straight out, so you can keep the original alongside something computed from it. On its own it looks pointless; paired inside a Parallel it is how the first value survives instead of being thrown away by the next brick.</div>'},
+    lam:{n:'RunnableLambda  (your own code)', code:'def count_words(text):\n  return {"text": text, "word_count": len(text.split())}\nchain = prompt | model | parser | RunnableLambda(count_words)',
+      flow:[['input (from parser)','&ldquo;Why did the neural network break up&rdquo;','string'],['RunnableLambda(count_words)','your plain Python function runs','function'],['output','{text: &ldquo;Why did the neural network break up&rdquo;, word_count: 7}','dict']],
+      note:'<div class="ok"><b>Any function becomes a brick.</b> Wrap a plain callable and it gains the same sockets as everything else, so your custom logic (clean the input, count words, reshape a dict) snaps into the pipe exactly where you need it. This is the escape hatch that stops you leaving LCEL for a stray transformation.</div>'},
+    br:{n:'RunnableBranch  (a fork)', code:'RunnableBranch(\n  (lambda t: len(t.split()) > 200, summarize),\n  RunnablePassthrough()   # default\n)',
+      flow:[['input','a 350-word essay on computing history','long text'],['condition: more than 200 words?','yes &rarr; take the summarize branch','routed'],['output','&ldquo;Computing history in three sentences: &hellip;&rdquo;','short text']],
+      alt:[['input','a 40-word note','short text'],['condition: more than 200 words?','no &rarr; fall through to the default','routed'],['output','the 40-word note, unchanged','short text']],
+      note:'<div class="ok"><b>The first matching condition wins; the last entry is the default.</b> Branch reads the input, checks each condition in order, and routes to the first that fits (or the default if none do). Long answers get summarised, short ones pass through untouched: one chain, two behaviours, decided by the data.</div>'}
+  };
+  const ORDER=['seq','par','pass','lam','br'];
+  let cur='seq', shown=false, altOn=false;
+  function render(){
+    pickEl.innerHTML=ORDER.map(k=>'<button class="seg'+(cur===k?' on':'')+'" data-k="'+k+'" style="text-align:left;font-size:12px">'+B[k].n+'</button>').join('');
+    pickEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{cur=b.dataset.k;shown=false;altOn=false;note.innerHTML='';render();});
+    subEl.innerHTML = cur==='br'
+      ? '<div class="segmented" style="flex-direction:column;align-items:stretch"><button class="seg'+(!altOn?' on':'')+'" data-alt="0" style="text-align:left;font-size:12px">a long input (350 words)</button><button class="seg'+(altOn?' on':'')+'" data-alt="1" style="text-align:left;font-size:12px">a short input (40 words)</button></div>'
+      : '';
+    subEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{altOn=b.dataset.alt==='1';shown=false;note.innerHTML='';render();});
+    const brick=B[cur];
+    let body='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE CODE</div>'
+      +'<pre style="font:11.5px ui-monospace,Menlo,monospace;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:11px 13px;overflow-x:auto;margin:0 0 12px">'+brick.code+'</pre>';
+    if(shown){
+      const flow=(cur==='br'&&altOn)?brick.alt:brick.flow;
+      body+='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE DATA, STAGE BY STAGE</div>'
+        +flow.map((f,i)=>'<div class="lzhop" style="border-left-color:'+(i===0?'var(--wire)':i===flow.length-1?'var(--green)':'var(--amber)')+'"><span class="n2">'+(i+1)+'</span><span><b style="font-weight:500;font-size:12.5px">'+f[0]+'</b><br><span style="font-family:var(--mono);font-size:11.5px;color:var(--muted)">'+f[1]+'</span> <span class="fwchip" style="margin-left:4px">'+f[2]+'</span></span></div>').join('');
+    } else {
+      body+='<div class="simnote">Press <b>run this brick</b> to watch '+brick.n.split('  ')[0]+' move the data.</div>';
+    }
+    out.innerHTML=body;
+  }
+  runB.onclick=()=>{ shown=true; render(); note.innerHTML=B[cur].note; };
+  render();
+})();
+
+
+
+/* --- SIM: build the RAG chain --- */
+(function(){
+  const out=document.getElementById('frgOut'), note=document.getElementById('frgNote'),
+        ctl=document.getElementById('frgCtl'), runB=document.getElementById('frgRun');
+  if(!out) return;
+  let ctxOn=true, qOn=true, shown=false;
+  const QUESTION='&ldquo;What is France&rsquo;s capital?&rdquo;';
+  function render(){
+    ctl.innerHTML=[
+      ['ctx','context = retriever | format_docs', ctxOn],
+      ['q','question = RunnablePassthrough()', qOn]
+    ].map(([k,l,on])=>'<button class="seg'+(on?' on':'')+'" data-k="'+k+'" style="text-align:left;font-size:12px">'+(on?'&#10003; ':'&#9744; ')+l+'</button>').join('');
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ if(b.dataset.k==='ctx') ctxOn=!ctxOn; else qOn=!qOn; shown=false; note.innerHTML=''; render(); });
+    const code='rag_chain = (\n  RunnableParallel(\n'
+      +(ctxOn?'    context=retriever | format_docs,\n':'')
+      +(qOn?'    question=RunnablePassthrough(),\n':'')
+      +'  )\n  | rag_prompt | model | parser\n)';
+    let body='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE CHAIN</div>'
+      +'<pre style="font:11.5px ui-monospace,Menlo,monospace;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:11px 13px;overflow-x:auto;margin:0 0 12px">'+code+'</pre>';
+    if(shown){
+      const ctxVal = ctxOn ? '&ldquo;Paris is the capital of France. It sits on the Seine&hellip;&rdquo;' : '<span style="color:var(--red)">(empty: no context branch)</span>';
+      const qVal = qOn ? QUESTION : '<span style="color:var(--red)">(empty: the question was thrown away)</span>';
+      body+='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">WHAT REACHES THE PROMPT</div>'
+        +'<div style="font-family:var(--mono);font-size:11.5px;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:11px 13px;line-height:1.7">'
+        +'Answer based only on context:<br>Context: '+ctxVal+'<br>Question: '+qVal+'</div>';
+    } else {
+      body+='<div class="simnote">Press <b>run the chain</b> to see what the prompt actually receives.</div>';
+    }
+    out.innerHTML=body;
+  }
+  runB.onclick=()=>{
+    shown=true; render();
+    if(ctxOn&&qOn) note.innerHTML='<div class="ok"><b>Both slots filled, so the model can answer.</b> The Parallel ran two branches on the same input: the retriever fetched and formatted the context, and Passthrough carried the untouched question. Their two outputs became the bundle {context, question}, and each filled the matching slot in the prompt. <b>Paris.</b></div>';
+    else if(ctxOn&&!qOn) note.innerHTML='<div class="lzbad"><b>The question vanished.</b> Without the Passthrough branch, only <code>context</code> came out of the Parallel, so the prompt&rsquo;s {question} slot had nothing to fill it. The model is handed three books and no question. This is exactly why Passthrough exists: retrieval consumes the input and returns documents, so the original must be carried forward deliberately.</div>';
+    else if(!ctxOn&&qOn) note.innerHTML='<div class="lzwarn"><b>A question with no evidence.</b> The prompt has the question but an empty context, so the model must answer from memory, which is the whole thing RAG was meant to avoid. The retrieval branch is what makes it grounded.</div>';
+    else note.innerHTML='<div class="lzbad"><b>Both slots empty.</b> The Parallel produced an empty bundle, and the prompt is a form with no answers. Turn at least the context branch back on.</div>';
+  };
+  render();
+})();
+
 /* ================= 8 · EXAM ANGLE ================= */
 document.getElementById('sec-fexam').innerHTML=`
 <div class="card" style="margin-bottom:16px">
@@ -717,6 +851,11 @@ document.getElementById('sec-fexam').innerHTML=`
   <div class="exam-line"><b>&ldquo;What breaks operationally with a self-improving (Hermes-style) agent?&rdquo;</b> &rarr; Review-then-release. The artefact changes without a deploy, so debugging shifts from reading code to reading version history, evaluation must run continuously against a pinned set rather than once at release, and memory poisoning becomes a durable attack. Give the loop autonomy in proportion to its blast radius.</div>
   <div class="exam-line"><b>&ldquo;Someone says LangChain, LangSmith, Langflow and Langfuse are competitors. Correct them.&rdquo;</b> &rarr; They sit on different layers: LangChain builds (library), LangGraph orchestrates (stateful graphs), LangSmith and Langfuse both observe (tracing and evals), Langflow draws (low-code canvas). And two are not the LangChain company at all: Langflow is a separate project, and Langfuse is an independent open-source competitor to LangSmith. The rhyme is the only thing they share.</div>
   <div class="exam-line"><b>&ldquo;ADK versus rolling your own?&rdquo;</b> &rarr; ADK is kit-first: the loop is a tenth of what a production agent needs, and it brings the other nine tenths (sessions, memory, evals, a managed deploy path) plus opinions and some lock-in. Roll your own when you want to own every line and can absorb rebuilding those surroundings as you grow.</div>
+  <div class="exam-line"><b>&ldquo;What is a Runnable, and why does LCEL exist?&rdquo;</b> &rarr; A Runnable is any LangChain piece wrapped with one shared interface: invoke, batch and stream (plus async), so anything composes with anything. LCEL is chains written as those pieces joined by the pipe, and it exists so streaming, batching and parallelism come for free from the composition rather than being wired by hand.</div>
+  <div class="exam-line"><b>&ldquo;What does the pipe operator actually do?&rdquo;</b> &rarr; <code>A | B</code> builds a RunnableSequence where A&rsquo;s output is fed to B&rsquo;s input. It is pure sugar for RunnableSequence(A, B), and the result is itself a Runnable, so pipes nest into larger pipes.</div>
+  <div class="exam-line"><b>&ldquo;Why does a RAG chain need RunnablePassthrough?&rdquo;</b> &rarr; Retrieval consumes the input and returns documents, so the original question is gone by the time the prompt is built. A RunnableParallel runs the retriever for the context and a Passthrough to carry the untouched question, and both land in the prompt. Drop the Passthrough and the {question} slot arrives empty.</div>
+  <div class="exam-line"><b>&ldquo;RunnableParallel or RunnableBranch?&rdquo;</b> &rarr; Parallel runs every branch on the same input and returns all of their outputs as a labelled bundle. Branch runs exactly one branch, the first whose condition matches (or a default). Parallel is &ldquo;do all of these&rdquo;; Branch is &ldquo;do whichever one fits&rdquo;.</div>
+  <div class="exam-line"><b>&ldquo;I need a custom transformation mid-chain. Do I have to leave LCEL?&rdquo;</b> &rarr; No: wrap the plain function in a RunnableLambda and it gains the same sockets, so it pipes in wherever you need it. It is the escape hatch that keeps a one-off reshape inside the chain instead of breaking composition.</div>
 </div>`;
 </script>
 <script src="assets/version.js"></script>
