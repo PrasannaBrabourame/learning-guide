@@ -1009,7 +1009,7 @@ document.getElementById('sec-lmgen').innerHTML=`
   <div class="plain-line" style="margin-top:12px"><b>The trap worth naming:</b> temperature 0 is not &ldquo;the model being careful&rdquo;. It is the model being <em>predictable</em>. A confidently wrong answer arrives just as reliably at temperature 0 as a right one, and it will arrive identically every time, which can make a systematic error look like a stable feature.</div>
 </div>
 
-<div class="card">
+<div class="card" style="margin-bottom:16px">
   <h2 class="sec">Try it: turn the dials on a real distribution</h2>
   <div class="plain-line"><b>Try this:</b> one distribution, five sampling settings. Watch which tokens survive the cut and what each setting does to the shape. Then look at the second case, where the model is genuinely uncertain. That is where top-k and top-p stop agreeing.</div>
   <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Choosing from a menu. Always order your usual; order from the top three; order from however many dishes make up most of what people actually order tonight. Three different rules, three different kinds of evening.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>switch the distribution to <b>uncertain</b> and compare top-k 5 with top-p 0.9.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>logit</b> the raw score before it becomes a probability</span><span class="sp-w"><b>softmax</b> turns raw scores into probabilities that add to one</span><span class="sp-w"><b>temperature</b> a divisor that sharpens or flattens the distribution</span><span class="sp-w"><b>nucleus</b> the smallest group of tokens covering probability p</span><span class="sp-w"><b>deterministic</b> the same input always gives the same output</span></span></div></div>
@@ -1021,6 +1021,21 @@ document.getElementById('sec-lmgen').innerHTML=`
       <div class="segmented" id="lmSampMode" style="flex-direction:column;align-items:stretch"></div>
       <div id="lmSampCtl" style="margin-top:12px"></div>
       <div id="lmSampNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: the nucleus as a staircase, then two hundred actual draws</h2>
+  <div class="plain-line"><b>Try this:</b> the sim above shows who survives the cut; this one shows the two things it hides. First, top-p&rsquo;s defining move: walk down the sorted tokens adding up probability, and <b>close the set the moment the running total crosses p</b>, which is why its size adapts. Second, what a cut means over many draws: sampling is repeated dice, so press <b>draw 200 tokens</b> under each rule and count what the junk at the bottom of the list actually wins.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Filling a plate from the most popular dishes down, taking a helping of each sized by how popular it is, and stopping once the plate is 90% full: on a night when one dish is nearly all anyone orders, a single helping almost fills the plate. The fixed-count rule instead always takes exactly k helpings, however the night is going.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>draw 200 tokens</b> with top-k at 12, count the nonsense picks, then switch to <b>top-p 0.90</b> and draw again.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>top-k</b> keep only the k most likely tokens, discard the rest, then sample</span><span class="sp-w"><b>top-p / nucleus</b> keep the smallest group of tokens covering probability p, then sample</span><span class="sp-w"><b>cumulative probability</b> the running total as you walk down the sorted list</span><span class="sp-w"><b>renormalise</b> stretch the kept probabilities so they add to one again</span><span class="sp-w"><b>draw / sample</b> one random pick from the kept set, weighted by probability</span><span class="sp-w"><b>token</b> one word-sized piece of text, the unit the model picks</span><span class="sp-w"><b>distribution</b> the full spread of candidate tokens with a probability for each</span><span class="sp-w"><b>the tail</b> the long list of barely-likely tokens at the bottom, past anything you would want picked</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="lmNucOut"></div></div>
+    <div>
+      <div class="dim" style="font-size:11px;margin-bottom:7px">THE RULE</div>
+      <div class="segmented" id="lmNucMode" style="flex-direction:row"></div>
+      <div id="lmNucCtl" style="margin-top:12px"></div>
+      <button class="seg" id="lmNucDraw" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent)">&#9654; <b>draw 200 tokens</b></button>
+      <div id="lmNucNote" class="cidr-out" style="margin-top:12px"></div></div>
   </div>
 </div>`;
 
@@ -1093,6 +1108,91 @@ document.getElementById('sec-lmgen').innerHTML=`
       '<div class="simnote" style="margin-top:10px"><b>Switch between the two distributions with the same sampler.</b> The lesson is that a sampler setting is not a property of your application. It interacts with how certain the model happens to be at that token, and the model&rsquo;s certainty varies enormously from token to token within one sentence.</div>'+
       '<div class="note" style="margin-top:10px"><b>Determinism is not free even at temperature 0.</b> Floating-point addition is not associative, so a different batch size or a different kernel can change the arithmetic order and flip a near-tie between two tokens. Greedy decoding is reproducible on identical hardware and settings, not universally.</div>';
   }
+  render();
+})();
+
+/* --- SIM: the nucleus staircase and 200 draws --- */
+(function(){
+  const out=document.getElementById('lmNucOut'), note=document.getElementById('lmNucNote'),
+        mEl=document.getElementById('lmNucMode'), cEl=document.getElementById('lmNucCtl'),
+        drawB=document.getElementById('lmNucDraw');
+  if(!out) return;
+  const mulberry32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let z=Math.imul(a^a>>>15,1|a);z=z+Math.imul(z^z>>>7,61|z)^z;return((z^z>>>14)>>>0)/4294967296;};
+  /* "After three weeks of practice, the students are clearly ___" */
+  const TOK=['improving','learning','progressing','reading','struggling','confident','thriving','tired','sleeping','robots','purple','quantum'];
+  const P=[.34,.22,.14,.09,.07,.05,.03,.02,.015,.012,.008,.005];
+  const JUNK=9;   /* index where the nonsense tail starts */
+  let mode='topk', k=12, p=0.90, rnd=mulberry32(31), counts=null, drawn=0;
+  function keepN(){
+    if(mode==='topk') return k;
+    let c=0; for(let i=0;i<P.length;i++){ c+=P[i]; if(c>=p-1e-9) return i+1; }
+    return P.length;
+  }
+  function render(){
+    const N=keepN(), Z=P.slice(0,N).reduce((a,b)=>a+b,0);
+    mEl.innerHTML=[['topk','top-k'],['topp','top-p']].map(([m2,l])=>'<button class="seg'+(mode===m2?' on':'')+'" data-m="'+m2+'" style="flex:1;font-size:12px">'+l+'</button>').join('');
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mode=b.dataset.m;counts=null;drawn=0;render();});
+    cEl.innerHTML = mode==='topk'
+      ? '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;margin-bottom:4px"><span style="color:var(--muted)">k</span><span>'+k+'</span></div><input type="range" id="lmNucK" min="1" max="12" step="1" value="'+k+'" style="width:100%">'
+      : '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;margin-bottom:4px"><span style="color:var(--muted)">p</span><span>'+p.toFixed(2)+'</span></div><input type="range" id="lmNucP" min="0.50" max="0.99" step="0.01" value="'+p+'" style="width:100%">';
+    const kEl=document.getElementById('lmNucK'), pEl=document.getElementById('lmNucP');
+    if(kEl) kEl.oninput=()=>{k=+kEl.value;counts=null;drawn=0;render();};
+    if(pEl) pEl.oninput=()=>{p=+pEl.value;counts=null;drawn=0;render();};
+    /* bars + staircase */
+    const W=460, BX=34, BW=32, BASE=210, H=170;
+    let bars='', stair='', cum=0, px0=0, py0=BASE-0;
+    for(let i=0;i<P.length;i++){
+      const x=BX+i*(BW+3), h=P[i]/P[0]*H, kept=i<N;
+      bars+='<rect x="'+x+'" y="'+(BASE-h).toFixed(1)+'" width="'+BW+'" height="'+h.toFixed(1)+'" rx="3" style="fill:var(--'+(i>=JUNK?'red':'blue')+');opacity:'+(kept?(i>=JUNK?'.75':'.85'):'0.18')+'"/>'
+        +(counts?'<text x="'+(x+BW/2)+'" y="'+(BASE-h-6).toFixed(1)+'" text-anchor="middle" style="font:9.5px ui-monospace,Menlo,monospace;fill:var(--'+(counts[i]?(i>=JUNK?'red':'text'):'dim')+')">'+(kept?'&times;'+counts[i]:'&middot;')+'</text>':'')
+        +'<text x="'+(x+BW/2)+'" y="'+(BASE+13)+'" text-anchor="middle" style="font:8.6px ui-monospace,Menlo,monospace;fill:var(--'+(kept?'text':'dim')+')" transform="rotate(38 '+(x+BW/2)+' '+(BASE+13)+')">'+TOK[i]+'</text>';
+      const x1=BX+i*(BW+3)+BW/2, prev=cum; cum+=P[i];
+      const y1=BASE+34+(1-prev)*54, y2=BASE+34+(1-cum)*54;
+      stair+='<line x1="'+(x1-BW/2-1.5)+'" y1="'+y1.toFixed(1)+'" x2="'+(x1-BW/2-1.5)+'" y2="'+y2.toFixed(1)+'" style="stroke:var(--amber);stroke-width:2"/>'
+           +'<line x1="'+(x1-BW/2-1.5)+'" y1="'+y2.toFixed(1)+'" x2="'+(x1+BW/2+1.5)+'" y2="'+y2.toFixed(1)+'" style="stroke:var(--amber);stroke-width:2"/>';
+    }
+    const pY=BASE+34+(1-p)*54;
+    const cutX=BX+N*(BW+3)-2;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">&ldquo;AFTER THREE WEEKS OF PRACTICE, THE STUDENTS ARE CLEARLY &hellip;&rdquo;</div>'
+      +'<svg viewBox="0 0 '+W+' 310" role="img" aria-label="Twelve candidate tokens sorted by probability, the cut each rule makes, and the cumulative staircase below." style="width:100%;height:auto">'
+      +bars
+      +'<line x1="'+cutX+'" y1="14" x2="'+cutX+'" y2="'+(BASE+2)+'" style="stroke:var(--text);stroke-width:1.4;stroke-dasharray:5 4"/>'
+      +'<text x="'+Math.min(cutX+4,W-120)+'" y="24" style="font:10px ui-monospace,Menlo,monospace;fill:var(--text)">cut: keep '+N+' of 12</text>'
+      +'<text x="'+BX+'" y="'+(BASE+34+58)+'" style="font:9.5px ui-monospace,Menlo,monospace;fill:var(--muted)">running total (the staircase)</text>'
+      +stair
+      +(mode==='topp'?'<line x1="'+(BX-6)+'" y1="'+pY.toFixed(1)+'" x2="'+(W-10)+'" y2="'+pY.toFixed(1)+'" style="stroke:var(--green);stroke-width:1.4;stroke-dasharray:4 3"/><text x="'+(W-10)+'" y="'+(pY-4).toFixed(1)+'" text-anchor="end" style="font:10px ui-monospace,Menlo,monospace;fill:var(--green)">p = '+p.toFixed(2)+'</text>':'')
+      +'</svg>'
+      +'<div style="display:flex;gap:16px;margin-top:4px;flex-wrap:wrap" class="nnbig">'
+      +'<span style="font-size:12px;color:var(--muted)">kept <b style="font-size:17px">'+N+' of 12</b></span>'
+      +'<span style="font-size:12px;color:var(--muted)">covering <b style="font-size:17px">'+Math.round(Z*100)+'%</b> of the probability</span>'
+      +(counts?'<span style="font-size:12px;color:var(--muted)">draws so far <b style="font-size:17px">'+drawn+'</b></span>':'')
+      +'</div>';
+    if(!counts){
+      note.innerHTML = mode==='topp'
+        ? '<div class="simnote"><b>Read the staircase.</b> Each step is one token&rsquo;s probability added to the running total, and the set closes the first time the amber line crosses the green one: at p = '+p.toFixed(2)+' that takes '+N+' tokens (the crossing step is kept too, which is why the meter reads a whisker above p). Before each draw the kept share is stretched back up to stand in for the whole 100%: the renormalise step. Moving a slider or switching rules clears the tally, so every count is a fresh test of one setting. Then draw.</div>'
+        : '<div class="simnote"><b>A fixed count, whatever the shape.</b> k = '+k+' keeps '+k+' tokens covering '+Math.round(Z*100)+'% of the probability, junk included when k is generous. Press draw and see what the kept tail actually wins. Moving the slider or switching rules clears the tally, so every count is a fresh test of one setting.</div>';
+    }
+  }
+  drawB.onclick=()=>{
+    const N=keepN(), kept=P.slice(0,N), Z=kept.reduce((a,b)=>a+b,0);
+    if(!counts) counts=Array(P.length).fill(0);
+    for(let d=0;d<200;d++){
+      let x=rnd()*Z, i=0;
+      while(x>kept[i]){x-=kept[i];i++;}
+      counts[i]++;
+    }
+    drawn+=200;
+    render();
+    const junk=counts[9]+counts[10]+counts[11], tail=counts.slice(7).reduce((a,b)=>a+b,0);
+    note.innerHTML = (mode==='topk'&&junk>0)
+      ? (function(){const kz=P.slice(0,keepN()), Zz=kz.reduce((a,b)=>a+b,0), js=P.slice(JUNK,keepN()).reduce((a,b)=>a+b,0)/Zz;
+        return '<div class="lzwarn"><b>The nonsense got '+junk+' win'+(junk===1?'':'s')+' in '+drawn+' draws.</b> &ldquo;The students are clearly robots&rdquo; is now a sentence this system has produced. A generous k keeps the tail in the room, and dice rolled often enough eventually pick it: the kept nonsense carries '+(js*100).toFixed(1)+'% of every draw, and at forty thousand tokens a day that is about '+Math.round(js*40000).toLocaleString('en-GB')+' nonsense words a day landing in front of users. Now switch to top-p 0.90 and draw again.</div>';})()
+      : (mode==='topk')
+      ? '<div class="ok"><b>No nonsense in '+drawn+' draws, because k = '+k+' cut the tail off.</b> But this k is tuned to <em>this</em> distribution: on a question where the model is genuinely torn ten ways, the same k would amputate good options. The sim above shows that case; the fix is one toggle away, because top-p adapts by itself.</div>'
+      : (keepN()>JUNK)
+      ? '<div class="lzwarn"><b>At this p the plate rule swallowed the junk itself.</b> The nucleus reached '+keepN()+' tokens, deep enough to include the nonsense'+(junk?', and it got '+junk+' win'+(junk===1?'':'s')+' in '+drawn+' draws':', which has not won yet in '+drawn+' draws but is one lucky roll away')+'. Top-p only excludes what lies past the running total: set p high enough, and nothing is excluded at all.</div>'
+      : '<div class="ok"><b>'+drawn+' draws, and the tail below the nucleus got exactly 0.</b> The nucleus closed at '+keepN()+' tokens, covering '+Math.round(P.slice(0,keepN()).reduce((a,b)=>a+b,0)*100)+'% of the probability, before the junk was ever reached. For this sentence the nonsense is shut out by the rule itself, not by luck: no number of draws can pick what never made the set.</div>';
+  };
   render();
 })();
 

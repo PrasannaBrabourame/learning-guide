@@ -4082,27 +4082,33 @@
     "title": "Temperature, Top-p and Top-k Sampling",
     "category": "Large Language Models",
     "difficulty": "Medium",
-    "question": "Temperature, top-p and top-k all control randomness. What does each one do, and when would you set temperature to 0?",
+    "question": "Temperature, top-k and top-p all control randomness at the token picker. What exactly does each do, how do top-k and top-p differ mechanically, and when would you set temperature to 0?",
     "technical": [
-      "Temperature rescales logits: lower values sharpen the distribution; higher values increase diversity.",
-      "Top-k limits candidates to the k highest-probability tokens.",
-      "Top-p selects the smallest token set whose cumulative probability reaches p.",
-      "For extraction or deterministic structured work, use low temperature and constrained output; temperature zero may still not guarantee bit-for-bit determinism across infrastructure."
+      "The model ends every step with a probability for each vocabulary token. Sampling controls decide which of those tokens are even allowed to win before the dice are rolled; they change diversity, never knowledge.",
+      "Temperature rescales the scores before they become probabilities: below 1 sharpens toward the favourite (0 collapses to greedy, always the single most likely token), above 1 flattens toward the field. It reshapes the distribution; it does not cut it.",
+      "Top-k keeps only the k most probable tokens, discards the rest, renormalises the survivors to sum to 1, and samples. Small k is focused and near-deterministic; large k admits the low-probability tail, and dice rolled at production volume eventually pick it. The weakness: k is fixed whether the model is certain or torn.",
+      "Top-p (nucleus) sorts tokens by probability and keeps the smallest set whose cumulative total reaches p, then renormalises and samples. The set size adapts to confidence: one or two tokens when the model is sure, a dozen when it is genuinely torn, which is why top-p is usually the better default.",
+      "They disagree in both directions: on a peaked distribution, k=10 keeps nine tokens that should never win while p=0.9 keeps one; on a flat one, k=5 amputates good options while p=0.9 keeps them all. Combined, temperature reshapes first, then the cut applies; k=1 or p towards 0 both collapse to greedy.",
+      "Temperature 0 is for extraction and structured output, not correctness: it makes answers repeatable, including the wrong ones, and even then bit-for-bit determinism across infrastructure is not guaranteed (floating-point order can flip near-ties)."
     ],
     "layman": "Temperature changes adventurousness, top-k always keeps the same fixed number of options, and top-p keeps adding the next most likely option until the shortlist covers most of the realistic answers, so its size can change from one answer to the next.",
     "usecases": [
-      "Creative writing versus JSON extraction"
+      "Creative writing versus JSON extraction",
+      "Stopping rare nonsense tokens appearing at production volume",
+      "Choosing a default sampler for a product surface"
     ],
-    "code": "Example:\nCompliance extraction: temperature near 0.\nBrainstorming: moderate temperature with top-p control.",
+    "code": "one step, 12 candidate tokens, sorted (the llm lab's staircase sim):\n\np:    .34 .22 .14 .09 .07 .05 | .03 .02 .015 .012 .008 .005\ncum:  .34 .56 .70 .79 .86 .91 | .94 .96 .975 .987 .995 1.0\n\ntop-p 0.90: cut where the running total crosses .90 -> keeps 6\ntop-k 12:   keeps everything, junk included; 200 draws gave the\n            nonsense tail real wins\ntop-k 3 on a torn, flat distribution: amputates good options\n\norder of operations: temperature reshapes -> top-k/top-p cut ->\nrenormalise -> sample",
     "followups": [
-      "Should top-k and top-p always be combined?",
-      "Why can low temperature still produce errors?"
+      "Should top-k and top-p be combined, and which applies first?",
+      "Why can low temperature still produce errors?",
+      "Why does a 2.5% junk tail matter at a million requests a day?"
     ],
     "redflags": [
       "Says temperature changes factual knowledge",
-      "Claims zero always guarantees identical results"
+      "Claims zero temperature always guarantees identical results",
+      "Cannot explain why top-p adapts and top-k does not"
     ],
-    "memory": "Sampling controls diversity, not correctness."
+    "memory": "Temperature reshapes, top-k counts, top-p weighs: the cut runs before the dice, and none of them touch what the model knows."
   },
   {
     "id": "ai-kit-028",
