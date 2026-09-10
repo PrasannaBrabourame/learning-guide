@@ -8438,5 +8438,37 @@
       "Picks LangSmith over Langfuse (or vice versa) on brand rather than fit"
     ],
     "memory": "Build, orchestrate, observe, draw: LangChain and LangGraph and LangSmith are one company, Langflow and Langfuse are not."
+  },
+  {
+    "id": "langchain-runnables-lcel",
+    "title": "LangChain Runnables and LCEL: The Five Composition Bricks",
+    "category": "LangChain Stack",
+    "difficulty": "Medium",
+    "question": "What is a Runnable, what does the pipe operator do, and what do RunnableSequence, RunnableParallel, RunnablePassthrough, RunnableLambda and RunnableBranch each contribute?",
+    "technical": [
+      "A Runnable is any LangChain component (prompt, model, parser, retriever, or a plain function) wrapped with one shared interface: invoke (one input), batch (a list in parallel) and stream (token by token), with async variants (ainvoke, abatch, astream) for free. The shared interface is what lets any piece compose with any other. LCEL (LangChain Expression Language) is chains written as those pieces joined by pipes.",
+      "The pipe operator: A | B builds a RunnableSequence where A's output becomes B's input. It is syntactic sugar for RunnableSequence(A, B), and the result is itself a Runnable, so sequences nest. RunnableSequence is therefore linear: one value flows through, changing shape (dict to text to string in prompt | model | parser).",
+      "RunnableParallel runs several branches on the identical input, concurrently, and returns a dict keyed by branch name: RunnableParallel(tweet=..., linkedin=...) yields {tweet, linkedin}. RunnablePassthrough forwards its input unchanged; on its own it looks useless, but inside a Parallel it carries the original value alongside a computed one, so it survives instead of being discarded.",
+      "RunnableLambda wraps a plain function (clean the input, count words, reshape a dict) as a Runnable so custom logic pipes in without leaving LCEL. RunnableBranch is conditional routing: it checks conditions in order and runs the first that matches, or a default, so one chain can summarise long outputs and pass short ones through.",
+      "Why LCEL matters: because composition is uniform, streaming, batching, parallel execution, async and LangSmith tracing come from the chain automatically rather than being hand-wired. The canonical RAG chain shows four bricks at once: RunnableParallel(context=retriever | format_docs, question=RunnablePassthrough()) | prompt | model | parser, where the Passthrough is what stops the question being lost during retrieval."
+    ],
+    "layman": "LEGO bricks with one standard stud. A prompt, a model, a parser and your own function are different shapes, but each clips to the same connector, so you snap them into a line, or into a splitter that runs two at once, or a fork that picks one path. The pipe symbol is the click of one brick onto the next.",
+    "usecases": [
+      "Composing chains and agents in modern LangChain",
+      "Building a RAG pipeline that keeps the question alongside the context",
+      "Adding a custom transformation without breaking streaming or batching"
+    ],
+    "code": "# the pipe is sugar for RunnableSequence\nchain = prompt | model | parser        # dict -> text -> string\n\n# parallel returns a labelled bundle\nRunnableParallel(tweet=..., linkedin=...)   # -> {tweet, linkedin}\n\n# the RAG chain: four bricks, and why Passthrough exists\nrag_chain = (\n  RunnableParallel(\n    context=retriever | RunnableLambda(format_docs),\n    question=RunnablePassthrough(),   # without this, {question} is empty\n  )\n  | rag_prompt | model | parser\n)\n\n# branch: first matching condition wins, else default\nRunnableBranch((is_long, summarize), RunnablePassthrough())",
+    "followups": [
+      "Why does a RAG chain break if you drop the RunnablePassthrough?",
+      "When would you use RunnableParallel versus RunnableBranch?",
+      "What do you get for free by staying in LCEL rather than writing the loop yourself?"
+    ],
+    "redflags": [
+      "Thinks the pipe is a special operator rather than RunnableSequence",
+      "Leaves LCEL for a custom transform instead of using RunnableLambda",
+      "Builds a RAG chain that loses the question before the prompt"
+    ],
+    "memory": "One socket (invoke, batch, stream) on every brick: Sequence lines them up, Parallel fans out, Passthrough carries the original, Lambda wraps your code, Branch forks."
   }
 ]
