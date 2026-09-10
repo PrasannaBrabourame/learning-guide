@@ -335,7 +335,10 @@
   menu.className = 'labmenu'; menu.id = 'labMenu'; menu.hidden = true;
   menu.setAttribute('role','group');
   menu.setAttribute('aria-label','All labs, in reading order');
-  menu.innerHTML = TRACKS.map(t => {
+  const cheatRow = `<div class="lmgrp"><h4>Revision</h4><div class="lmlist">`
+    + `<a href="cheatsheet.html"${here==='cheatsheet.html'?' class="here" aria-current="page"':''}><i>&#9636;</i><span>Cheatsheet: the whole guide on one page</span></a>`
+    + `</div></div>`;
+  menu.innerHTML = cheatRow + TRACKS.map(t => {
     const items = t.labs.map(([href, title], i) => {
       const on = href === here;   // deep links into cloud never match, by design
       return `<a href="${href}"${on ? ' class="here" aria-current="page"' : ''}>`
