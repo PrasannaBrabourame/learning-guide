@@ -142,6 +142,9 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, lab-to-topic mapping
+cheatsheet.html   Revision cheatsheet: every lab's must-remember points
+                  on one printable, filterable page, each card linked to
+                  its lab
 data/topics.json  The 284 topics as plain JSON (incl. per-topic difficulty)
 ```
 
