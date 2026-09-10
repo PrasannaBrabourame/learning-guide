@@ -5643,12 +5643,16 @@
     "title": "How Tool Calling Works",
     "category": "AI Agents",
     "difficulty": "Medium",
-    "question": "How does tool calling actually work under the hood? How does the model pick a tool, and who runs it?",
+    "question": "How does tool calling actually work under the hood: how does the model pick a tool, what does it emit, who runs it, and where is the security boundary?",
     "technical": [
-      "The application provides the model with tool names, descriptions and argument schemas.",
-      "The model emits a structured proposal based on context; it does not itself execute the external operation.",
-      "Application code validates arguments, identity, authorisation and policy, executes the tool and returns a controlled result.",
-      "The model then uses the result to continue or produce a final answer."
+      "The application hands the model a tool catalogue each turn: for each tool a name, a natural-language description and an argument schema (usually JSON Schema). The description and schema are the entire basis on which the model chooses, which is why a vague docstring makes two tools indistinguishable.",
+      "The model does not execute anything. Given the context it emits a structured proposal, a tool name plus arguments (and a call id), instead of prose. That proposal is just tokens the API surfaces as a structured object; the model has touched nothing in the world.",
+      "The application owns the next step: validate the arguments against the schema, check identity, authorisation and policy, then run the real tool and capture the result. This gate is the security boundary, and it is always yours, never the model's.",
+      "The result is fed back into the model's context, matched to its call id, and the model uses it to continue, call another tool, or write the final answer. The loop repeats until the model stops calling tools.",
+      "Tool choice is configurable: auto (the model decides whether to call), forced/required (it must call, or must call a specific tool), or none (plain text only). Forcing a tool is how you guarantee structured output.",
+      "Independent calls can come back in one turn (parallel function calling), each with its own id, and the app runs them concurrently so latency is the slowest call, not the sum. Dependent calls are sequential turns by nature.",
+      "Structure is not truth: a perfectly well-formed call can carry a wrong or hostile argument, because the model is an untrusted input source (its context may have been poisoned by retrieved content). Validate schema, identity, authorisation and the actual values on every call, and if an action must never happen, remove the tool rather than instruct against it.",
+      "Streaming and cost: tool-call arguments can stream token by token like any output, and every tool round-trip is another full forward pass over the growing context, so more tools and more hops cost more latency and tokens."
     ],
     "layman": "The model fills out an approved request form; trusted application code decides whether to submit it and performs the work.",
     "usecases": [
@@ -5657,14 +5661,16 @@
     ],
     "code": "tool schema → model proposal → validator/policy → executor → sanitised result → model",
     "followups": [
-      "What if arguments are valid JSON but unsafe?",
-      "How is idempotency handled for write tools?"
+      "Why is validating a tool call a security boundary and not just error handling?",
+      "When would you force a tool call rather than leave it to the model?",
+      "How do parallel tool calls change the latency and the executor's job?"
     ],
     "redflags": [
-      "Says the model directly runs code/API calls",
-      "Validates schema but not permissions"
+      "Lets the model execute tools directly, or trusts a well-formed call as a safe one",
+      "Fixes a mis-chosen tool by prompt-tuning instead of the description and schema",
+      "No validation of identity, authorisation and values before running a call"
     ],
-    "memory": "Models propose tool calls; trusted code authorises and executes them."
+    "memory": "The model proposes, your code disposes: it emits a structured call and executes nothing, and validation is the boundary that never belongs to the model."
   },
   {
     "id": "ai-kit-080",
@@ -8470,5 +8476,37 @@
       "Builds a RAG chain that loses the question before the prompt"
     ],
     "memory": "One socket (invoke, batch, stream) on every brick: Sequence lines them up, Parallel fans out, Passthrough carries the original, Lambda wraps your code, Branch forks."
+  },
+  {
+    "id": "function-vs-tool-calling",
+    "title": "Function Calling vs Tool Calling: The Same Mechanism, Two Names",
+    "category": "AI Agents",
+    "difficulty": "Low",
+    "question": "People say function calling and tool calling as if they differ. Do they, and what is the actual mechanism both name?",
+    "technical": [
+      "They name the same mechanism: the model emits a structured request (a name plus arguments matching a schema) instead of prose, and application code runs the real thing and feeds the result back. 'Function calling' was the original API name; 'tool calling' is the newer umbrella, and a function is simply one kind of tool.",
+      "A 'tool' is broader than a function: it can be a local function, a remote API, a retriever, a code interpreter or a whole MCP server. The model treats them identically, as entries in its tool catalogue with a name, a description and an argument schema.",
+      "The mental model that stays correct whatever the label: the model chooses and fills in a call from the catalogue you provide; it never executes; your code validates and runs it; the result returns to the model. The word does not change the boundary.",
+      "Where they can differ in practice is API shape, not concept: some providers still use a 'functions' field and a single call, others use a 'tools' field with parallel calls and typed tool kinds. Read the provider's schema; the underlying loop is the same.",
+      "MCP sits above both: it standardises how a host discovers tools from many servers and exposes them to the model, but the model-facing step is still the same structured call. MCP changes where tools come from, not how the model calls them."
+    ],
+    "layman": "Calling it a spanner or a wrench does not change the bolt. Function calling and tool calling are two names for the model writing down what it wants done and handing the note to your code, which does it. A function is one tool on the shelf; 'tool' is just the shelf's newer name.",
+    "usecases": [
+      "Reading provider docs without being confused by the naming",
+      "Explaining to a stakeholder that the model never runs anything",
+      "Deciding when plain tool calling suffices and when MCP earns its place"
+    ],
+    "code": "same loop, either name:\n\n  you   -> model: question + tool catalogue (name, description, schema)\n  model -> you:   structured call {name, arguments, id}   (not prose)\n  you   -> tool:  validate, then run                     (the boundary)\n  tool  -> model: result, matched by id\n  model -> you:   final answer, or another call\n\n'function calling' = original name · 'tool calling' = newer umbrella\na function is one kind of tool · MCP changes where tools come from",
+    "followups": [
+      "If they are the same, why did the name change to 'tools'?",
+      "What does MCP add on top of tool calling?",
+      "Does the model ever execute a tool itself?"
+    ],
+    "redflags": [
+      "Believes tool calling and function calling are different capabilities",
+      "Thinks the model runs the function",
+      "Assumes MCP replaces tool calling rather than sitting above it"
+    ],
+    "memory": "One mechanism, two names: the model writes a structured call, your code runs it. A function is one kind of tool; MCP changes where tools come from, not how they are called."
   }
 ]

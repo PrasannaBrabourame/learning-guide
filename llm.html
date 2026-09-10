@@ -84,6 +84,7 @@
     <button class="tab" data-pane="lmattn" role="tab">Attention</button>
     <button class="tab" data-pane="lmblock" role="tab">The block</button>
     <button class="tab" data-pane="lmgen" role="tab">Generation</button>
+    <button class="tab" data-pane="lmtools" role="tab">Calling tools</button>
     <button class="tab" data-pane="lmkv" role="tab">The KV cache</button>
     <button class="tab" data-pane="lmquant" role="tab">Quantisation</button>
     <button class="tab" data-pane="lmbatch" role="tab">Batching & paging</button>
@@ -97,6 +98,7 @@
   <section class="pane" id="pane-lmattn"><div id="sec-lmattn"></div></section>
   <section class="pane" id="pane-lmblock"><div id="sec-lmblock"></div></section>
   <section class="pane" id="pane-lmgen"><div id="sec-lmgen"></div></section>
+  <section class="pane" id="pane-lmtools"><div id="sec-lmtools"></div></section>
   <section class="pane" id="pane-lmkv"><div id="sec-lmkv"></div></section>
   <section class="pane" id="pane-lmquant"><div id="sec-lmquant"></div></section>
   <section class="pane" id="pane-lmbatch"><div id="sec-lmbatch"></div></section>
@@ -1196,6 +1198,118 @@ document.getElementById('sec-lmgen').innerHTML=`
   render();
 })();
 
+/* ================= 6b · CALLING TOOLS ================= */
+document.getElementById('sec-lmtools').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">The model does not run anything: it writes a request, and your code obeys or refuses</h2>
+  <div class="plain-line"><b>In plain English:</b> the generation tab showed the model emitting one token at a time. Its most consequential trick is that a token stream can be a <b>structured request</b> instead of prose: given a catalogue of tools (each a name, a description and an <b>argument schema</b>), the model can reply &ldquo;call <code>get_weather</code> with <code>{city: &ldquo;Paris&rdquo;}</code>&rdquo; rather than answering. Crucially it <b>executes nothing</b>: it only proposes. Your application validates the proposal, runs the real tool, and feeds the result back so the model can finish. <b>Function calling and tool calling are the same mechanism</b>: &ldquo;tools&rdquo; is the newer umbrella word, a plain function is one kind of tool, and the older API name was &ldquo;function calling&rdquo;.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: walk one question through the whole loop</h2>
+  <div class="plain-line"><b>Try this:</b> one question that needs live data (&ldquo;what is the weather in Paris and Oslo?&rdquo;). Step through the loop and watch where the boundary sits: the model proposes, your code disposes. Then pull the two levers that teach the lesson: take the tool away and watch the model guess, and skip validation to see a perfectly formed call still go wrong.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A dispatcher and a driver. The dispatcher (the model) radios &ldquo;collect from 14 Elm Street&rdquo;; they never drive anywhere. The driver (your code) checks the address is real and allowed, makes the trip, and radios back what they found. Handing the dispatcher the keys is the mistake this whole design avoids.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>step</b> to walk the six stages of the full loop, then switch <b>the tool</b> off and step again, then turn <b>validation</b> off.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool</b> something the model can ask to run: a function, an API call, a search; the model calls it but never runs it</span><span class="sp-w"><b>function calling</b> the older name for the same mechanism; a function is one kind of tool (a small piece of software that does one job)</span><span class="sp-w"><b>API</b> a doorway one program uses to ask another for data or an action; an &ldquo;API call&rdquo; is one such request</span><span class="sp-w"><b>tool catalogue</b> the list you hand the model each turn: each tool&rsquo;s name, description and argument schema</span><span class="sp-w"><b>argument schema</b> the shape the arguments must take, like {city: text}: what the model must fill in</span><span class="sp-w"><b>structured call</b> the model&rsquo;s output when it wants a tool: a name and arguments, not prose</span><span class="sp-w"><b>call id</b> a tag on each call so the matching result can be paired back to it</span><span class="sp-w"><b>parallel calls</b> several tool requests in one turn, run at once when they do not depend on each other</span><span class="sp-w"><b>latency</b> the wait before you get an answer back</span><span class="sp-w"><b>validation</b> your code checking the call is well-formed, permitted and safe before running it</span><span class="sp-w"><b>tool result</b> what your code sends back into the model&rsquo;s context after running the tool</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="lmToolOut"></div></div>
+    <div>
+      <div style="display:flex;gap:8px">
+        <button class="seg" id="lmToolStep" style="flex:1;font-size:12px;color:var(--accent)">&#9654; <b>step</b></button>
+        <button class="seg" id="lmToolReset" style="flex:1;font-size:12px">reset</button>
+      </div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">THE TOOL</div>
+      <div class="segmented" id="lmToolHas" style="flex-direction:column;align-items:stretch"></div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">YOUR VALIDATION STEP</div>
+      <div class="segmented" id="lmToolVal" style="flex-direction:column;align-items:stretch"></div>
+      <div id="lmToolNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>`;
+
+/* --- SIM: the tool-calling loop --- */
+(function(){
+  const out=document.getElementById('lmToolOut'), note=document.getElementById('lmToolNote'),
+        stepB=document.getElementById('lmToolStep'), resetB=document.getElementById('lmToolReset'),
+        hasEl=document.getElementById('lmToolHas'), valEl=document.getElementById('lmToolVal');
+  if(!out) return;
+  let hasTool=1, validate=1, step=0;
+  const MONOB='font:11.5px ui-monospace,Menlo,monospace';
+  function stagesWith(){
+    /* full healthy loop */
+    return [
+     {who:'you &rarr; model', k:'the turn starts', kind:'in',
+      body:'question: &ldquo;what is the weather in Paris and Oslo?&rdquo;<br>tool catalogue: <b>get_weather</b>(city: text) &ldquo;current weather for a city&rdquo;'},
+     {who:'model', k:'it proposes, it does not run', kind:'model',
+      body:'the model emits two <b>structured calls</b>, not prose:<br>[ {id: a1, name: get_weather, arguments: {city: &ldquo;Paris&rdquo;}},<br>&nbsp;&nbsp;{id: a2, name: get_weather, arguments: {city: &ldquo;Oslo&rdquo;}} ]'},
+     validate
+       ? {who:'your code', k:'validate before running', kind:'ok',
+          body:'schema ok (city is text), the tool is on your approved list, the caller may read weather. Both calls pass. This gate is yours, never the model&rsquo;s.'}
+       : {who:'your code', k:'validation skipped', kind:'bad',
+          body:'no checks. Whatever the model asked for runs, exactly as written.'},
+     {who:'your code &rarr; tools', k:'run them, in parallel', kind:'run',
+      body:'get_weather(Paris) and get_weather(Oslo) run at once (independent), latency is the slower of the two, not the sum.<br>results: {a1: &ldquo;14&deg;C, cloud&rdquo;}, {a2: &ldquo;6&deg;C, clear&rdquo;}'},
+     {who:'tools &rarr; model', k:'results return, matched by id', kind:'in',
+      body:'each result is tagged with its <b>call id</b> and appended to the model&rsquo;s context, so a2 lands against the Oslo call.'},
+     {who:'model', k:'now it can answer', kind:'model',
+      body:'&ldquo;Paris is 14&deg;C and cloudy; Oslo is 6&deg;C and clear.&rdquo; The model only ever wrote text; the world was touched entirely by your code.'}
+    ];
+  }
+  function stagesNoTool(){
+    return [
+     {who:'you &rarr; model', k:'the turn starts', kind:'in',
+      body:'question: &ldquo;what is the weather in Paris and Oslo?&rdquo;<br>tool catalogue: <b>(empty)</b>'},
+     {who:'model', k:'nothing to call, so it writes prose', kind:'model',
+      body:'with no tool, the model does the only thing it can: predict the next tokens. It has no live data, so it produces plausible-sounding numbers.'},
+     {who:'model', k:'a confident guess', kind:'bad',
+      body:'&ldquo;Paris is around 18&deg;C and sunny; Oslo about 11&deg;C.&rdquo; Fluent, specific, and invented. Nothing fetched anything. This is why tools exist: to replace a guess with a fact.'}
+    ];
+  }
+  function stagesNoVal(){
+    const s=stagesWith();
+    /* poison the model's call and skip validation */
+    s[1]={who:'model', k:'it proposes (and can be wrong)', kind:'model',
+      body:'suppose the context was poisoned by a retrieved page, so the model emits:<br>[ {id: a1, name: get_weather, arguments: {city: &ldquo;Paris; DROP accounts&rdquo;}} ]<br>a perfectly well-formed call (&ldquo;DROP accounts&rdquo; is a hidden command that would delete data, smuggled into the city field).'};
+    s[2]={who:'your code', k:'validation skipped', kind:'bad',
+      body:'no checks, so the malformed city string is passed straight to the tool. <b>Structure is not truth</b>: the call is perfectly well-formed and still hostile.'};
+    s[3]={who:'your code &rarr; tools', k:'it runs as written', kind:'bad',
+      body:'get_weather receives &ldquo;Paris; DROP accounts&rdquo; verbatim. A correctly-shaped argument is not a safe one; only your validation makes it safe.'};
+    s[4]={who:'&mdash;', k:'the lesson', kind:'bad',
+      body:'the model is an untrusted input source. Validate schema, identity, authorisation and values on every call, because a fluent, correctly-shaped request is exactly what an attacker produces too.'};
+    s.length=5;
+    return s;
+  }
+  function plan(){ return !hasTool ? stagesNoTool() : validate ? stagesWith() : stagesNoVal(); }
+  const COL={in:'var(--wire)',model:'var(--violet)',ok:'var(--green)',run:'var(--blue)',bad:'var(--red)'};
+  function render(){
+    hasEl.innerHTML=[['tool available: get_weather',1],['no tool: catalogue empty',0]].map(([l,v])=>'<button class="seg'+(hasTool===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    valEl.innerHTML=[['validate every call (correct)',1],['skip validation (danger)',0]].map(([l,v])=>'<button class="seg'+(validate===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    hasEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{hasTool=+b.dataset.v;step=0;note.innerHTML='';render();});
+    valEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{validate=+b.dataset.v;step=0;note.innerHTML='';render();});
+    const P=plan(), shown=P.slice(0,step);
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE LOOP &middot; step '+step+' of '+P.length+'</div>'
+      +(shown.length?shown.map(s=>'<div class="lzhop" style="display:block;border-left-color:'+COL[s.kind]+';padding:9px 12px;margin-bottom:7px">'
+        +'<div style="display:flex;justify-content:space-between;gap:10px"><b style="font-size:12.5px">'+s.k+'</b><span class="k" style="font-size:10px;color:var(--muted);white-space:nowrap">'+s.who+'</span></div>'
+        +'<div style="'+MONOB+';color:var(--muted);margin-top:5px;line-height:1.65">'+s.body+'</div></div>').join('')
+        :'<div class="simnote">Press <b>step</b> to begin. Watch the <b>model</b> rows (violet): the model only ever writes; every real action is a <b>your code</b> row.</div>');
+  }
+  stepB.onclick=()=>{
+    const P=plan();
+    if(step>=P.length){ note.innerHTML='<div class="simnote">The loop is complete. Reset, or flip a lever and step through the other path.</div>'; return; }
+    step++;
+    const P2=plan();
+    if(step>=P2.length){
+      note.innerHTML = !hasTool
+        ? '<div class="lzbad"><b>No tool, so a confident guess.</b> The model cannot fetch; with an empty catalogue it predicts plausible text and invents the numbers. Tools exist to turn that guess into a fact. Turn the tool back on and step again.</div>'
+        : validate
+        ? '<div class="ok"><b>The whole loop, and the boundary is the point.</b> The model proposed two calls and wrote the final answer; it executed nothing. Everything that touched the world (running the tools) was your code, after your checks. That split is why an LLM can be given tools safely: it never holds the keys. Now switch validation off and step through.</div>'
+        : '<div class="lzbad"><b>Structure is not truth.</b> A perfectly well-formed call ran unchecked and carried a hostile argument. The model is an untrusted input: validate schema, identity, authorisation and the actual values on every call. The model&rsquo;s training makes a bad call rare; your validation makes it harmless.</div>';
+    } else {
+      note.innerHTML='';
+    }
+    render();
+  };
+  resetB.onclick=()=>{step=0;note.innerHTML='';render();};
+  render();
+})();
+
 /* ================= 7 · THE KV CACHE ================= */
 document.getElementById('sec-lmkv').innerHTML=`
 <div class="card" style="margin-bottom:16px">
@@ -1591,6 +1705,10 @@ document.getElementById('sec-lmexam').innerHTML=`
   <div class="exam-line"><b>&ldquo;We trimmed the oldest tokens to fit the context and quality fell more than expected.&rdquo;</b> &rarr; You probably removed the attention sink. Many heads park surplus weight on the first token or two, and dropping them destabilises the softmax across the whole stack. Keep the first few tokens and trim from just after them.</div>
   <div class="exam-line"><b>&ldquo;Should we serve a 70B model at 2-bit or a smaller model at 4-bit?&rdquo;</b> &rarr; Almost always the smaller model at 4-bit, and it should be measured rather than assumed. Quality falls off sharply below about 3 bits, whereas a well-quantised smaller model degrades gracefully, run both on your own evaluation before committing.</div>
   <div class="exam-line"><b>&ldquo;The model swapped two names round halfway through a long document.&rdquo;</b> &rarr; A retrieval-over-context failure, not a memory failure. Everything is still in the window; attention simply has to pick the right earlier token out of thousands, and the further back it sits the weaker the signal. Shortening the relevant distance (by retrieval or by restructuring the prompt) helps more than a longer window.</div>
+  <div class="exam-line"><b>&ldquo;How does tool calling actually work: who runs the tool?&rdquo;</b> &rarr; The app hands the model a catalogue (name, description, argument schema); the model emits a structured call (name plus arguments) instead of prose and executes nothing; your code validates and runs it, then feeds the result back so the model can continue. The model proposes, your code disposes.</div>
+  <div class="exam-line"><b>&ldquo;Function calling or tool calling, which do we need?&rdquo;</b> &rarr; The same mechanism under two names: function calling is the original API name, tool calling the newer umbrella, and a function is one kind of tool. The loop is identical; only the provider&rsquo;s field names differ.</div>
+  <div class="exam-line"><b>&ldquo;The model returned a perfectly valid tool call, so we ran it. Then this happened.&rdquo;</b> &rarr; Structure is not truth. A well-formed call can still carry a wrong or hostile argument, because the model is an untrusted input whose context may be poisoned. Validate schema, identity, authorisation and the actual values on every call, and if an action must never happen, remove the tool rather than instruct against it.</div>
+  <div class="exam-line"><b>&ldquo;The agent asked for weather in five cities and it was slow.&rdquo;</b> &rarr; Those are independent, so the model can emit five calls in one turn (parallel function calling) and the executor runs them concurrently, making latency the slowest call, not the sum. Running them one at a time is the bug; dependent calls, where one needs another&rsquo;s output, stay sequential by nature.</div>
 </div>`;
 
 /* ================= 2 · SHAPES ================= */
