@@ -251,8 +251,7 @@
   inp.setAttribute('autocomplete','off'); inp.setAttribute('spellcheck','false');
   const list=document.createElement('div'); list.className='cmdlist'; list.id='cmdList';
   const foot=document.createElement('div'); foot.className='cmdfoot';
-  foot.innerHTML='<span><b>↑↓</b> move</span><span><b>↵</b> jump</span><span><b>esc</b> close</span>'+
-    '<span><b>← →</b> switch tab</span>';
+  foot.innerHTML='<span><b>↑↓</b> move</span><span><b>↵</b> jump</span><span><b>esc</b> close</span>';
   box.appendChild(inp); box.appendChild(list); box.appendChild(foot);
   pal.appendChild(box); document.body.appendChild(pal);
   let hits=[], sel=0;
@@ -273,6 +272,7 @@
   }
   function open(){ pal.classList.add('on'); inp.value=''; draw(''); if(inp.focus) inp.focus(); }
   function close(){ pal.classList.remove('on'); }
+  const fb=document.getElementById('findBtn'); if(fb) fb.addEventListener('click',open);
   pal.addEventListener('click',e=>{ if(e.target===pal) close(); });
   inp.addEventListener('input',()=>draw(inp.value));
   inp.addEventListener('keydown',e=>{
