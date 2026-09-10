@@ -58,7 +58,7 @@ function init(topics) {
   /* ============ labs -> the topics they actually cover ============
      Each hands-on lab is the practical half of a handful of these
      categories. Without this map every lab card pointed at the same
-     undifferentiated pile of 281 topics, so finishing the Cloud lab and
+     undifferentiated pile of 283 topics, so finishing the Cloud lab and
      wanting the cloud reading meant hand-picking fourteen tiles out of
      forty-three. Categories listed here are the ones the lab genuinely
      teaches, a lab that only brushes a subject is deliberately left out,
@@ -67,6 +67,7 @@ function init(topics) {
     cloud: { name: "Cloud lab", hue: 212, cats: ["Cloud Architecture", "GCP", "Kubernetes", "Security", "Observability", "Infrastructure as Code", "DevOps", "Deployment", "FinOps", "Performance", "Event-Driven Architecture", "Production Readiness", "Production Operations", "Data & Databases"] },
     agentcore: { name: "AgentCore lab", hue: 320, cats: ["AI Agents", "Agentic AI", "Agent Frameworks & Runtimes", "Model Context Protocol", "Observability", "Production Readiness"] },
     agentbuild: { name: "Agents building agents", hue: 320, cats: ["AI Agents", "Agentic AI", "Agentic AI Scenarios", "Agent Frameworks & Runtimes", "AI & GenAI"] },
+    frames: { name: "Pick your frame", hue: 200, cats: ["Agent Frameworks & Runtimes", "LangChain Stack", "AI Agents", "Agentic AI"] },
     adk: { name: "ADK lab", hue: 320, cats: ["Agent Frameworks & Runtimes", "AI Agents", "Agentic AI", "Model Context Protocol"] },
     evals: { name: "Evaluation & hill climbing", hue: 48, cats: ["Evaluation & Metrics", "LLMOps", "Observability", "Testing & Quality", "Production Readiness"] },
     metrics: { name: "The number to trust", hue: 152, cats: ["Evaluation & Metrics", "Classical Machine Learning", "Math, Probability & Statistics", "Retrieval-Augmented Generation"] },

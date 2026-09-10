@@ -8374,5 +8374,69 @@
       "Assumes rails replace authorisation and sandboxing"
     ],
     "memory": "Colang scripts the conversation at five rail checkpoints; absolutes still belong to deterministic gates."
+  },
+  {
+    "id": "strands-agents",
+    "title": "Strands Agents: The Model-Driven Loop",
+    "category": "Agent Frameworks & Runtimes",
+    "difficulty": "Medium",
+    "question": "What is the model-driven (model-first) approach to building agents, as in AWS's Strands Agents SDK, and what does it trade away compared with a graph you draw in advance?",
+    "technical": [
+      "Model-first means you supply three things: a model, a system prompt and a set of tools. On every turn the model itself decides whether to call a tool, which one, or that it is finished. There is no pre-drawn control flow; planning is delegated to the model.",
+      "The agentic loop stays fully exposed to the developer: user prompt in, the model decides, tools run if needed, results feed back, a final response comes out, and every decision, call and result can be traced. This is deliberately little orchestration code.",
+      "The trade against a graph-first frame (LangGraph): you gain adaptability (a case nobody anticipated is often handled with no code change) and lose predictability (path, latency and cost vary run to run for the same input).",
+      "Because the model owns control flow, the developer's remaining job is observation and gating: tracing, evaluation on realistic cases, guardrails and step or budget caps, rather than more orchestration.",
+      "It suits open-ended tasks where you trust a strong model to plan and cannot enumerate the paths in advance; a fixed, regulated, must-resume-after-crash process is better served by an explicit graph."
+    ],
+    "layman": "A bus versus a taxi. The bus follows a route drawn in advance: cheap and predictable, and it will not serve the new hospital until someone repaints the map. The model-driven agent is the taxi: it will go anywhere today, for a bit more money, by a route you only learn afterwards from the receipt.",
+    "usecases": [
+      "Open-ended research and analysis agents",
+      "Rapid agent prototypes with minimal orchestration code",
+      "Comparing model-first against graph-first for a given process"
+    ],
+    "code": "model-first agent, in essence:\n\nagent = Agent(model, system_prompt, tools=[...])\nagent(\"handle this ticket\")\n# the model plans every step; your orchestration code is ~empty\n\nwhat you now own instead of a graph:\n  tracing every run, evals on realistic cases,\n  guardrails, and a step/budget cap",
+    "followups": [
+      "When would you refuse model-first and draw an explicit graph instead?",
+      "Why are tracing and evaluation the natural partners of a model-driven loop?",
+      "How do you bound cost when the model decides the number of steps?"
+    ],
+    "redflags": [
+      "Uses model-first for a regulated process that must resume after a crash",
+      "Ships a model-driven loop with no tracing or step cap",
+      "Assumes low orchestration code means low operational effort"
+    ],
+    "memory": "Model, prompt, tools, and the model drives: buys adaptability, pays in predictability, so tracing and evals become the real work."
+  },
+  {
+    "id": "lang-family-map",
+    "title": "LangChain, LangGraph, LangSmith, Langflow, Langfuse: The Family Map",
+    "category": "LangChain Stack",
+    "difficulty": "Low",
+    "question": "Five rhyming products keep getting called competitors. Place LangChain, LangGraph, LangSmith, Langflow and Langfuse on their actual layers, and name which are not the same company.",
+    "technical": [
+      "LangChain is the framework library: the building blocks (models, prompts, tools, chains, memory) you import to build with. It is the toolbox the rest of the family relates to.",
+      "LangGraph is the stateful-orchestration layer from the same company: typed shared state, checkpoints and resume, for when a chain needs branches, loops, durability and human-in-the-loop.",
+      "LangSmith is the observability layer, also LangChain's: managed tracing, evaluation and monitoring, with near-zero setup for LangChain and LangGraph apps. Closed source, hosted.",
+      "Langflow is a low-code visual builder (drag-and-drop flows) and, despite the name, a separate project under different ownership, not a LangChain product.",
+      "Langfuse is an independent, open-source observability platform: tracing and evaluation for any stack, a direct alternative to LangSmith, and again not the LangChain company. So the five span four layers (build, orchestrate, observe, draw), two share the observe layer, and two of the five are outside vendors entirely."
+    ],
+    "layman": "A kitchen's tools with rhyming brand names: a recipe toolbox, a wiring diagram for the dinner service, a dashboard watching every pan, a drag-and-drop menu designer, and a second pan-watching dashboard from a rival supplier. The names rhyme; the jobs and even the makers differ.",
+    "usecases": [
+      "Cutting through the Lang-prefixed naming confusion in a design review",
+      "Choosing an observability tool (LangSmith vs Langfuse) on merit, not name",
+      "Explaining the stack to a new team member"
+    ],
+    "code": "by layer, not by name:\n\n  build       LangChain     (library)          LangChain co.\n  orchestrate LangGraph     (stateful graphs)  LangChain co.\n  observe     LangSmith     (tracing+evals)    LangChain co.\n  observe     Langfuse      (tracing+evals)    independent, OSS\n  draw        Langflow      (low-code canvas)  separate project\n\nthe two that are NOT LangChain products: Langflow, Langfuse",
+    "followups": [
+      "LangSmith or Langfuse: what actually decides it, given both observe?",
+      "Why is Langflow's name the most misleading of the five?",
+      "Which layer does your problem sit on before you pick a product?"
+    ],
+    "redflags": [
+      "Treats the five as one shelf of competitors",
+      "Assumes Langflow or Langfuse is a LangChain product",
+      "Picks LangSmith over Langfuse (or vice versa) on brand rather than fit"
+    ],
+    "memory": "Build, orchestrate, observe, draw: LangChain and LangGraph and LangSmith are one company, Langflow and Langfuse are not."
   }
 ]
