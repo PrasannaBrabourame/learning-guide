@@ -8508,5 +8508,293 @@
       "Assumes MCP replaces tool calling rather than sitting above it"
     ],
     "memory": "One mechanism, two names: the model writes a structured call, your code runs it. A function is one kind of tool; MCP changes where tools come from, not how they are called."
+  },
+  {
+    "id": "gemini-layout-parser-ingestion",
+    "title": "Ingesting Table-Heavy Documents: The Layout Parser",
+    "category": "Retrieval-Augmented Generation",
+    "difficulty": "Medium",
+    "question": "You are ingesting table-heavy PDFs and image-based infographics into an enterprise agent, and the agent reasons poorly over the tables and hierarchical text. You want to fix groundedness without bolting on external pre-processing. What do you turn on?",
+    "technical": [
+      "Turn on the Document AI layout parser when creating the data store. It identifies structural elements (paragraphs, tables, lists) and preserves the document's hierarchy, so retrieval returns coherent, context-aware chunks and the agent can reason over rows and columns.",
+      "The default digital parser only extracts raw machine-readable text blocks; it cannot recognise tables, lists or hierarchy, so tabular content arrives jumbled and reasoning degrades. It is the wrong default for structured documents.",
+      "Flattening PDFs to low-resolution images and running plain OCR strips semantic context, structure and layout relationships, so column and row relationships are lost. OCR text is not structure.",
+      "A custom Document AI extractor streaming JSON into a warehouse is a valid bespoke pipeline, but it bypasses the platform's native search, RAG and data-store integration and adds operational complexity when a managed parser already exists.",
+      "The rule: for unstructured, structure-rich documents, the layout parser is the managed, native answer; reach for custom extraction only when the schema is bespoke and the native path genuinely cannot express it."
+    ],
+    "layman": "Photocopying a spreadsheet versus retyping it into cells. The plain parser photocopies: you can read the numbers but the grid is gone. The layout parser rebuilds the grid, so the agent still knows which figure sits in which row and column.",
+    "usecases": [
+      "RAG over contracts, financial reports and slide decks",
+      "Improving groundedness on tabular and hierarchical content",
+      "Choosing between a managed parser and a custom extractor"
+    ],
+    "code": "data store creation:\n  parser = default digital   -> raw text blocks, tables jumbled\n  parser = layout           -> tables, lists, hierarchy preserved  <-\n\nwhen to leave native:\n  bespoke schema the layout parser cannot express\n  -> custom Document AI extractor (accept the extra plumbing)",
+    "followups": [
+      "Why does OCR text hurt reasoning over tables specifically?",
+      "When is a custom extractor worth leaving the native RAG path?",
+      "How would you measure the groundedness gain after switching parsers?"
+    ],
+    "redflags": [
+      "Uses the default digital parser for table-heavy documents",
+      "Flattens PDFs to images and OCRs them, losing structure",
+      "Builds a custom extraction pipeline when the layout parser would do"
+    ],
+    "memory": "Structure-rich documents want the layout parser: it keeps tables, lists and hierarchy, so retrieval stays grounded."
+  },
+  {
+    "id": "slm-open-weights-in-vpc",
+    "title": "A Narrow Task in a Private VPC: Small Open-Weights Model",
+    "category": "AI & GenAI",
+    "difficulty": "Medium",
+    "question": "You must summarise and extract entities from highly classified legal contracts, with all model execution inside your own VPC, a narrow well-defined task, fast inference and minimal infrastructure cost. What do you deploy?",
+    "technical": [
+      "Deploy a small open-weights model (a 2B-class Gemma, say) to a private endpoint inside the VPC. Open weights mean the data never leaves your network, and a small model (an SLM) is fast and cheap and easily good enough for a narrow, well-defined extraction task.",
+      "A large open-weights model (30B-class) would meet the VPC requirement but needs an expensive high-end GPU (and multi-GPU for full precision or high throughput), far more than a narrow extraction task warrants. Match model size to task difficulty, not to ambition.",
+      "A managed SaaS model API, however well perimeter-secured, sends the request outside your compute boundary, which violates a strict VPC-exclusive mandate. Perimeter controls do not turn a SaaS call into in-VPC execution.",
+      "Redacting the entities with a data-loss-prevention tool and then calling a SaaS model both leaves the VPC and destroys the task: you cannot extract the very entities you just removed.",
+      "Two independent constraints decide it: data residency (VPC-exclusive) forces open weights on your own compute; task narrowness plus cost forces the smallest model that clears the bar."
+    ],
+    "layman": "Hiring an in-house clerk for one repetitive form, not couriering the secret files to a famous consultant across town. The clerk (a small local model) is cheap, fast and never lets the papers leave the building; the consultant is overkill and, worse, is outside your walls.",
+    "usecases": [
+      "Regulated extraction where data cannot leave the network",
+      "Sizing a model to a narrow task under a cost ceiling",
+      "Choosing open weights over a managed API for residency"
+    ],
+    "code": "two constraints, two decisions:\n  data must stay in the VPC   -> open-weights model on your compute\n  narrow task + cost ceiling  -> smallest model that clears the bar\n\ntraps:\n  big open model  -> high-end GPU cost, task did not need it\n  SaaS API        -> leaves the VPC, mandate broken\n  DLP + SaaS      -> redacts the entities you were asked to extract",
+    "followups": [
+      "How do you decide the smallest model that still clears the quality bar?",
+      "Why does a perimeter control not satisfy a VPC-exclusive mandate?",
+      "When would the cost maths flip toward a larger model?"
+    ],
+    "redflags": [
+      "Sends classified data to a SaaS API under a VPC-exclusive mandate",
+      "Deploys a large model for a narrow task and pays for idle capacity",
+      "Redacts the entities the task needs to extract"
+    ],
+    "memory": "VPC-exclusive means open weights on your own compute; a narrow task means the smallest model that clears the bar."
+  },
+  {
+    "id": "adk-session-persistence-scale",
+    "title": "ADK Sessions Across Instances: VertexAiSessionService",
+    "category": "Agent Frameworks & Runtimes",
+    "difficulty": "Medium",
+    "question": "An ADK agent works locally but loses conversation context in a load-balanced, multi-instance production deployment, because session state lives in one instance's memory. How do you make multi-turn state persist reliably, with minimum overhead?",
+    "technical": [
+      "Switch the runner from InMemorySessionService to VertexAiSessionService backed by an Agent Runtime instance. State moves out of local RAM into managed, central session storage, so any instance can serve any turn and nothing is lost when instances scale or restart.",
+      "InMemorySessionService keeps active session state and event history in one instance's RAM; a request routed to a different instance has no access to it. That is the exact failure being seen, and it is a local-state problem, not a routing problem.",
+      "HTTP session affinity (sticky sessions) on the load balancer is an anti-pattern for stateful agents: if the pinned instance restarts, fails a health check or scales down, its local state is gone permanently. Central external state is what gives reliability, not affinity.",
+      "PreloadMemoryTool pulls long-term facts and preferences from the Memory Bank across separate historical conversations; it does not persist the short-term multi-turn event history the session service owns. Different layer, different job.",
+      "A custom Redis-backed SessionService can work but violates the minimum-overhead constraint: you now own state-management code, Redis infrastructure and network boundaries. Use the managed service unless you have a reason not to."
+    ],
+    "layman": "A shop where each till keeps its own notepad of your running order. Move to another till and your order is gone. Session affinity is insisting you always return to the same till, which fails the day that till closes. The fix is one shared order book behind the counter that every till reads.",
+    "usecases": [
+      "Scaling a stateful agent past one instance",
+      "Choosing session persistence versus sticky sessions",
+      "Separating short-term session state from long-term memory"
+    ],
+    "code": "local:       InMemorySessionService   (state in one instance's RAM)\nproduction:  VertexAiSessionService    (central managed storage)  <-\n\nnot the fix:\n  sticky sessions  -> state dies with the instance\n  PreloadMemoryTool-> long-term facts, not multi-turn history\n  custom Redis     -> works, but you now run the infrastructure",
+    "followups": [
+      "Why is a sticky session an anti-pattern for a stateful agent?",
+      "How does short-term session state differ from the Memory Bank?",
+      "When would a custom session store be worth the overhead?"
+    ],
+    "redflags": [
+      "Relies on load-balancer session affinity for state reliability",
+      "Confuses the Memory Bank (long-term) with session history (short-term)",
+      "Builds a custom Redis session store when the managed one fits"
+    ],
+    "memory": "State in one instance's RAM cannot survive scaling: move it to the managed session service, not to sticky sessions."
+  },
+  {
+    "id": "synthetic-eval-dataset",
+    "title": "Generating an Adversarial Eval Set at Scale",
+    "category": "Evaluation & Metrics",
+    "difficulty": "Medium",
+    "question": "You must evaluate an HR benefits agent against adversarial inputs, ambiguous queries and out-of-domain questions, generated at scale from existing policy documents with minimal manual effort. What do you use?",
+    "technical": [
+      "Use the evaluation service's synthetic data generation: an LLM produces diverse question-and-answer pairs, including edge cases and adversarial inputs, from the ground-truth policy documents. It gives you scale and coverage of the failure modes you care about without hand-writing them.",
+      "Mining the last thirty days of production logs only gives the happy path: the common questions users actually typed. It misses the adversarial, ambiguous and out-of-domain cases precisely because users rarely type them, which is what you are trying to test.",
+      "Injecting synthetic adversarial prompts into live production traffic to test safety in real time is a critical anti-pattern: you are attacking your own users' sessions. Adversarial testing belongs in an eval harness, not production.",
+      "Running the policy documents through a layout parser gives raw text chunks, which are not conversational prompts and simulate no realistic interaction, let alone adversarial or out-of-domain ones.",
+      "The principle: to test graceful failure you must manufacture the failure cases, and synthetic generation from ground truth is how you get adversarial coverage at scale."
+    ],
+    "layman": "Fire drills you design on purpose, not a diary of days nothing caught fire. Old logs are the quiet days; they never rehearse the emergency. You generate the awkward, hostile and off-topic questions deliberately, so you can watch the agent fail gracefully before a real user finds the gap.",
+    "usecases": [
+      "Building an adversarial and out-of-domain test set from documents",
+      "Testing graceful failure rather than only the happy path",
+      "Reducing manual effort in eval-set creation"
+    ],
+    "code": "want: adversarial + ambiguous + out-of-domain, at scale\n  synthetic generation from ground-truth docs   -> coverage  <-\n\ntraps:\n  30 days of logs  -> only the happy path\n  inject into prod -> attacking real users, anti-pattern\n  raw parsed text  -> not prompts, no adversarial cases",
+    "followups": [
+      "Why do production logs miss adversarial cases?",
+      "Why is injecting adversarial prompts into production dangerous?",
+      "How would you validate that the synthetic set is actually diverse?"
+    ],
+    "redflags": [
+      "Uses only historical logs to test graceful failure",
+      "Injects adversarial traffic into live production",
+      "Treats raw document chunks as conversational test prompts"
+    ],
+    "memory": "To test graceful failure you must manufacture the failures: synthesise adversarial cases from ground truth, never mine only the happy path."
+  },
+  {
+    "id": "agent-gateway-egress-dryrun",
+    "title": "Governing Agent Egress Safely: Gateway Dry-Run",
+    "category": "Security",
+    "difficulty": "High",
+    "question": "A financial-advisor agent queries internal databases and calls external stock-exchange APIs through MCP servers. You want centralised monitoring and tracking of outbound calls via the Agent Gateway, without risking trade-execution failures during rollout. How do you configure it?",
+    "technical": [
+      "Put the Agent Gateway in its egress (agent-to-anywhere) mode, linked to the regional Agent Registry so every registered tool and endpoint is governed, and deploy the IAP authorisation policy in dry-run (audit-only) mode. Dry-run evaluates the rules and writes audit logs without blocking anything, so you can validate IAM role bindings before enforcing.",
+      "The client-to-agent gateway mode governs incoming traffic from user clients into your agents; it cannot govern outbound calls to external APIs or MCP servers. Direction of traffic decides the mode.",
+      "Strict enforcement with default-deny from day one immediately blocks any non-compliant or unverified call, which for a trading agent means trade-execution failures and service disruption during rollout. That violates the validate-safely constraint.",
+      "VPC Service Controls and a web-application firewall protect data-exfiltration boundaries and incoming web loads respectively; neither provides native gateway egress governance, registry endpoint tracking or IAP evaluation for agentic tool calls.",
+      "The pattern is dry-run first: observe what a policy would block, fix the role bindings it flags, then flip to enforcement. Enforce blind and you learn your policy was wrong by taking an outage."
+    ],
+    "layman": "Trialling a new door policy by writing down who would have been turned away, before you actually start turning people away. You watch the log for a week, fix the staff whose passes were wrongly rejected, and only then lock the door. Enforcing on day one means turning away your own traders mid-trade.",
+    "usecases": [
+      "Governing and monitoring outbound agent tool calls",
+      "Rolling out an authorisation policy without an outage",
+      "Tracking egress to external MCP servers centrally"
+    ],
+    "code": "outbound governance:\n  gateway mode = agent-to-anywhere (egress)   + Agent Registry\n  IAP policy   = DRY_RUN (audit-only)         -> logs, no blocks  <-\n  then         = enforce, once role bindings check out\n\nwrong turns:\n  client-to-agent mode -> governs ingress, not egress\n  strict from day one  -> blocks live trades\n  VPC-SC / WAF         -> not gateway egress governance",
+    "followups": [
+      "Why does the gateway mode depend on traffic direction?",
+      "What do you look for in the dry-run audit logs before enforcing?",
+      "Why can VPC Service Controls not replace gateway egress governance?"
+    ],
+    "redflags": [
+      "Enforces a default-deny egress policy on day one for a trading agent",
+      "Uses the ingress gateway mode to govern outbound calls",
+      "Assumes VPC Service Controls governs agentic tool calls"
+    ],
+    "memory": "Egress governance is the agent-to-anywhere gateway; roll a policy out in dry-run, validate the logs, then enforce, never enforce blind."
+  },
+  {
+    "id": "cot-fewshot-structured-output",
+    "title": "Reliable Multi-Part Output: Chain-of-Thought Plus Few-Shot",
+    "category": "AI & GenAI",
+    "difficulty": "Medium",
+    "question": "A tutor agent must return three parts every turn (an affirmation, a hint and a follow-up question) with the hint phrased differently across attempts, but fewer than half of responses include all three. How do you make the structure reliable while keeping the variation?",
+    "technical": [
+      "Combine chain-of-thought instructions (tell the model to plan the affirmation, the hint and the follow-up before writing the final text) with a few-shot example or two of the three-part structure. Planning first plus a worked pattern reliably holds the structure in a single turn, and leaving temperature and top-p at their non-zero defaults preserves the required phrasing variation.",
+      "Dropping temperature and top-p to zero forces deterministic output, which does make structure consistent but kills the variation the task explicitly requires: the hint would be worded identically on every retry.",
+      "Splitting the three components across separate conversation pages and transition routes fragments the reply into multiple turns or messages, when the requirement is one cohesive three-part response in a single turn.",
+      "A safety filter (Model Armor) screens for injection, sensitive data and unsafe content; it neither generates nor structures a multi-part tutoring response, so it cannot fix a missing component.",
+      "The principle: structure comes from planning and examples (CoT plus few-shot), not from crushing randomness; keep sampling non-zero so wording can vary while the shape stays fixed."
+    ],
+    "layman": "Giving a new tutor a checklist and one worked example, rather than making them read from a fixed script. The checklist and example fix the shape (always praise, then hint, then a question); leaving them room to phrase it freely keeps each hint fresh for a student who is trying again.",
+    "usecases": [
+      "Enforcing a fixed response structure with varied wording",
+      "Choosing prompt techniques over determinism for consistency",
+      "Debugging why a multi-part instruction is only half-followed"
+    ],
+    "code": "want: fixed 3-part shape, varied hint wording\n  chain-of-thought (plan the 3 parts first)\n  + few-shot example of the structure            -> reliable shape  <-\n  temperature / top-p at non-zero defaults        -> keeps variation\n\ntraps:\n  temp = 0        -> consistent AND identical every retry\n  split pages     -> many turns, not one cohesive reply\n  safety filter   -> screens content, does not structure it",
+    "followups": [
+      "Why does CoT plus few-shot beat a longer instruction alone?",
+      "Why would temperature 0 break this specific requirement?",
+      "How many few-shot examples before you see diminishing returns?"
+    ],
+    "redflags": [
+      "Sets temperature to zero when the task needs varied wording",
+      "Splits a single-turn response across conversation pages",
+      "Reaches for a safety filter to enforce output structure"
+    ],
+    "memory": "Structure comes from planning plus examples (CoT and few-shot); keep sampling non-zero so wording varies while the shape holds."
+  },
+  {
+    "id": "coding-agent-cloud-workstations",
+    "title": "Sandboxing Coding Agents: Cloud Workstations",
+    "category": "Security",
+    "difficulty": "Medium",
+    "question": "Autonomous coding agents in an agentic IDE refactor legacy code and run tests on developer laptops, and one agent tried to read local credentials and modify host OS files. You must stop agents altering developer machines while keeping centralised security control. What do you do?",
+    "technical": [
+      "Move the development environment into Cloud Workstations running custom container images inside your private network. The agent executes in a managed, non-root workstation behind a VPC boundary, fully insulated from the local laptop, so it cannot reach the developer's home directory, SSH keys or host OS, and administration is centralised.",
+      "Running the agent's test suites in local Docker containers on the laptop still relies on local environment management, enforces no central control, and leaves the machine exposed to container escape or misconfiguration.",
+      "Giving the agent a dedicated non-privileged local user account adds per-laptop operational overhead, has no centralised cloud governance, and does not fully sandbox execution from the host.",
+      "Shielded-VM protections defend Compute Engine instances against boot-level rootkits and firmware tampering; they do nothing to sandbox local host-file execution or provide a centralised developer workstation experience.",
+      "The recommended pattern for AI coding agents, where prompt injection can turn the agent hostile, is execution inside managed, non-root, private-network workstations: isolation from the human's machine plus one place to govern it."
+    ],
+    "layman": "Giving contractors a locked workshop on your premises instead of the keys to their own house. Whatever a contractor is tricked into doing, they can only do it in the workshop, and you control the workshop from one office. Docker on the laptop is still a room inside their house.",
+    "usecases": [
+      "Isolating autonomous coding agents from developer machines",
+      "Centralising security control over agent execution",
+      "Mitigating prompt-injection blast radius for coding agents"
+    ],
+    "code": "threat: agent reads ~/.ssh, modifies host OS (injection risk)\n  Cloud Workstations, custom image, private VPC, non-root   <-\n    -> insulated from the laptop, centrally governed\n\nweaker options:\n  local Docker      -> still local, no central control, escapes\n  local user acct   -> per-laptop overhead, not sandboxed\n  shielded VM       -> boot-integrity, not host-file sandboxing",
+    "followups": [
+      "Why does local Docker not satisfy the centralised-control requirement?",
+      "What does a Shielded VM actually protect against?",
+      "How does moving execution off the laptop shrink the injection blast radius?"
+    ],
+    "redflags": [
+      "Runs autonomous coding agents directly on developer laptops",
+      "Confuses Shielded-VM boot integrity with execution sandboxing",
+      "Manages isolation with per-laptop local user accounts"
+    ],
+    "memory": "Coding agents run in managed, non-root, private-network workstations: insulate the human's machine and govern it from one place."
+  },
+  {
+    "id": "custom-autorater-brand-voice",
+    "title": "Evaluating a Proprietary Brand Rubric: Custom Autorater",
+    "category": "Evaluation & Metrics",
+    "difficulty": "Medium",
+    "question": "You must evaluate a marketing agent's output against a proprietary brand-voice rubric unique to your organisation. What evaluation approach fits?",
+    "technical": [
+      "Define a custom autorater (LLM-as-judge) in the evaluation service and prompt it with your exact brand rubric. A judge model can score subjective, domain-specific qualities like tone and voice that no fixed metric captures, and the rubric is the instruction you hand it.",
+      "Lexical-overlap metrics (ROUGE, BLEU) measure word overlap against a fixed reference; they cannot assess voice, tone or style, and reward a response that reuses reference words regardless of whether it sounds right.",
+      "Prebuilt model-based metrics (instruction following, coherence, fluency) do use a judge model, but against fixed, vendor-defined rubrics that know nothing of your brand rules. They score general quality, not your specific voice.",
+      "Deterministic, code-based assertions (exact strings, tool-call sequences) suit verifiable facts and structure, not creative natural language whose wording legitimately varies. They would fail correct outputs for phrasing.",
+      "The rule: subjective, organisation-specific criteria need a judge prompted with your rubric; reserve overlap metrics and deterministic assertions for reference-comparable and verifiable outputs respectively."
+    ],
+    "layman": "Judging a house style needs an editor who has read your style guide, not a word-count tool and not a generic grammar checker. ROUGE counts matching words; the prebuilt metrics grade generic good writing; only a judge you brief with your own rulebook can say whether it sounds like you.",
+    "usecases": [
+      "Scoring brand voice, tone and style at scale",
+      "Choosing a judge over overlap metrics for subjective criteria",
+      "Encoding a proprietary rubric into an evaluation"
+    ],
+    "code": "criterion: proprietary, subjective brand voice\n  custom autorater (LLM-as-judge) prompted with YOUR rubric   <-\n\nwrong tools:\n  ROUGE / BLEU        -> word overlap, blind to tone\n  prebuilt metrics    -> vendor rubric, not your brand\n  deterministic asserts-> exact match, fails valid paraphrase",
+    "followups": [
+      "How do you keep a custom autorater consistent with human raters?",
+      "Why do ROUGE and BLEU fail on brand voice specifically?",
+      "When are deterministic assertions the right evaluation instead?"
+    ],
+    "redflags": [
+      "Uses ROUGE or BLEU to judge tone and voice",
+      "Assumes prebuilt metrics can encode a proprietary rubric",
+      "Writes exact-match assertions for creative natural language"
+    ],
+    "memory": "Subjective, organisation-specific criteria need a judge prompted with your own rubric, not overlap metrics or exact-match assertions."
+  },
+  {
+    "id": "agent-gateway-central-telemetry",
+    "title": "Centralised Agent Telemetry: The Agent Gateway",
+    "category": "Observability",
+    "difficulty": "Medium",
+    "question": "A decentralised fleet of agents runs across many projects, built by different teams on diverse runtimes and models. You must monitor total API traffic, track which agent instance and version handled each request, and enforce uniform telemetry across every project. What do you deploy?",
+    "technical": [
+      "Route all client traffic through a centralised Agent Gateway. As a managed proxy and control plane it intercepts requests, routes across projects, records which agent version and target handled each transaction, and emits unified telemetry, all without changing backend agent code or clients.",
+      "An application load balancer with a firewall and access logs can route HTTP and export generic logs, but it has no semantic awareness of agentic protocols like MCP and cannot extract agent-specific metadata or track versions without heavy custom parsing.",
+      "The Agent Registry is a discovery and governance catalogue: it holds metadata about agents and tools, so audit logs on registry reads track catalogue lookups, not live request traffic or execution volume.",
+      "Agent Identity with principal-access-boundary policies enforces IAM permission perimeters; its logs record authorisation and identity-perimeter events, not incoming request volumes or runtime traffic.",
+      "The distinction to hold: the gateway is the traffic plane (what flowed, from which version, how much), the registry is the catalogue, and identity is the permission boundary. Only the gateway answers a traffic-and-telemetry question."
+    ],
+    "layman": "One staffed reception desk every visitor must pass, rather than reading the building's electricity meter and guessing. The desk logs who visited whom, how often and which office version they saw; the load balancer is just the meter, the registry is the staff directory, and identity is the door-pass rules.",
+    "usecases": [
+      "Uniform telemetry across a multi-project agent fleet",
+      "Tracking per-request agent version and target",
+      "Central traffic monitoring without touching agent code"
+    ],
+    "code": "need: total traffic + per-request agent version + uniform telemetry\n  centralised Agent Gateway (managed proxy / control plane)   <-\n\nwrong planes:\n  load balancer + logs -> no agentic semantics, no version tracking\n  Agent Registry       -> catalogue metadata, not live traffic\n  Agent Identity + PAB -> permission boundary, not traffic volume",
+    "followups": [
+      "Why can a load balancer not track agent version per request?",
+      "What does the Agent Registry track, if not runtime traffic?",
+      "Where does agent identity fit if it is not the telemetry plane?"
+    ],
+    "redflags": [
+      "Uses a load balancer's access logs as agentic telemetry",
+      "Expects the Agent Registry to record runtime request volume",
+      "Confuses identity-perimeter logs with traffic telemetry"
+    ],
+    "memory": "Traffic and telemetry across a fleet is the Agent Gateway's job: the registry is the catalogue, identity is the boundary, the gateway is the traffic plane."
   }
 ]
