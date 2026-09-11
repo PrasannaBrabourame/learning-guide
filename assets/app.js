@@ -58,7 +58,7 @@ function init(topics) {
   /* ============ labs -> the topics they actually cover ============
      Each hands-on lab is the practical half of a handful of these
      categories. Without this map every lab card pointed at the same
-     undifferentiated pile of 285 topics, so finishing the Cloud lab and
+     undifferentiated pile of 294 topics, so finishing the Cloud lab and
      wanting the cloud reading meant hand-picking fourteen tiles out of
      forty-three. Categories listed here are the ones the lab genuinely
      teaches, a lab that only brushes a subject is deliberately left out,
