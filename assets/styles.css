@@ -388,3 +388,9 @@ a.brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
 html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after{
   transition:background-color .35s ease, color .35s ease, border-color .35s ease,
              fill .35s ease, stroke .35s ease, box-shadow .35s ease !important}
+
+/* quiet destructive reset control in the study panel */
+.resetprog{margin-top:12px;font-size:12px;padding:5px 11px;background:transparent;border:1px solid var(--line2,#d8d2c4);
+  color:var(--muted,#6b6459);border-radius:8px;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.resetprog:hover{border-color:var(--red,#b3423a);color:var(--red,#b3423a);background:color-mix(in srgb,var(--red,#b3423a) 8%,transparent)}
+.resetprog:focus-visible{outline:2px solid var(--accent);outline-offset:2px}

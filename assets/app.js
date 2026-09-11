@@ -498,5 +498,19 @@ function init(topics) {
   });
 
   /* ============ boot ============ */
+  /* ============ reset progress (bookmarks, studied, activity, streak) ============ */
+  const resetBtn = $("#resetProgress");
+  if (resetBtn) resetBtn.onclick = () => {
+    if (!confirm("Reset your progress on this browser?\n\nThis clears your studied topics, your stars (bookmarks) and your streak. It cannot be undone. Your light or dark theme is kept.")) return;
+    ["study-progress", "study-starred", "study-activity", "study-milestone", "study-last"].forEach(k => { try { localStorage.removeItem(k); } catch { } });
+    studied.clear(); starred.clear();
+    Object.keys(activity).forEach(k => delete activity[k]);
+    lastMilestone = 0;
+    document.querySelectorAll(".star.on").forEach(b => { b.classList.remove("on"); b.setAttribute("aria-pressed", "false"); });
+    document.querySelectorAll(".check:checked").forEach(c => { c.checked = false; });
+    updateCounters(false); renderHeatmap();
+    toast("Progress reset on this browser");
+  };
+
   renderHeatmap(); showDash(); openFromHash();
 }
