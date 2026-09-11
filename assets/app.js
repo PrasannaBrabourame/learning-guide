@@ -498,19 +498,39 @@ function init(topics) {
   });
 
   /* ============ boot ============ */
+  /* ============ lab + simulation bookmarks (written by lab pages) ============ */
+  function renderLabBookmarks() {
+    const host = document.getElementById("labBookmarks"); if (!host) return;
+    const items = store.get("study-lab-bookmarks", []);
+    if (!items.length) { host.hidden = true; host.innerHTML = ""; return; }
+    host.hidden = false;
+    const chips = items.map(b => {
+      const href = b.tab ? `${b.lab}#pane-${b.tab}` : b.lab;
+      const kind = b.tab ? "sim" : "lab";
+      return `<a class="bmchip ${kind}" href="${esc(href)}" title="${esc(b.label)}"><i>${b.tab ? "\u25C8" : "\u25A2"}</i><span>${esc(b.label)}</span></a>`;
+    }).join("");
+    host.innerHTML = `<div class="bmhead"><b>\u2605 Bookmarked</b><span class="bmcount">${items.length}</span><span class="bmspacer"></span><button class="bmclear" id="bmClearAll" type="button">Clear bookmarks</button></div><div class="bmchips">${chips}</div>`;
+    const clr = document.getElementById("bmClearAll");
+    if (clr) clr.onclick = () => {
+      if (!confirm("Remove all your lab and simulation bookmarks on this browser?")) return;
+      try { localStorage.removeItem("study-lab-bookmarks"); } catch { }
+      renderLabBookmarks(); toast("Bookmarks cleared");
+    };
+  }
+
   /* ============ reset progress (bookmarks, studied, activity, streak) ============ */
   const resetBtn = $("#resetProgress");
   if (resetBtn) resetBtn.onclick = () => {
     if (!confirm("Reset your progress on this browser?\n\nThis clears your studied topics, your stars (bookmarks) and your streak. It cannot be undone. Your light or dark theme is kept.")) return;
-    ["study-progress", "study-starred", "study-activity", "study-milestone", "study-last"].forEach(k => { try { localStorage.removeItem(k); } catch { } });
+    ["study-progress", "study-starred", "study-activity", "study-milestone", "study-last", "study-lab-bookmarks"].forEach(k => { try { localStorage.removeItem(k); } catch { } });
     studied.clear(); starred.clear();
     Object.keys(activity).forEach(k => delete activity[k]);
     lastMilestone = 0;
     document.querySelectorAll(".star.on").forEach(b => { b.classList.remove("on"); b.setAttribute("aria-pressed", "false"); });
     document.querySelectorAll(".check:checked").forEach(c => { c.checked = false; });
-    updateCounters(false); renderHeatmap();
+    updateCounters(false); renderHeatmap(); renderLabBookmarks();
     toast("Progress reset on this browser");
   };
 
-  renderHeatmap(); showDash(); openFromHash();
+  renderHeatmap(); renderLabBookmarks(); showDash(); openFromHash();
 }

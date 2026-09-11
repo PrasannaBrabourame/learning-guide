@@ -394,3 +394,21 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   color:var(--muted,#6b6459);border-radius:8px;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
 .resetprog:hover{border-color:var(--red,#b3423a);color:var(--red,#b3423a);background:color-mix(in srgb,var(--red,#b3423a) 8%,transparent)}
 .resetprog:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* dashboard: bookmarked labs and simulations strip */
+.labbm{margin:4px 0 22px;padding:14px 16px;border:1px solid var(--line2,#d8d2c4);border-radius:12px;background:var(--panel,#fff)}
+.labbm .bmhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.labbm .bmhead b{font-size:14px}
+.labbm .bmcount{font:600 11px var(--mono,ui-monospace);color:#fff;background:var(--accent);border-radius:99px;padding:1px 8px}
+.labbm .bmspacer{flex:1}
+.labbm .bmclear{font-size:12px;padding:4px 10px;background:transparent;border:1px solid var(--line2,#d8d2c4);
+  color:var(--muted,#6b6459);border-radius:8px;cursor:pointer}
+.labbm .bmclear:hover{border-color:var(--red,#b3423a);color:var(--red,#b3423a)}
+.labbm .bmchips{display:flex;flex-wrap:wrap;gap:8px}
+.bmchip{display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-size:12.5px;
+  padding:6px 12px;border-radius:99px;border:1px solid var(--line2,#d8d2c4);color:var(--text,#2b2b2b);
+  background:var(--panel2,#faf8f3);transition:border-color .15s,background .15s}
+.bmchip:hover{border-color:var(--accent);background:var(--sel,#eef4f3)}
+.bmchip i{font-style:normal;color:var(--accent);font-size:12px}
+.bmchip.sim{border-style:dashed}
+@media print{.labbm{display:none}}

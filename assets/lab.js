@@ -400,3 +400,87 @@ document.addEventListener('input', function(e){
     ' \u00b7 <span class="ver"' + (GUIDE_VERSION.sha ? ' title="commit ' + GUIDE_VERSION.sha + '"' : '') + '>' +
     (GUIDE_VERSION.v === 'dev' ? 'local dev build' : GUIDE_VERSION.v) + '</span>');
 })();
+
+/* ================= LAB BOOKMARKS =================
+   Both levels: the header star bookmarks the whole lab or the current
+   simulation (tab). Persisted in localStorage under study-lab-bookmarks,
+   surfaced on the dashboard, cleared by the dashboard's Reset progress. */
+(function(){
+  const nav = document.querySelector('.topnav');
+  const themeBtn = document.getElementById('themeBtn');
+  const tabs = document.querySelector('.tabs');
+  if (!nav || !themeBtn) return;
+
+  const KEY = 'study-lab-bookmarks';
+  const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+  const write = a => { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch { } };
+  const here = ((location.pathname || '').split('/').pop() || 'index.html');
+  const labTitle = () => {
+    const h = document.querySelector('h1');
+    return h ? h.textContent.replace(/\s+/g, ' ').trim() : here;
+  };
+  const curTab = () => {
+    const t = tabs && tabs.querySelector('.tab.on');
+    if (!t) return null;
+    let label = (t.textContent || '').replace(/\s+/g, ' ').trim();
+    const badge = t.querySelector && t.querySelector('.tcount');   // strip the sim-count badge
+    if (badge) { const b = (badge.textContent || '').trim(); if (b && label.endsWith(b)) label = label.slice(0, -b.length).trim(); }
+    return { pane: t.dataset.pane, label };
+  };
+
+  /* build the control */
+  const wrap = document.createElement('span');
+  wrap.className = 'bmwrap'; wrap.id = 'bmWrap';
+  const btn = document.createElement('button');
+  btn.className = 'tn tn-quiet'; btn.id = 'bmBtn'; btn.type = 'button';
+  btn.setAttribute('aria-haspopup', 'true'); btn.setAttribute('aria-expanded', 'false');
+  btn.title = 'Bookmark this lab or simulation';
+  const menu = document.createElement('div');
+  menu.className = 'bmmenu'; menu.id = 'bmMenu'; menu.hidden = true; menu.setAttribute('role', 'group');
+  wrap.appendChild(btn); wrap.appendChild(menu);
+  nav.insertBefore(wrap, themeBtn);
+
+  const labId = () => here;
+  const simId = p => here + '#pane-' + p;
+  const has = id => read().some(b => b.id === id);
+  const toggle = entry => {
+    const a = read(); const i = a.findIndex(b => b.id === entry.id);
+    if (i >= 0) a.splice(i, 1); else a.push(entry);
+    write(a);
+  };
+
+  function refreshBtn() {
+    const t = curTab();
+    const savedLab = has(labId());
+    const savedSim = t ? has(simId(t.pane)) : false;
+    const on = savedLab || savedSim;
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.innerHTML = (on ? '★' : '☆') + ' saved'.replace('saved', on ? 'saved' : 'save');
+  }
+
+  function renderMenu() {
+    const t = curTab();
+    const lab = labTitle();
+    const rows = [];
+    rows.push({ id: labId(), on: has(labId()), text: 'this lab', sub: lab,
+                entry: { id: labId(), lab: here, label: lab, tab: null } });
+    if (t) rows.push({ id: simId(t.pane), on: has(simId(t.pane)), text: 'this simulation', sub: t.label,
+                       entry: { id: simId(t.pane), lab: here, label: lab + ' · ' + t.label, tab: t.pane } });
+    menu.innerHTML = rows.map(r =>
+      '<button class="bmrow' + (r.on ? ' on' : '') + '" data-id="' + r.id + '">' +
+      '<i>' + (r.on ? '★' : '☆') + '</i><span><b>' + (r.on ? 'Remove: ' : 'Bookmark ') + r.text + '</b>' +
+      '<small>' + r.sub + '</small></span></button>').join('');
+    menu.querySelectorAll('.bmrow').forEach((el, idx) => {
+      el.onclick = () => { toggle(rows[idx].entry); renderMenu(); refreshBtn(); };
+    });
+  }
+
+  const open = v => { menu.hidden = !v; btn.setAttribute('aria-expanded', String(v)); btn.classList.toggle('menu-open', v); if (v) renderMenu(); };
+  btn.addEventListener('click', e => { e.stopPropagation(); open(menu.hidden); });
+  document.addEventListener('click', e => { if (!menu.hidden && !wrap.contains(e.target)) open(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { open(false); btn.focus(); } });
+  if (tabs) tabs.addEventListener('click', e => { if (e.target.closest('.tab')) setTimeout(refreshBtn, 0); });
+
+  refreshBtn();
+})();
