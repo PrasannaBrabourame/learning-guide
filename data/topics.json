@@ -8796,5 +8796,326 @@
       "Confuses identity-perimeter logs with traffic telemetry"
     ],
     "memory": "Traffic and telemetry across a fleet is the Agent Gateway's job: the registry is the catalogue, identity is the boundary, the gateway is the traffic plane."
+  },
+  {
+    "id": "agent-architect-pro-map",
+    "title": "Agent Architect Professional: The Five-Domain Decision Map",
+    "category": "Agentic AI",
+    "difficulty": "High",
+    "question": "The Agent Architect Professional certification spans five domains. What are they, and what recurring decision heuristics actually settle its scenario questions?",
+    "technical": [
+      "The five domains: (1) low-code tools (Dialogflow CX and the Enterprise Agent Designer), (2) coding agents (Antigravity, the Agents CLI, sandboxing), (3) developing custom agents (ADK, tools, memory, RAG, protocols), (4) evaluating and deploying agents (golden sets, trajectory eval, runtimes, cost and latency), (5) security and governance (identity, gateways, boundaries, guardrails).",
+      "Recurring heuristic 1, match the tier to the constraint: a fixed process with a couple of judgement calls wants low-code routing; an open task with tools wants a custom ADK agent; and the model size is chosen by measured task quality, latency and cost, not by ambition.",
+      "Recurring heuristic 2, registration is not enforcement: the Agent Registry catalogues, the Agent Gateway is the traffic and policy plane, and identity boundaries (PAB) limit resource eligibility. A question that says everything is registered but a call still gets through is asking for the gateway path, not more catalogue.",
+      "Recurring heuristic 3, the right layer for the job: sessions hold short-term conversation, Memory Bank holds extracted long-term preferences, RAG Engine is managed retrieval and Vector Search is a bring-your-own index; MCP exposes tools, A2A delegates to autonomous agents.",
+      "Recurring heuristic 4, validate before you enforce or trust: roll authorisation policies out in dry-run, gate releases on tool execution not just answer quality, and treat the model as an untrusted input so validation and guardrails sit in your code, screening decoded content and multi-turn context, not only single prompts.",
+      "Recurring heuristic 5, isolate blast radius: coding agents run in managed non-root sandboxes (Cloud Workstations, GKE Sandbox), tools carry narrowly scoped credentials, and per-user actions use delegated (three-legged) identity so each person acts as themselves."
+    ],
+    "layman": "A map for a driving-theory test: you rarely memorise every junction, you learn the handful of rules that decide most of them (give way to the right, the sign beats the marking). This cert is the same: five areas, and five habits of thought that answer most of the scenarios.",
+    "usecases": [
+      "Orienting before studying the Agent Architect Professional exam",
+      "Choosing the right Google Cloud service for an agent design",
+      "Sanity-checking an agent architecture against the recurring pitfalls"
+    ],
+    "code": "the five habits that settle most questions:\n  1 match the tier: low-code / custom ADK / model size by measurement\n  2 registration != enforcement: registry catalogues, gateway enforces\n  3 right layer: sessions vs Memory Bank, RAG Engine vs Vector Search,\n                 MCP (tools) vs A2A (agents)\n  4 validate then enforce: dry-run policies, gate on tool execution,\n                 screen decoded + multi-turn content in your code\n  5 isolate blast radius: sandbox agents, scope credentials,\n                 delegate per-user identity",
+    "followups": [
+      "Which domain does a 'registered but still reachable' question belong to?",
+      "When is low-code the right tier and when is a custom ADK agent?",
+      "Why does model choice come down to measurement rather than a default?"
+    ],
+    "redflags": [
+      "Treats registration in a catalogue as an access control",
+      "Chooses a model size by reputation instead of measured task fit",
+      "Enforces a new authorisation policy without a dry-run first"
+    ],
+    "memory": "Five domains, five habits: match the tier, registration is not enforcement, pick the right layer, validate before you enforce, isolate the blast radius."
+  },
+  {
+    "id": "adk-workflow-agents",
+    "title": "ADK Workflow Agents: Sequential, Parallel and Loop",
+    "category": "Agent Frameworks & Runtimes",
+    "difficulty": "Medium",
+    "question": "An ADK workflow must run validation first, then two independent checks concurrently, then a decision that needs both results. How do you compose the workflow agents to preserve the dependencies while allowing concurrency?",
+    "technical": [
+      "Nest the deterministic workflow agents: a SequentialAgent establishes the dependency order (validation, then the checks, then the decision), and inside it a ParallelAgent runs the two independent checks at once, feeding a merger or decision step.",
+      "SequentialAgent runs its children in order, passing state along; ParallelAgent runs its children concurrently and gathers their results; LoopAgent repeats a child until a condition. They are deterministic control flow, not a model deciding what runs next.",
+      "Making everything parallel races the decision against its own inputs: the decision could run before the checks finish. Parallelism is only safe between genuinely independent steps.",
+      "A LoopAgent has repeat semantics, wrong for a one-pass pipeline, and an LLM coordinator merely instructed to prefer an order does not enforce the dependency: model-chosen delegation is a suggestion, not a guarantee.",
+      "The rule: when the order is known and must hold, encode it in the workflow structure (sequential outer, parallel inner), not in a prompt. Reserve an LLM coordinator for genuinely open-ended routing."
+    ],
+    "layman": "A kitchen pass. The starter must be plated before the main (sequential), but the two sides for the main can cook on separate burners at the same time (parallel), and the plate-up waits for both sides. You do not tell the chef to 'try to do it in order'; the pass is built that way.",
+    "usecases": [
+      "Composing multi-step ADK pipelines with dependencies",
+      "Running independent checks concurrently without racing the decision",
+      "Choosing deterministic workflow agents over an LLM coordinator"
+    ],
+    "code": "SequentialAgent(\n  validation,\n  ParallelAgent(inventory_check, fraud_check),   # independent, concurrent\n  decision_merger,                               # needs both results\n)\n\ntraps:\n  ParallelAgent(everything)   -> decision races its inputs\n  LoopAgent(checks)           -> repeat semantics, wrong shape\n  LLM 'prefer this order'     -> a suggestion, not enforcement",
+    "followups": [
+      "Why does an all-parallel workflow race the decision step?",
+      "When would an LLM coordinator be the right choice over fixed workflow agents?",
+      "How does state pass between a SequentialAgent's children?"
+    ],
+    "redflags": [
+      "Parallelises steps that depend on each other's output",
+      "Uses a prompt instruction to enforce a required execution order",
+      "Reaches for a LoopAgent when the pipeline runs once"
+    ],
+    "memory": "Known order goes in the structure, not the prompt: sequential outer for dependencies, parallel inner for independent steps."
+  },
+  {
+    "id": "principal-access-boundary",
+    "title": "Principal Access Boundary: Limiting Where an Identity Can Reach",
+    "category": "Security",
+    "difficulty": "High",
+    "question": "An agent has IAM roles across several projects, and security wants to restrict its resource eligibility to approved projects with a principal access boundary (PAB). What actually grants access, what does the PAB do, and what must you verify before claiming an operation is blocked outside those projects?",
+    "technical": [
+      "Two different mechanisms: allow policies (IAM role bindings) grant permissions, and a principal access boundary limits which resources a principal is even eligible to use those permissions on. You need both, the roles AND the boundary; a PAB alone grants nothing.",
+      "A PAB is principal-based, attached to the identity, not to every target resource. So you do not need deny policies on external resources for it to work; the boundary travels with the caller.",
+      "PAB enforcement covers a defined set of IAM permissions determined by the policy's enforcement version. Before claiming a specific API operation is blocked outside the approved projects, verify two things: the binding includes this agent, and the enforcement version actually covers that operation.",
+      "It is not a universal API or network restriction: it does not evaluate IP addresses or routes, and disabling service-account key creation does not extend its coverage. A tool calling with a different principal is not constrained by this agent's PAB.",
+      "The design: grant the needed roles, bind a PAB scoping eligible resources to the procurement (or approved) project, and confirm the enforcement version covers the operations you rely on it to block."
+    ],
+    "layman": "A staff pass that works, but only in your own building. The pass itself (the IAM role) says what doors you may open; the boundary says which building your pass counts in at all. Carrying the pass to head office does nothing, because the boundary travels with you, not with their doors. But check the small print: the boundary only covers the door types listed on it.",
+    "usecases": [
+      "Confining an agent's reach to approved projects",
+      "Layering a resource boundary on top of IAM grants",
+      "Verifying that a PAB actually blocks a given operation"
+    ],
+    "code": "grant  roles (allow policy)      -> what permissions exist\nbind   PAB to the principal       -> which resources are eligible\n\nverify before claiming 'blocked':\n  the binding includes this agent\n  the enforcement version covers the operation\n\nnot true:\n  PAB alone grants access            (it does not)\n  PAB checks IP / network routes      (it does not)\n  a different-principal tool is bound  (it is not)",
+    "followups": [
+      "Why is a PAB not a network or IP control?",
+      "What does the enforcement version determine?",
+      "Why does a PAB alone grant no access?"
+    ],
+    "redflags": [
+      "Binds a PAB and omits the role grants, expecting access",
+      "Assumes a PAB blocks every API, regardless of enforcement version",
+      "Thinks a tool calling as a different principal is covered"
+    ],
+    "memory": "Roles grant, the boundary confines: a PAB limits eligible resources for the identity, only for the operations its enforcement version covers."
+  },
+  {
+    "id": "antigravity-rules-skills-cli",
+    "title": "Antigravity: Rules, Skills, Subagents and the Agents CLI",
+    "category": "Agent Frameworks & Runtimes",
+    "difficulty": "Medium",
+    "question": "In the Antigravity coding-agent environment, how do you make one convention apply to every task but a long procedure load only when relevant, run parallel work streams safely, call live external systems, and get an agent-development lifecycle toolchain?",
+    "technical": [
+      "Always-on vs on-demand context: an Always-On workspace rule injects a short convention (a commit-message format) into every task, while a focused workspace skill with a clear description loads a long procedure (a database migration) only when the task matches. Both are maintained in the repository, so the team shares them.",
+      "Do not misuse the two: a manually activated rule fails the every-task requirement (someone forgets to enable it), and stuffing a long procedure into a post-edit hook that fires on every change wastes context repeatedly.",
+      "Parallel streams: delegate bounded work streams to subagents with explicit interfaces and separate git worktrees where they would edit the same files, then have the parent integrate the results and run cross-module tests. Shared checkouts with overlapping ownership create merge conflicts, and competing full implementations duplicate effort.",
+      "Live external systems: expose them as vetted MCP servers with scoped authentication, so the agent makes authenticated, callable queries. Scheduled exports and training snapshots go stale; a skill that only describes endpoints provides no execution.",
+      "Lifecycle toolchain: the Agents CLI equips the coding assistant with agent-development skills and lifecycle commands (scaffold, evaluate, deploy, observe). A general coding assistant, a build pipeline or a documentation MCP server each supplies only part of that and not the lifecycle toolchain itself."
+    ],
+    "layman": "A workshop noticeboard. The safety rule is pinned up permanently so every job sees it (Always-On rule); the fiddly rewiring manual sits in a labelled drawer you open only for rewiring jobs (skill); big jobs get split between benches with clear handovers (subagents in worktrees); and the tools plug into the live parts supply, not last month's printed catalogue (MCP).",
+    "usecases": [
+      "Sharing coding-agent conventions and procedures with a repo",
+      "Running parallel agent work streams without merge chaos",
+      "Giving a coding agent live, authenticated access to internal systems"
+    ],
+    "code": "convention every task    -> Always-On workspace rule (in repo)\nlong procedure when needed-> workspace skill with a clear description\nparallel streams          -> subagents + explicit interfaces + worktrees\nlive systems              -> vetted MCP servers, scoped auth\nlifecycle toolchain       -> Agents CLI (scaffold, eval, deploy, observe)\n\ntraps: manual rule (forgotten) · hook injecting everything (wastes context)\n       stale export/snapshot · shared checkout (merge conflicts)",
+    "followups": [
+      "Why does a skill suit a long procedure and a rule a short convention?",
+      "When do subagents need separate worktrees?",
+      "Why do exports and training snapshots fail for live systems?"
+    ],
+    "redflags": [
+      "Relies on developers to manually enable an every-task rule",
+      "Runs parallel subagents in one checkout with overlapping files",
+      "Feeds a coding agent stale exports instead of live MCP access"
+    ],
+    "memory": "Rules are always-on and short, skills load on demand and long; subagents need worktrees, live systems need MCP, and the Agents CLI carries the lifecycle."
+  },
+  {
+    "id": "dialogflow-cx-routing",
+    "title": "Dialogflow CX Low-Code: Condition Routes and No-Input Handlers",
+    "category": "AI & GenAI",
+    "difficulty": "Medium",
+    "question": "In a Dialogflow CX flow reused by a low-code agent studio, how do you branch to different flows based on a session parameter, and how do you re-prompt on caller silence and escalate on the third attempt?",
+    "technical": [
+      "Branching on state: add mutually exclusive condition routes that inspect the session parameter (item_category) and transition to the appropriate flow. Condition routes evaluate session state and can move to another flow, which is exactly the decision needed.",
+      "Do not confuse the handler types: no-match handlers address unrecognised input, not a state-based branch; an entry response runs on arrival and establishes no branching; and two routes with the same intent do not encode a category distinction.",
+      "Silence handling: use the parameter's numbered no-input reprompt handlers during form filling. Numbered handlers respond to successive silent turns, so the first two re-prompt and the third transitions to the escalation page.",
+      "Scope matters: reprompt handlers on the parameter are the right place during required-parameter collection. A single no-input handler that re-enters the page, or an instruction in the page description, does not define the numbered sequence, and no-match events are about invalid input, not silence.",
+      "The rule: state-based branching is a condition route, and staged silence handling is numbered no-input handlers scoped to the parameter, not generative fallback or free-text descriptions."
+    ],
+    "layman": "A phone menu with rules written down, not improvised. If the caller's account type is 'electronics', the call is routed to the warranty desk (condition route). If the caller says nothing, the system asks again twice, and on the third silence hands them to a person (numbered no-input handlers). Each behaviour has its own dedicated slot, not a vague instruction.",
+    "usecases": [
+      "Branching a low-code flow on collected session data",
+      "Staged re-prompting and escalation on caller silence",
+      "Choosing the right Dialogflow CX handler for the job"
+    ],
+    "code": "branch on state:\n  condition routes on item_category  -> electronics -> warranty flow\n                                        other       -> refund flow\nsilence during form filling:\n  numbered no-input reprompt handlers on the parameter\n    attempt 1, 2 -> re-prompt · attempt 3 -> escalation page\n\nwrong tools: no-match (invalid input) · entry response (no branching)\n             page description / generative fallback (no defined sequence)",
+    "followups": [
+      "Why is a no-match handler wrong for a state-based branch?",
+      "Why scope the reprompt handlers to the parameter during form filling?",
+      "What is the difference between a no-input and a no-match event?"
+    ],
+    "redflags": [
+      "Uses no-match handlers to branch on a session parameter",
+      "Puts branching logic in a page's entry response",
+      "Leaves silent-turn counting to generative fallback"
+    ],
+    "memory": "State-based branching is a condition route; staged silence is numbered no-input handlers on the parameter, never no-match or a description."
+  },
+  {
+    "id": "guardrail-limits-multiturn",
+    "title": "Guardrail Limits: Multi-Turn and Encoded Attacks Need App-Level Defence",
+    "category": "Security",
+    "difficulty": "High",
+    "question": "You screen every prompt and response with a content-safety filter, but an attack spreads instructions across several turns and hides a Base64-encoded payload the agent later decodes. What does this tell you about where defence must sit?",
+    "technical": [
+      "A per-message content filter inspects one request or response at a time. It does not automatically reconstruct a conversation from a shared session id, and it does not decode encoded content, so an attack split across turns or hidden in Base64 can slip through each individual check.",
+      "The conclusion: add application-level controls for the things the filter cannot see, the assembled conversation context, any content your agent decodes, and the tool execution that a decoded instruction might trigger.",
+      "Raising the filter's confidence threshold does not make it decode encodings or stitch turns together; it only changes how aggressively it flags what it does see. It cannot inspect a representation it never reconstructs.",
+      "Screening responses alone does not guarantee safety either: by the time a harmful action has been taken through a tool, filtering the text output is too late. The dangerous step is the tool call, not the sentence.",
+      "The principle: managed guardrails are a layer, not the whole defence. Treat the model and its context as untrusted, and validate decoded content and gate tool execution in your own code, because the attacker composes across exactly the seams a single-message filter cannot see."
+    ],
+    "layman": "A bouncer who checks each guest at the door but never notices four guests who, together, carry the parts of one weapon, or a coded note that only makes sense once assembled inside. The door check is worth having, but the real defence is inside: watch what gets assembled and what it tries to do, not just each guest's pockets.",
+    "usecases": [
+      "Designing defence in depth around a content filter",
+      "Defending against multi-turn and encoded prompt attacks",
+      "Deciding where tool-execution controls must sit"
+    ],
+    "code": "per-message filter sees:  one prompt / one response at a time\nit cannot:                reconstruct multi-turn context\n                          decode Base64 / other encodings\n\nadd in your app:\n  checks on the assembled conversation context\n  checks on any content the agent decodes\n  a gate on tool execution (the dangerous step)\n\nnot fixes: higher threshold (still cannot decode) ·\n           screening responses only (action already taken)",
+    "followups": [
+      "Why can a per-message filter not catch a multi-turn attack?",
+      "Why is screening the response too late for a harmful tool call?",
+      "What does raising the detection threshold actually change?"
+    ],
+    "redflags": [
+      "Assumes a content filter reconstructs multi-turn context",
+      "Believes a higher threshold makes the filter decode payloads",
+      "Relies on response screening instead of gating tool execution"
+    ],
+    "memory": "A per-message filter cannot stitch turns or decode payloads: defend the assembled context, the decoded content and the tool call in your own code."
+  },
+  {
+    "id": "agent-runtime-vs-gke-cloudrun",
+    "title": "Deploying an Agent: Agent Runtime, GKE or Cloud Run",
+    "category": "Agent Frameworks & Runtimes",
+    "difficulty": "Medium",
+    "question": "Three workloads: an ADK agent wanting managed hosting and session integration with minimal ops; one needing custom Kubernetes node pools and pod-level network policies; and a stateless HTTP tool with bursty traffic and scale-to-zero. Which runtime for each?",
+    "technical": [
+      "Managed agent hosting with session integration and minimal infrastructure operations maps to the Agent Runtime: it takes the serving and session plumbing off your plate.",
+      "Custom Kubernetes node pools and pod-level NetworkPolicies are Kubernetes-specific controls, so that workload maps to GKE, where you own the cluster primitives.",
+      "A stateless HTTP service with bursty traffic and a scale-to-zero requirement maps to Cloud Run: it scales to zero and back and bills per use.",
+      "The distinguishing detail is the explicit requirement, not a superficial one: Cloud Run can host agents and some GPU workloads, so it is the stated Kubernetes-primitive requirements, not GPU availability, that push the second workload to GKE.",
+      "The rule: choose the runtime by the operational requirement that only that runtime satisfies, managed-agent hosting (Agent Runtime), Kubernetes primitives (GKE), or stateless scale-to-zero (Cloud Run)."
+    ],
+    "layman": "Three tenants, three kinds of premises. One wants a serviced office where reception and cleaning are handled (Agent Runtime); one needs a warehouse they can re-partition and re-wire themselves (GKE); one wants a market stall they pack away when trade is quiet and set up when it picks up (Cloud Run). You match the premises to the one requirement only it meets.",
+    "usecases": [
+      "Choosing a deployment target for an ADK agent",
+      "Placing a workload that needs Kubernetes network policies",
+      "Hosting a bursty stateless tool with scale-to-zero"
+    ],
+    "code": "managed agent + sessions, minimal ops   -> Agent Runtime\ncustom node pools + pod NetworkPolicies  -> GKE\nstateless HTTP, bursty, scale-to-zero    -> Cloud Run\n\ndistinguisher: the requirement only that runtime meets\n  (Kubernetes primitives push to GKE, not GPU availability alone)",
+    "followups": [
+      "Why do the Kubernetes-specific controls, not GPU needs, choose GKE here?",
+      "What does the Agent Runtime take off your plate versus Cloud Run?",
+      "When would a stateless tool still not suit Cloud Run?"
+    ],
+    "redflags": [
+      "Picks a runtime on a superficial trait rather than the hard requirement",
+      "Runs a Kubernetes-primitive workload on a managed runtime that cannot express it",
+      "Chooses GKE for a stateless scale-to-zero service"
+    ],
+    "memory": "Match the runtime to the one requirement only it meets: managed agent hosting (Agent Runtime), Kubernetes primitives (GKE), stateless scale-to-zero (Cloud Run)."
+  },
+  {
+    "id": "three-legged-oauth-agent",
+    "title": "Per-User SaaS Access: Three-Legged OAuth",
+    "category": "Security",
+    "difficulty": "Medium",
+    "question": "A support agent must update tickets in a third-party SaaS system under each employee's own permissions, the SaaS supports OAuth 2.0, and employees can revoke access individually. What authentication design fits?",
+    "technical": [
+      "Configure a three-legged OAuth provider in the agent's identity auth manager and obtain each employee's consent for the required scopes. Three-legged OAuth delegates the user's own authority, so the agent acts as that employee, and the user can revoke their own grant.",
+      "A two-legged flow with a single application credential authorises the application, not each employee, so every ticket update would carry the same identity and permissions, losing per-user access and per-user revocation.",
+      "Authenticating employees only to the frontend and then using a shared administrator API key for the actual updates has the same flaw: the SaaS sees one powerful shared identity, not the acting employee.",
+      "A Google Cloud access token is not automatically a valid credential for an unrelated SaaS API; you must configure the SaaS authorisation server and exchange for its tokens.",
+      "The rule: when actions must run under each person's own SaaS permissions with individual consent and revocation, that is three-legged (delegated) OAuth, not an application credential or a shared key."
+    ],
+    "layman": "A concierge who runs errands using your membership card and your consent, not the hotel's master key. Because it is your card, the shop sees you, honours your limits, and you can cancel it any time. A shared master key would make every errand look identical and untraceable, and could do far more than you allowed.",
+    "usecases": [
+      "Acting on a third-party SaaS under each user's own permissions",
+      "Supporting individual consent and revocation",
+      "Choosing delegated identity over an application credential"
+    ],
+    "code": "need: per-user SaaS actions, individual consent + revocation\n  three-legged OAuth in the auth manager, per-user consent + scopes  <-\n\nwrong: two-legged / single app credential -> one identity for all\n       shared admin API key               -> not the acting user\n       Google Cloud token as SaaS cred     -> unrelated authoriser",
+    "followups": [
+      "Why does a single application credential lose per-user access?",
+      "What does the auth manager handle in a three-legged flow?",
+      "Why is a Google Cloud token not a valid SaaS credential by itself?"
+    ],
+    "redflags": [
+      "Uses one application credential for all employees' SaaS actions",
+      "Puts a shared administrator key behind a per-user frontend login",
+      "Assumes a cloud token authorises an unrelated SaaS API"
+    ],
+    "memory": "Per-user actions with consent and revocation are three-legged OAuth: the agent acts as the person, not under a shared application credential."
+  },
+  {
+    "id": "access-controlled-data-store-acl",
+    "title": "Document-Level Access in Enterprise Search: ACL Metadata",
+    "category": "Retrieval-Augmented Generation",
+    "difficulty": "Medium",
+    "question": "You import proprietary PDFs into an enterprise agent, each PDF has a different set of permitted readers, and employees authenticate through your identity provider. What import configuration preserves document-level access in search results?",
+    "technical": [
+      "Create an access-controlled data store and import document ACL (access-control-list) metadata whose reader identities match your configured identity system. At query time the searching user's identity is compared against each document's readers, so results are filtered per document.",
+      "Granting the ingestion service account access to the bucket and using the bucket's IAM policy as the result filter does not work: bucket IAM governs who can ingest, not which end user may see which document in search.",
+      "Encrypting with a customer-managed key protects data at rest but does nothing to filter results by reader, and granting every employee access to the search application removes the per-document restriction entirely.",
+      "Putting permitted department names in ordinary metadata and asking the model to suppress other departments is not an authorisation control: it is a soft instruction the model can be talked out of, and the data has already been retrieved.",
+      "The rule: document-level retrieval authorisation needs an access-controlled data store plus ACLs tied to real identities, not ingestion permissions, encryption or prompt-level suppression."
+    ],
+    "layman": "A library where each book has its own borrower list, checked against your library card at the desk. The access-controlled data store is that desk. Locking the storeroom (encryption) or trusting the librarian to remember who may read what (a prompt instruction) is not the same as the per-book list enforced against your card.",
+    "usecases": [
+      "Preserving per-document permissions in enterprise search",
+      "Mapping document ACLs to a configured identity provider",
+      "Avoiding prompt-level access controls for real authorisation"
+    ],
+    "code": "need: each document visible only to its permitted readers\n  access-controlled data store + ACL metadata (reader identities)   <-\n    query-time: user identity vs document readers -> filtered results\n\nwrong: bucket IAM as filter    -> governs ingest, not per-user search\n       encryption / app access  -> no per-document filtering\n       metadata + 'suppress'    -> soft instruction, already retrieved",
+    "followups": [
+      "Why does bucket IAM not control who sees a document in search?",
+      "Why is a prompt-level suppression not an access control?",
+      "How does the identity provider fit into ACL matching?"
+    ],
+    "redflags": [
+      "Uses bucket IAM or encryption as a search-result access filter",
+      "Relies on the model to suppress documents by department",
+      "Grants every employee access to the whole search application"
+    ],
+    "memory": "Per-document access in search needs an access-controlled data store with ACLs tied to real identities, never bucket IAM, encryption or a prompt instruction."
+  },
+  {
+    "id": "agent-regression-eval-trajectory",
+    "title": "Regression-Proof Agent Evaluation: Trajectory and the Release Gate",
+    "category": "Evaluation & Metrics",
+    "difficulty": "High",
+    "question": "A refund agent gives plausible answers but sometimes calls issue_refund before lookup_order, or with a wrong amount, and a prompt change can make it skip a required eligibility lookup entirely. How do you build an evaluation that catches these, and what release gate stops them shipping?",
+    "technical": [
+      "Score the trajectory, not just the final answer: use exact tool-trajectory matching (tool names, arguments and order) against the expected sequence. It rejects extra, missing, reordered or wrong-argument calls, which a plausible final sentence hides.",
+      "Text-similarity metrics (ROUGE, BLEU) and 'the answer says it verified the order' checks do not establish what actually executed. Checking only that both tool names appear somewhere misses a wrong amount or a reversed dependency.",
+      "The golden dataset is the foundation: version independently reviewed cases covering real intents, required tool actions, valid outcomes and the ambiguous cases that previously failed. Accepting current agent outputs as ground truth just freezes today's bugs, and candidate agreement is not truth.",
+      "The release gate must assess the behaviour that can fail: gate promotion on the evalset for both required tool execution and answer quality. Gating on the aggregate answer score alone lets a skipped eligibility lookup through, because the answer still reads fine.",
+      "Interface checks (tool signatures unchanged) do not verify orchestration, and a weekly production evaluation complements the gate but cannot stop an unqualified release between runs. Local ADK evalsets, a central managed evaluation and a custom autorater rubric are layers, not alternatives."
+    ],
+    "layman": "Marking a maths exam on the working, not just the final number. A pupil can write the right answer having skipped a required step or done them out of order; only checking the steps catches it. The release gate is the rule that a paper with a missing step does not pass, however tidy the final answer looks.",
+    "usecases": [
+      "Catching tool-order and argument regressions in an agent",
+      "Designing a reusable golden dataset for regression testing",
+      "Gating CI/CD on tool execution, not just answer quality"
+    ],
+    "code": "detect: exact tool-trajectory match (names + arguments + order)\n  rejects extra / missing / reordered / wrong-argument calls\n\ndataset: versioned, reviewed cases (intents, required actions,\n         valid outcomes, previously-failing edge cases)\n\nrelease gate: pass requires BOTH\n  required tool execution  AND  answer quality\n  (answer score alone hides a skipped step)",
+    "followups": [
+      "Why does a final-answer score hide a skipped required tool call?",
+      "Why is accepting current outputs as ground truth a trap?",
+      "How do local evalsets, managed evaluation and an autorater fit together?"
+    ],
+    "redflags": [
+      "Judges an agent only on final-answer text similarity",
+      "Gates releases on answer quality while ignoring tool execution",
+      "Uses unreviewed production outputs as the golden dataset"
+    ],
+    "memory": "Score the trajectory, not just the answer, and gate the release on required tool execution: a plausible final sentence hides a skipped or reordered step."
   }
 ]
