@@ -141,6 +141,9 @@ assets/lab.css    Styling shared by all sixteen lab pages, theme tokens,
                   layout, the top bar, tabs, callouts, the plain-English
                   on-ramp, diagrams
 assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
+                  the header bookmark control (bookmark a lab or a single
+                  simulation, saved in browser storage, shown on the
+                  dashboard),
                   tab deep links, the scenario drill, the navigation rail,
                   the labs menu and the track line
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz

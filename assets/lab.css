@@ -494,3 +494,19 @@ div.ok{font-size:12.5px; line-height:1.65}
 html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after{
   transition:background-color .35s ease, color .35s ease, border-color .35s ease,
              fill .35s ease, stroke .35s ease, box-shadow .35s ease !important}
+
+/* lab + simulation bookmark control in the header */
+.bmwrap{position:relative;display:inline-flex}
+#bmBtn.on{color:var(--accent);border-color:var(--accent)}
+.bmmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:40;min-width:260px;
+  background:var(--panel);border:1px solid var(--line2);border-radius:11px;
+  box-shadow:0 12px 34px rgba(0,0,0,.18);padding:6px}
+.bmrow{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;
+  background:transparent;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text)}
+.bmrow:hover{background:var(--sel)}
+.bmrow i{font-style:normal;font-size:15px;line-height:1.2;color:var(--muted)}
+.bmrow.on i{color:var(--accent)}
+.bmrow b{display:block;font-weight:600;font-size:12.5px}
+.bmrow small{display:block;color:var(--muted);font-size:11px;margin-top:1px;
+  max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bmrow:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
