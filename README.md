@@ -145,7 +145,7 @@ assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
                   the labs menu and the track line
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
-                  progress rings + streak tracking, lab-to-topic mapping
+                  progress rings + streak tracking, starred bookmarks and a reset control, lab-to-topic mapping
 cheatsheet.html   Revision cheatsheet: every lab's must-remember points
                   on one printable, filterable page, each card linked to
                   its lab
