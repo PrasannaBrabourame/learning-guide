@@ -31,6 +31,9 @@ colour then carries meaning. Tiles remain sorted alphabetically.
 index.html        Page shell, topbar, dashboard, and browse-view markup
 assets/styles.css Styling (light/dark theme, aurora backdrop, tiles, print)
 assets/fonts/     Self-hosted Inter and Newsreader subsets (woff2, 352 KB)
+assets/favicon.svg An inline SVG favicon (the node-graph mark, brand teal),
+                  with favicon.png and apple-touch-icon.png fallbacks;
+                  linked from every page, no external request
 cloud.html        Cloud lab: request journey, OSI (including what the data
                   physically is at each layer, from data to segment, packet,
                   frame and bits), landing zone (VPC tiers, proxies, private
