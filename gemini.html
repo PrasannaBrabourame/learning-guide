@@ -834,6 +834,21 @@ document.getElementById('sec-data').innerHTML=`
    'Both sides describe the same connector. The only difference is whether somebody turned access controls on before pointing it at real data.')}
   <div class="plain-line" style="margin-top:12px"><b>The wider point about connectors:</b> they vary enormously in what they can do. Not all of them support fine-grained permissions or natural-language querying out of the box. <b>Set that expectation in the first conversation</b>, because the alternative is discovering it in a demo, in front of the people who approved the project.</div>
   <div class="plain-line"><b>And for anything with personal or confidential data:</b> connector security is not something to assemble by hand from first principles. Use the security foundation package built for it, which encodes the configuration and the guidelines rather than leaving each deployment to reinvent them.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: who sees which document</h2>
+  <div class="plain-line"><b>Try this:</b> five documents, each with its own list of permitted readers, and three colleagues from different departments running the <em>same</em> search. Pick a searcher and an approach, and watch which documents come back. Only one approach checks each document&rsquo;s reader list against who is actually asking; the others either leak, or hide the document only after it has already been fetched.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A library where each book carries its own borrower list, checked against your card at the desk. Put one lock on the whole store (bucket IAM) and everyone with a key still reads every book; trust the librarian to remember who may read what (a prompt instruction) and the wrong book has already left the shelf.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>pick <b>Carol (Engineering)</b> and the correct <b>access-controlled store + ACLs</b>, then switch to <b>everyone has app access</b> and watch the salary bands leak.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>ACL</b> access-control list: the set of identities permitted to read one document</span><span class="sp-w"><b>access-controlled data store</b> a store that filters each result against the searcher&rsquo;s identity</span><span class="sp-w"><b>identity provider</b> the system that says who the searcher is; ACL readers are matched against it</span><span class="sp-w"><b>ingest</b> to load a copy of the documents into the search system, done once when a source is first connected</span><span class="sp-w"><b>bucket IAM</b> permissions on the storage bucket: they say who may load documents in, not who may see a result</span><span class="sp-w"><b>metadata</b> labels attached to a document, such as which department it belongs to</span><span class="sp-w"><b>leak</b> a document returned to someone not on its reader list</span><span class="sp-w"><b>soft control</b> a rule the model is asked to follow, which the document has already slipped past by the time it applies</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="aclOut"></div></div>
+    <div>
+      <div class="dim" style="font-size:11px;margin-bottom:6px">THE SEARCHER</div>
+      <div class="segmented" id="aclUser" style="flex-direction:column;align-items:stretch"></div>
+      <div class="dim" style="font-size:11px;margin:12px 0 6px">THE ACCESS-CONTROL APPROACH</div>
+      <div class="segmented" id="aclMode" style="flex-direction:column;align-items:stretch"></div>
+      <div id="aclNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
 </div>`;
 
 /* --- SIM: connect five systems --- */
@@ -876,6 +891,57 @@ document.getElementById('sec-data').innerHTML=`
       return '<div class="lzrow" style="margin-bottom:10px"><span class="lzmark" style="color:var('+(ok?'--green':'--red')+')">'+(ok?'✓':'✗')+'</span>'+
       '<span><b>'+s.n+'</b><br>'+s.y[v]+'</span></div>';}).join('')+
       '<div class="simnote" style="margin-top:10px"><b>'+right+' of '+done.length+' as recommended.</b> The pattern underneath: <b>ingest by default</b>, because federation depends on a connector that may not exist and an API you do not control; <b>federate when a good connector already enforces permissions you would otherwise have to rebuild</b>; and decide access control deliberately every single time, because on two of these connectors the default is everyone.</div>';
+  }
+  render();
+})();
+
+/* --- SIM: who sees which document --- */
+(function(){
+  const out=document.getElementById('aclOut'), note=document.getElementById('aclNote'),
+        uEl=document.getElementById('aclUser'), mEl=document.getElementById('aclMode');
+  if(!out) return;
+  const USERS=[['carol','Carol (Engineering)','Engineering'],['bob','Bob (HR)','HR'],['alice','Alice (Finance)','Finance']];
+  const DOCS=[
+    {t:'Q3 financial results', readers:['Finance']},
+    {t:'Salary bands 2026', readers:['HR']},
+    {t:'Payments architecture design doc', readers:['Engineering']},
+    {t:'Board minutes', readers:['Finance','HR']},
+    {t:'All-hands notes', readers:['Finance','HR','Engineering']}
+  ];
+  const MODES=[
+    ['acl','access-controlled store + ACLs','correct'],
+    ['iam','bucket IAM grant, everyone has app access','leak'],
+    ['prompt','ordinary metadata + &ldquo;suppress other departments&rdquo;','soft']
+  ];
+  let user='carol', mode='acl';
+  function dept(){ return USERS.find(u=>u[0]===user)[2]; }
+  function render(){
+    uEl.innerHTML=USERS.map(u=>'<button class="seg'+(user===u[0]?' on':'')+'" data-u="'+u[0]+'" style="text-align:left;font-size:12px">'+u[1]+'</button>').join('');
+    mEl.innerHTML=MODES.map(m=>'<button class="seg'+(mode===m[0]?' on':'')+'" data-m="'+m[0]+'" style="text-align:left;font-size:12px">'+m[1]+'</button>').join('');
+    uEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{user=b.dataset.u;render();});
+    mEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{mode=b.dataset.m;render();});
+    const d=dept();
+    const rows=DOCS.map(doc=>{
+      const allowed=doc.readers.includes(d);
+      let shown, kind;
+      if(mode==='acl'){ shown=allowed; kind=allowed?'ok':'filtered'; }
+      else if(mode==='iam'){ shown=true; kind=allowed?'ok':'leak'; }
+      else { /* prompt suppression: everything is retrieved into context, then maybe hidden */ shown=true; kind=allowed?'ok':'soft'; }
+      const label = kind==='ok'?'<span style="color:var(--green)">&#10003; returned</span>'
+        : kind==='filtered'?'<span style="color:var(--muted)">withheld (not a reader)</span>'
+        : kind==='leak'?'<span style="color:var(--red)">&#10007; LEAKED (not a reader)</span>'
+        : '<span style="color:var(--amber)">&#9888; retrieved, then asked to hide</span>';
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px">'
+        +'<span><b style="font-weight:500">'+doc.t+'</b><br><span class="k" style="font-size:10px;color:var(--dim)">readers: '+doc.readers.join(', ')+'</span></span>'
+        +'<span class="k" style="white-space:nowrap;font-size:11px">'+label+'</span></div>';
+    }).join('');
+    const leaks=DOCS.filter(doc=>!doc.readers.includes(d) && mode!=='acl').length;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:4px">SEARCH &ldquo;compensation and planning documents&rdquo; &middot; as '+USERS.find(u=>u[0]===user)[1]+'</div>'+rows;
+    note.innerHTML = mode==='acl'
+      ? '<div class="ok"><b>Every result is checked against the reader list.</b> '+USERS.find(u=>u[0]===user)[1]+' gets back only the documents whose ACL names '+d+' (plus the all-hands notes everyone may read). The identity provider says who is asking; the access-controlled store does the filtering per document. This is the only approach that actually enforces per-document access.</div>'
+      : mode==='iam'
+      ? '<div class="lzbad"><b>'+leaks+' document'+(leaks===1?'':'s')+' leaked.</b> Granting the ingestion account bucket access and letting everyone use the search application governs who may <em>ingest</em>, not who may <em>see a result</em>. So '+USERS.find(u=>u[0]===user)[1]+' is handed documents they are not a reader of. Bucket IAM is the wrong layer for per-user search authorisation.</div>'
+      : '<div class="lzwarn"><b>Already retrieved, only then asked to hide.</b> Putting department names in ordinary metadata and instructing the model to suppress others is a soft control: the '+leaks+' forbidden document'+(leaks===1?' was':'s were')+' fetched into the model&rsquo;s context before any suppression, so a prompt-injection or a slip exposes them. A model instruction is not an access control.</div>';
   }
   render();
 })();
