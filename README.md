@@ -137,10 +137,10 @@ design.html       Diagram lab, audiences, levels of zoom, anatomy, notation,
                   choosing services, what people leave out, the questions
                   behind the picture, surviving a review, diagram rot, the
                   do's and don'ts, and the whiteboard interview
-assets/lab.css    Styling shared by all sixteen lab pages, theme tokens,
+assets/lab.css    Styling shared by every lab page (and the cheatsheet),
                   layout, the top bar, tabs, callouts, the plain-English
                   on-ramp, diagrams
-assets/lab.js     Behaviour shared by all sixteen lab pages, theme toggle,
+assets/lab.js     Behaviour shared by every lab page, theme toggle,
                   the header bookmark control (bookmark a lab or a single
                   simulation, saved in browser storage, shown on the
                   dashboard),
@@ -224,7 +224,7 @@ is the only prose on it. The cards used to carry a four-sentence description as
 well, which assumed the thing the lab teaches: "a docstring decides whether a
 tool is ever chosen" is a good sentence about the ADK lab and no help at all to
 somebody deciding whether to open it. The detail lives in the lab; the card only
-has to be scannable alongside seventeen others.
+has to be scannable alongside eighteen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
 the 304 topics that lab actually covers, 50 for the Cloud lab, 37 for
@@ -242,7 +242,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The sixteen labs are self-contained pages, but the chrome around the content
+The nineteen labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
