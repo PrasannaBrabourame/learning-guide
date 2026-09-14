@@ -125,11 +125,11 @@
 
       <figure class="visfig">
         <svg viewBox="0 0 300 168" role="img" aria-label="The LCEL RAG chain: a parallel of retriever-plus-reranker and a passthrough, piped into prompt, model, parser.">
-          <rect x="12" y="18" width="150" height="82" rx="8" fill="none" stroke="var(--teal)" stroke-dasharray="4 3"/>
-          <text x="87" y="14" text-anchor="middle" class="vt vlab">RunnableParallel</text>
-          <rect x="22" y="30" width="130" height="26" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="87" y="47" text-anchor="middle" class="vt vsub">context: retriever | rerank</text>
-          <rect x="22" y="64" width="130" height="26" rx="6" fill="var(--panel2)" stroke="var(--violet)"/><text x="87" y="81" text-anchor="middle" class="vt vsub">question: Passthrough</text>
-          <path d="M162 59 H186" stroke="var(--wire)" stroke-width="1.4" marker-end="url(#va)"/>
+          <rect x="10" y="18" width="166" height="82" rx="8" fill="none" stroke="var(--teal)" stroke-dasharray="4 3"/>
+          <text x="93" y="14" text-anchor="middle" class="vt vlab">RunnableParallel</text>
+          <rect x="18" y="30" width="150" height="26" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="93" y="47" text-anchor="middle" class="vt vsub">context: retriever|rerank</text>
+          <rect x="18" y="64" width="150" height="26" rx="6" fill="var(--panel2)" stroke="var(--violet)"/><text x="93" y="81" text-anchor="middle" class="vt vsub">question: Passthrough</text>
+          <path d="M178 59 H186" stroke="var(--wire)" stroke-width="1.4" marker-end="url(#va)"/>
           <rect x="188" y="20" width="100" height="24" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="238" y="36" text-anchor="middle" class="vt vsub">prompt</text>
           <rect x="188" y="59" width="100" height="24" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="238" y="75" text-anchor="middle" class="vt vsub">model</text>
           <rect x="188" y="98" width="100" height="24" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="238" y="114" text-anchor="middle" class="vt vsub">parser</text>
@@ -169,12 +169,93 @@
 
       <figure class="visfig">
         <svg viewBox="0 0 300 168" role="img" aria-label="The metric chain: offline eval per commit, online proxy per release, business KPI per quarter.">
-          <rect x="14" y="20" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--blue)"/><text x="26" y="34" class="vt vhead" text-anchor="start">offline eval</text><text x="26" y="47" class="vt vsub" text-anchor="start">groundedness, task success on the golden set</text><text x="278" y="41" text-anchor="end" class="vt vmono">per commit</text>
-          <rect x="14" y="62" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--violet)"/><text x="26" y="76" class="vt vhead" text-anchor="start">online proxy</text><text x="26" y="89" class="vt vsub" text-anchor="start">thumbs-down, retries, escalation, reopen</text><text x="278" y="83" text-anchor="end" class="vt vmono">per release</text>
-          <rect x="14" y="104" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--teal)"/><text x="26" y="118" class="vt vhead" text-anchor="start">business KPI</text><text x="26" y="131" class="vt vsub" text-anchor="start">CSAT, deflection, cost per resolution</text><text x="278" y="125" text-anchor="end" class="vt vmono">per quarter</text>
+          <rect x="14" y="20" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--blue)"/><text x="26" y="35" class="vt vhead" text-anchor="start">offline eval</text><text x="278" y="35" text-anchor="end" class="vt vmono">per commit</text><text x="26" y="48" class="vt vsub" text-anchor="start">groundedness, task success (golden set)</text>
+          <rect x="14" y="62" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--violet)"/><text x="26" y="77" class="vt vhead" text-anchor="start">online proxy</text><text x="278" y="77" text-anchor="end" class="vt vmono">per release</text><text x="26" y="90" class="vt vsub" text-anchor="start">thumbs-down, retries, escalation, reopen</text>
+          <rect x="14" y="104" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--teal)"/><text x="26" y="119" class="vt vhead" text-anchor="start">business KPI</text><text x="278" y="119" text-anchor="end" class="vt vmono">per quarter</text><text x="26" y="132" class="vt vsub" text-anchor="start">CSAT, deflection, cost per resolution</text>
           <text x="150" y="158" text-anchor="middle" class="vt vlab">validate the joints, do not assume them</text>
         </svg>
         <figcaption>The metric chain: three layers at three cadences. Each exists because the one above is unmeasurable that often; gate releases on the joints.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="Confusion matrix with precision and recall.">
+          <text x="150" y="14" text-anchor="middle" class="vt vlab">predicted</text>
+          <text x="14" y="78" text-anchor="middle" transform="rotate(-90 14 78)" class="vt vlab">actual</text>
+          <text x="96" y="30" text-anchor="middle" class="vt vsub">positive</text><text x="176" y="30" text-anchor="middle" class="vt vsub">negative</text>
+          <text x="40" y="60" text-anchor="middle" class="vt vsub" transform="rotate(-90 40 60)">pos</text><text x="40" y="102" text-anchor="middle" class="vt vsub" transform="rotate(-90 40 102)">neg</text>
+          <rect x="56" y="38" width="80" height="42" rx="5" fill="var(--panel2)" stroke="var(--green)"/><text x="96" y="63" text-anchor="middle" class="vt vhead" fill="var(--green)">TP</text>
+          <rect x="140" y="38" width="80" height="42" rx="5" fill="var(--panel2)" stroke="var(--amber)"/><text x="180" y="63" text-anchor="middle" class="vt vhead" fill="var(--amber)">FN</text>
+          <rect x="56" y="82" width="80" height="42" rx="5" fill="var(--panel2)" stroke="var(--red)"/><text x="96" y="107" text-anchor="middle" class="vt vhead" fill="var(--red)">FP</text>
+          <rect x="140" y="82" width="80" height="42" rx="5" fill="var(--panel2)" stroke="var(--line2)"/><text x="180" y="107" text-anchor="middle" class="vt vhead" fill="var(--muted)">TN</text>
+          <text x="150" y="145" text-anchor="middle" class="vt vsub">precision = TP/(TP+FP) &#183; recall = TP/(TP+FN)</text>
+          <text x="150" y="159" text-anchor="middle" class="vt vlab">F&#946; weights recall &#946;&#178; times precision</text>
+        </svg>
+        <figcaption>Confusion matrix: precision guards false alarms (the FP column), recall guards misses (the FN row). Report the pair; a single F score hides the trade.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="The tool-calling loop: the model proposes a call, your code validates and runs it, the result returns.">
+          <rect x="16" y="66" width="70" height="36" rx="7" fill="var(--panel2)" stroke="var(--violet)"/><text x="51" y="82" text-anchor="middle" class="vt vhead">model</text><text x="51" y="94" text-anchor="middle" class="vt vlab">proposes</text>
+          <rect x="115" y="66" width="80" height="36" rx="7" fill="var(--panel2)" stroke="var(--accent)"/><text x="155" y="82" text-anchor="middle" class="vt vhead">your code</text><text x="155" y="94" text-anchor="middle" class="vt vlab">validate + gate</text>
+          <rect x="224" y="66" width="60" height="36" rx="7" fill="var(--panel2)" stroke="var(--teal)"/><text x="254" y="82" text-anchor="middle" class="vt vhead">tool</text><text x="254" y="94" text-anchor="middle" class="vt vlab">runs</text>
+          <path d="M86 78 H115" stroke="var(--wire)" stroke-width="1.4" marker-end="url(#va)"/><text x="100" y="60" text-anchor="middle" class="vt vlab">{name,args}</text>
+          <path d="M195 78 H224" stroke="var(--wire)" stroke-width="1.4" marker-end="url(#va)"/>
+          <path d="M254 102 C254 138 51 138 51 104" stroke="var(--wire)" stroke-width="1.4" fill="none" marker-end="url(#va)"/><text x="150" y="150" text-anchor="middle" class="vt vlab">result back into context, matched by call id</text>
+        </svg>
+        <figcaption>Tool calling: the model emits a structured call and executes nothing; your code validates identity, args and policy, runs it, and feeds the result back. The boundary is yours.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="A LangGraph super-step: parallel nodes write to shared state, merged by reducers, then a checkpoint.">
+          <rect x="20" y="30" width="70" height="30" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="55" y="49" text-anchor="middle" class="vt vsub">node A</text>
+          <rect x="20" y="74" width="70" height="30" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="55" y="93" text-anchor="middle" class="vt vsub">node B</text>
+          <path d="M90 45 C120 45 120 62 150 66" stroke="var(--wire)" stroke-width="1.3" fill="none" marker-end="url(#va)"/>
+          <path d="M90 89 C120 89 120 72 150 68" stroke="var(--wire)" stroke-width="1.3" fill="none" marker-end="url(#va)"/>
+          <rect x="152" y="52" width="66" height="30" rx="6" fill="var(--panel2)" stroke="var(--amber)"/><text x="185" y="67" text-anchor="middle" class="vt vsub">reducer</text><text x="185" y="78" text-anchor="middle" class="vt vlab">merge state</text>
+          <path d="M218 67 H244" stroke="var(--wire)" stroke-width="1.3" marker-end="url(#va)"/>
+          <rect x="246" y="52" width="42" height="30" rx="6" fill="var(--panel2)" stroke="var(--teal)"/><text x="267" y="70" text-anchor="middle" class="vt vsub">ckpt</text>
+          <path d="M267 82 C267 128 55 128 55 106" stroke="var(--teal)" stroke-width="1.2" fill="none" stroke-dasharray="3 3" marker-end="url(#va)"/><text x="150" y="150" text-anchor="middle" class="vt vlab">crash resumes from the last checkpoint</text>
+        </svg>
+        <figcaption>LangGraph super-step: nodes due now run, their partial updates merge through reducers, then a checkpoint is written. A crash resumes there, not from the start.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="LoRA: a frozen weight matrix plus a low-rank product of two thin matrices.">
+          <rect x="30" y="34" width="80" height="80" rx="4" fill="var(--panel2)" stroke="var(--line2)"/><text x="70" y="70" text-anchor="middle" class="vt vhead">W</text><text x="70" y="84" text-anchor="middle" class="vt vlab">d&#215;d frozen</text>
+          <text x="122" y="78" text-anchor="middle" class="vt vhead">+</text>
+          <rect x="140" y="34" width="16" height="80" rx="3" fill="var(--amber)" opacity=".8"/><text x="148" y="126" text-anchor="middle" class="vt vlab">B d&#215;r</text>
+          <text x="166" y="78" text-anchor="middle" class="vt vhead">&#183;</text>
+          <rect x="176" y="66" width="80" height="16" rx="3" fill="var(--amber)" opacity=".8"/><text x="216" y="96" text-anchor="middle" class="vt vlab">A r&#215;d</text>
+          <text x="150" y="150" text-anchor="middle" class="vt vsub">train B,A only &#183; r &#8810; d &#183; &lt;1% of params</text>
+        </svg>
+        <figcaption>LoRA: freeze W, learn a low-rank correction BA with rank r far below d. Under a percent of the weights train, so optimiser state shrinks by the same factor.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="Top-p nucleus: sorted token probabilities, kept until the cumulative total crosses p.">
+          <line x1="34" y1="18" x2="34" y2="120" stroke="var(--line2)"/><line x1="34" y1="120" x2="286" y2="120" stroke="var(--line2)"/>
+          <rect x="42" y="40" width="20" height="80" fill="var(--teal)" opacity=".8"/>
+          <rect x="70" y="66" width="20" height="54" fill="var(--teal)" opacity=".8"/>
+          <rect x="98" y="86" width="20" height="34" fill="var(--teal)" opacity=".8"/>
+          <rect x="126" y="98" width="20" height="22" fill="var(--teal)" opacity=".7"/>
+          <rect x="154" y="106" width="20" height="14" fill="var(--red)" opacity=".45"/>
+          <rect x="182" y="111" width="20" height="9" fill="var(--red)" opacity=".45"/>
+          <rect x="210" y="114" width="20" height="6" fill="var(--red)" opacity=".45"/>
+          <rect x="238" y="116" width="20" height="4" fill="var(--red)" opacity=".45"/>
+          <line x1="150" y1="18" x2="150" y2="128" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <text x="150" y="140" text-anchor="middle" class="vt vsub" fill="var(--accent)">cut where cumulative &#8805; p</text>
+          <text x="90" y="32" text-anchor="middle" class="vt vlab">nucleus (kept)</text><text x="220" y="150" text-anchor="middle" class="vt vlab">tail (dropped)</text>
+        </svg>
+        <figcaption>Top-p (nucleus): sort tokens, keep the smallest set whose probabilities reach p, renormalise, sample. The set size adapts to confidence; top-k does not.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="Quantisation: bit-width and memory shrink from FP16 to INT8 to INT4.">
+          <text x="46" y="34" text-anchor="middle" class="vt vhead">FP16</text><rect x="30" y="42" width="150" height="18" rx="4" fill="var(--blue)" opacity=".8"/><text x="290" y="55" text-anchor="end" class="vt vlab">16 bit &#183; 2&#215; base</text>
+          <text x="46" y="86" text-anchor="middle" class="vt vhead">INT8</text><rect x="30" y="94" width="75" height="18" rx="4" fill="var(--teal)" opacity=".8"/><text x="290" y="107" text-anchor="end" class="vt vlab">8 bit &#183; half the memory</text>
+          <text x="46" y="138" text-anchor="middle" class="vt vhead">INT4</text><rect x="30" y="146" width="38" height="18" rx="4" fill="var(--amber)" opacity=".8"/><text x="290" y="159" text-anchor="end" class="vt vlab">4 bit &#183; a quarter</text>
+        </svg>
+        <figcaption>Quantisation: fewer bits per weight, proportionally less memory and bandwidth. Quality holds down to about 4 bits, then falls off sharply; measure, do not assume.</figcaption>
       </figure>
 
       <figure class="visfig visfig-live">
