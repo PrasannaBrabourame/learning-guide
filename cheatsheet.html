@@ -28,6 +28,26 @@
   .cstrackhead{font-size:12px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:26px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--line2)}
   .cstrackhead:first-of-type{margin-top:8px}
   mark{background:var(--accent-soft);color:var(--text);border-radius:3px;padding:0 1px}
+  .csvis{margin:6px 0 22px}
+  .csvishead{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:5px;border-bottom:1px solid var(--line2)}
+  .csvishead b{font-size:14px}
+  .csvishead span{font-size:11.5px;color:var(--muted);font-style:italic}
+  .csvisgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .visfig{margin:0;border:1px solid var(--line2);border-radius:11px;padding:12px;background:var(--panel);break-inside:avoid}
+  .visfig svg{width:100%;height:auto;display:block}
+  .visfig figcaption{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+  .vt{font-family:var(--mono,ui-monospace)}
+  .vlab{font-size:8.5px;fill:var(--dim);letter-spacing:.03em}
+  .vmono{font-size:8.5px;fill:var(--muted)}
+  .vhead{font-size:10px;fill:var(--text);font-weight:600}
+  .vsub{font-size:9px;fill:var(--muted)}
+  .vop{font-size:12px;fill:var(--accent);font-weight:700}
+  .vred{font-size:9px;fill:var(--red)} .vgreen{font-size:9px;fill:var(--green)}
+  .rfctl{display:flex;align-items:center;gap:10px;margin-top:8px}
+  .rfctl label{font-size:11px;color:var(--muted);white-space:nowrap}
+  .rfctl input[type=range]{flex:1;accent-color:var(--accent)}
+  .rfctl output{white-space:nowrap;min-width:150px;text-align:right;font-size:11px;color:var(--text)}
+  @media print{.rfctl{display:none}.csvisgrid{grid-template-columns:repeat(3,1fr);gap:8px}}
   .cstools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 4px}
   .cstools .csfilter{margin:0;flex:1;min-width:220px}
   .cstoolbtn{font-size:12.5px;padding:7px 13px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);
@@ -56,6 +76,7 @@
 </head>
 
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="va" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--wire)"/></marker></defs></svg>
 <div class="wrap">
   <header>
     <nav class="topnav" aria-label="Lab navigation">
@@ -76,6 +97,98 @@
     </div>
     <p class="cscount" id="csCount"></p>
   </header>
+
+  <section class="csvis" aria-label="Mental models">
+    <div class="csvishead"><b>Mental models</b><span>the shapes worth memorising, in technical form</span></div>
+    <div class="csvisgrid">
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="The transformer block: a residual stream with two sublayers, each pre-normed and added back.">
+          <line x1="34" y1="14" x2="34" y2="158" stroke="var(--accent)" stroke-width="2.4"/>
+          <text x="6" y="10" text-anchor="start" class="vt vlab">residual stream</text>
+          <circle cx="34" cy="70" r="8" fill="var(--panel2)" stroke="var(--accent)" stroke-width="1.8"/><text x="34" y="74" text-anchor="middle" class="vt vop">+</text>
+          <circle cx="34" cy="138" r="8" fill="var(--panel2)" stroke="var(--accent)" stroke-width="1.8"/><text x="34" y="142" text-anchor="middle" class="vt vop">+</text>
+          <rect x="86" y="34" width="196" height="40" rx="7" fill="var(--panel2)" stroke="var(--blue)"/>
+          <text x="184" y="52" text-anchor="middle" class="vt vhead">LayerNorm &#8594; Multi-Head Attn</text>
+          <text x="184" y="66" text-anchor="middle" class="vt vsub">Q,K,V &#183; softmax(QK&#7488;/&#8730;d)V</text>
+          <rect x="86" y="102" width="196" height="40" rx="7" fill="var(--panel2)" stroke="var(--violet)"/>
+          <text x="184" y="120" text-anchor="middle" class="vt vhead">LayerNorm &#8594; MLP</text>
+          <text x="184" y="134" text-anchor="middle" class="vt vsub">up 4d &#183; GELU &#183; down</text>
+          <path d="M42 54 H86" stroke="var(--wire)" stroke-width="1.4" fill="none" marker-end="url(#va)"/>
+          <path d="M282 54 H42 M42 54 V62" stroke="var(--wire)" stroke-width="1.4" fill="none" marker-end="url(#va)" opacity="0"/>
+          <path d="M282 54 C296 54 296 70 44 70" stroke="var(--wire)" stroke-width="1.4" fill="none" marker-end="url(#va)"/>
+          <path d="M42 122 H86" stroke="var(--wire)" stroke-width="1.4" fill="none" marker-end="url(#va)"/>
+          <path d="M282 122 C296 122 296 138 44 138" stroke="var(--wire)" stroke-width="1.4" fill="none" marker-end="url(#va)"/>
+        </svg>
+        <figcaption>Transformer block: pre-norm, attention then MLP, each written back to the residual stream. Depth stacks this N times.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="The LCEL RAG chain: a parallel of retriever-plus-reranker and a passthrough, piped into prompt, model, parser.">
+          <rect x="12" y="18" width="150" height="82" rx="8" fill="none" stroke="var(--teal)" stroke-dasharray="4 3"/>
+          <text x="87" y="14" text-anchor="middle" class="vt vlab">RunnableParallel</text>
+          <rect x="22" y="30" width="130" height="26" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="87" y="47" text-anchor="middle" class="vt vsub">context: retriever | rerank</text>
+          <rect x="22" y="64" width="130" height="26" rx="6" fill="var(--panel2)" stroke="var(--violet)"/><text x="87" y="81" text-anchor="middle" class="vt vsub">question: Passthrough</text>
+          <path d="M162 59 H186" stroke="var(--wire)" stroke-width="1.4" marker-end="url(#va)"/>
+          <rect x="188" y="20" width="100" height="24" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="238" y="36" text-anchor="middle" class="vt vsub">prompt</text>
+          <rect x="188" y="59" width="100" height="24" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="238" y="75" text-anchor="middle" class="vt vsub">model</text>
+          <rect x="188" y="98" width="100" height="24" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="238" y="114" text-anchor="middle" class="vt vsub">parser</text>
+          <path d="M238 44 V59 M238 83 V98" stroke="var(--wire)" stroke-width="1.4" marker-end="url(#va)"/>
+          <text x="150" y="150" text-anchor="middle" class="vt vsub">{context, question} &#8594; prompt | model | parser</text>
+        </svg>
+        <figcaption>LCEL: the pipe is RunnableSequence; a RunnableParallel keeps the question alongside retrieved context, else the slot arrives empty.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="Per-token work: without a KV cache it grows linearly with context giving quadratic total; with the cache it is constant.">
+          <line x1="40" y1="20" x2="40" y2="140" stroke="var(--line2)"/><line x1="40" y1="140" x2="286" y2="140" stroke="var(--line2)"/>
+          <text x="20" y="80" text-anchor="middle" transform="rotate(-90 20 80)" class="vt vlab">work / token</text>
+          <text x="163" y="160" text-anchor="middle" class="vt vlab">context length</text>
+          <path d="M40 138 L286 40" stroke="var(--red)" stroke-width="2.2" fill="none"/>
+          <text x="250" y="42" text-anchor="end" class="vt vred">no cache: O(n) per step</text>
+          <path d="M40 126 H286" stroke="var(--green)" stroke-width="2.2" fill="none"/>
+          <text x="250" y="120" text-anchor="end" class="vt vgreen">KV cache: O(1) per step</text>
+        </svg>
+        <figcaption>KV cache: keys and values depend only on token and position, so cache them. Decode goes from quadratic total to linear, trading compute for memory.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="Scaled dot-product attention as an expression pipeline.">
+          <rect x="14" y="40" width="40" height="26" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="34" y="57" text-anchor="middle" class="vt vsub">Q</text>
+          <rect x="14" y="96" width="40" height="26" rx="6" fill="var(--panel2)" stroke="var(--blue)"/><text x="34" y="113" text-anchor="middle" class="vt vsub">K&#7488;</text>
+          <rect x="86" y="68" width="70" height="26" rx="6" fill="var(--panel2)" stroke="var(--line2)"/><text x="121" y="85" text-anchor="middle" class="vt vsub">Q K&#7488; / &#8730;d&#8342;</text>
+          <rect x="176" y="68" width="60" height="26" rx="6" fill="var(--panel2)" stroke="var(--amber)"/><text x="206" y="85" text-anchor="middle" class="vt vsub">softmax</text>
+          <rect x="252" y="68" width="34" height="26" rx="6" fill="var(--panel2)" stroke="var(--teal)"/><text x="269" y="85" text-anchor="middle" class="vt vsub">&#215; V</text>
+          <path d="M54 53 C74 53 74 78 86 80" stroke="var(--wire)" stroke-width="1.3" fill="none" marker-end="url(#va)"/>
+          <path d="M54 109 C74 109 74 84 86 82" stroke="var(--wire)" stroke-width="1.3" fill="none" marker-end="url(#va)"/>
+          <path d="M156 81 H176 M236 81 H252" stroke="var(--wire)" stroke-width="1.3" marker-end="url(#va)"/>
+          <text x="150" y="140" text-anchor="middle" class="vt vlab">attention(Q,K,V) = softmax(QK&#7488;/&#8730;d&#8342;) V</text>
+        </svg>
+        <figcaption>Scaled dot-product attention: scores are query-key dot products scaled by 1/&#8730;d&#8342;, softmaxed into weights, then a weighted sum of values.</figcaption>
+      </figure>
+
+      <figure class="visfig">
+        <svg viewBox="0 0 300 168" role="img" aria-label="The metric chain: offline eval per commit, online proxy per release, business KPI per quarter.">
+          <rect x="14" y="20" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--blue)"/><text x="26" y="34" class="vt vhead" text-anchor="start">offline eval</text><text x="26" y="47" class="vt vsub" text-anchor="start">groundedness, task success on the golden set</text><text x="278" y="41" text-anchor="end" class="vt vmono">per commit</text>
+          <rect x="14" y="62" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--violet)"/><text x="26" y="76" class="vt vhead" text-anchor="start">online proxy</text><text x="26" y="89" class="vt vsub" text-anchor="start">thumbs-down, retries, escalation, reopen</text><text x="278" y="83" text-anchor="end" class="vt vmono">per release</text>
+          <rect x="14" y="104" width="272" height="34" rx="7" fill="var(--panel2)" stroke="var(--teal)"/><text x="26" y="118" class="vt vhead" text-anchor="start">business KPI</text><text x="26" y="131" class="vt vsub" text-anchor="start">CSAT, deflection, cost per resolution</text><text x="278" y="125" text-anchor="end" class="vt vmono">per quarter</text>
+          <text x="150" y="158" text-anchor="middle" class="vt vlab">validate the joints, do not assume them</text>
+        </svg>
+        <figcaption>The metric chain: three layers at three cadences. Each exists because the one above is unmeasurable that often; gate releases on the joints.</figcaption>
+      </figure>
+
+      <figure class="visfig visfig-live">
+        <svg id="rfSvg" viewBox="0 0 300 168" role="img" aria-label="Interactive roofline: achieved throughput against arithmetic intensity, with the ridge point."></svg>
+        <div class="rfctl">
+          <label for="rfAI">arithmetic intensity</label>
+          <input type="range" id="rfAI" min="0" max="300" value="60" aria-label="arithmetic intensity (log scale)">
+          <output id="rfOut" class="vt vmono"></output>
+        </div>
+        <figcaption>Roofline (A100 FP16: 312 TFLOP/s, 2.0 TB/s, ridge 156 FLOP/byte): below the ridge you are memory-bound and faster maths changes nothing; only fewer bytes per FLOP helps.</figcaption>
+      </figure>
+
+    </div>
+  </section>
 
   <main id="csMain">
   <!-- TRACK: BUILD -->
@@ -190,6 +303,45 @@
     setMode(start);
   })();
 })();
+
+  /* interactive roofline simulator (technical, not analogy) */
+  (function(){
+    const svg=document.getElementById('rfSvg'), slider=document.getElementById('rfAI'), out=document.getElementById('rfOut');
+    if(!svg||!slider) return;
+    const PEAK=312, BW=2.0, RIDGE=PEAK/BW;           // TFLOP/s, TB/s, FLOP/byte
+    const X0=42, Y0=14, W=244, H=118;                 // plot box
+    const aiMin=1, aiMax=1024, vMin=1, vMax=512;
+    const lx=ai=>X0 + (Math.log10(ai)-Math.log10(aiMin))/(Math.log10(aiMax)-Math.log10(aiMin))*W;
+    const ly=v=>Y0+H - (Math.log10(Math.max(v,vMin)))/(Math.log10(vMax))*H;
+    const sliderToAI=p=>Math.pow(10, (p/300)*Math.log10(aiMax));   // 0..300 -> 1..1024 log
+    // static frame: axes, roofline, ridge
+    let base='';
+    base+='<line x1="'+X0+'" y1="'+Y0+'" x2="'+X0+'" y2="'+(Y0+H)+'" stroke="var(--line2)"/>';
+    base+='<line x1="'+X0+'" y1="'+(Y0+H)+'" x2="'+(X0+W)+'" y2="'+(Y0+H)+'" stroke="var(--line2)"/>';
+    base+='<text x="'+(X0-6)+'" y="'+(Y0+6)+'" text-anchor="end" class="vt vmono">TFLOP/s</text>';
+    base+='<text x="'+(X0+W)+'" y="'+(Y0+H+12)+'" text-anchor="end" class="vt vmono">FLOP/byte</text>';
+    // roofline polyline: rising (v=AI*BW) to ridge, then flat at PEAK
+    let pts=[];
+    for(let e=0;e<=30;e++){ const ai=Math.pow(10,(e/30)*Math.log10(aiMax)); const v=Math.min(PEAK, ai*BW); pts.push(lx(ai).toFixed(1)+','+ly(v).toFixed(1)); }
+    base+='<polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--wire)" stroke-width="1.8"/>';
+    // ridge marker
+    base+='<line x1="'+lx(RIDGE).toFixed(1)+'" y1="'+Y0+'" x2="'+lx(RIDGE).toFixed(1)+'" y2="'+(Y0+H)+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3"/>';
+    base+='<text x="'+lx(RIDGE).toFixed(1)+'" y="'+(Y0-3)+'" text-anchor="middle" class="vt vmono" fill="var(--amber)">ridge 156</text>';
+    base+='<text x="'+lx(6)+'" y="'+(Y0+H-6)+'" class="vt vsub" fill="var(--red)">memory-bound</text>';
+    base+='<text x="'+lx(300)+'" y="'+(ly(PEAK)+14)+'" text-anchor="middle" class="vt vsub" fill="var(--green)">compute-bound</text>';
+    function draw(){
+      const ai=sliderToAI(+slider.value);
+      const v=Math.min(PEAK, ai*BW);
+      const bound = ai<RIDGE ? 'memory-bound' : 'compute-bound';
+      const col = ai<RIDGE ? 'var(--red)' : 'var(--green)';
+      let mk='<circle cx="'+lx(ai).toFixed(1)+'" cy="'+ly(v).toFixed(1)+'" r="4.5" fill="'+col+'" stroke="var(--panel)" stroke-width="1.5"/>';
+      mk+='<line x1="'+lx(ai).toFixed(1)+'" y1="'+ly(v).toFixed(1)+'" x2="'+lx(ai).toFixed(1)+'" y2="'+(Y0+H)+'" stroke="'+col+'" stroke-width="1" stroke-dasharray="2 2"/>';
+      svg.innerHTML=base+mk;
+      out.textContent='AI '+ai.toFixed(0)+' \u2192 '+v.toFixed(0)+' TFLOP/s ('+bound+')';
+    }
+    slider.addEventListener('input',draw);
+    draw();
+  })();
 </script>
 <script src="assets/version.js"></script>
 <script src="assets/lab.js"></script>

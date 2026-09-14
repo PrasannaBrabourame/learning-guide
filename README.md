@@ -152,7 +152,10 @@ assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
 cheatsheet.html   Revision cheatsheet: every lab's must-remember points
                   on one printable, filterable page, each card linked to
                   its lab, with a Test-yourself active-recall mode that
-                  hides the points until you click to check
+                  hides the points until you click to check, and a
+                  Mental-models band of technical diagrams (transformer
+                  block, LCEL chain, KV cache, attention, the metric
+                  chain) plus an interactive roofline simulator
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
