@@ -151,7 +151,8 @@ assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   progress rings + streak tracking, starred bookmarks and a reset control, lab-to-topic mapping
 cheatsheet.html   Revision cheatsheet: every lab's must-remember points
                   on one printable, filterable page, each card linked to
-                  its lab
+                  its lab, with a Test-yourself active-recall mode that
+                  hides the points until you click to check
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 

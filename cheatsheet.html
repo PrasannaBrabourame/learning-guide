@@ -28,8 +28,24 @@
   .cstrackhead{font-size:12px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:26px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--line2)}
   .cstrackhead:first-of-type{margin-top:8px}
   mark{background:var(--accent-soft);color:var(--text);border-radius:3px;padding:0 1px}
+  .cstools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 4px}
+  .cstools .csfilter{margin:0;flex:1;min-width:220px}
+  .cstoolbtn{font-size:12.5px;padding:7px 13px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);
+    color:var(--muted);cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+  .cstoolbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .cstoolbtn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .cstoolbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  /* active-recall: hide the points, reveal on click */
+  .testmode .cscard li{filter:blur(4.6px);cursor:pointer;user-select:none;transition:filter .12s}
+  .testmode .cscard li:hover{filter:blur(2.4px)}
+  .testmode .cscard li.revealed{filter:none;cursor:default;user-select:text}
+  .testmode .cscard{position:relative}
+  .cardpeek{display:none}
+  .testmode .cardpeek{display:inline-block;margin-left:8px;font:600 10px var(--mono,ui-monospace);
+    color:var(--accent);background:var(--accent-soft);border:none;border-radius:99px;padding:2px 9px;cursor:pointer;vertical-align:middle}
   @media print{
-    .topnav,.csfilter,.cscount,.lab-foot{display:none!important}
+    .topnav,.cstools,.cscount,.lab-foot,.cardpeek{display:none!important}
+    .testmode .cscard li{filter:none!important;user-select:auto!important}
     .csgrid{grid-template-columns:repeat(2,1fr);gap:8px}
     .cscard{border-color:#ccc;padding:8px 10px}
     .cscard li{font-size:10px;padding:2px 0 2px 12px}
@@ -52,8 +68,12 @@
     </nav>
     <div class="eyebrow">the whole guide, distilled</div>
     <h1>Cheatsheet: <span class="thin">the whole guide on one page</span></h1>
-    <p class="sub csintro">Every lab&rsquo;s must-remember points, on one page you can scan the night before an interview or print and mark up. Each card links to the lab it came from, where the same points arrive with a working simulation behind them. Use the filter to jump to a word: <em>checkpoint</em>, <em>drift</em>, <em>KV cache</em>, <em>catastrophic</em>, <em>reducer</em>.</p>
-    <input class="search csfilter" id="csFilter" type="search" placeholder="filter every point: e.g. latency, LoRA, quorum, Passthrough…" aria-label="Filter cheatsheet points">
+    <p class="sub csintro">Every lab&rsquo;s must-remember points, on one page you can scan the night before an interview or print and mark up. Each card links to the lab it came from, where the same points arrive with a working simulation behind them. Read it to scan, or press <b>Test yourself</b> to hide the points and recall each lab&rsquo;s from its name, clicking any point to check. Use the filter to jump to a word: <em>checkpoint</em>, <em>drift</em>, <em>KV cache</em>, <em>catastrophic</em>, <em>reducer</em>.</p>
+    <div class="cstools">
+      <input class="search csfilter" id="csFilter" type="search" placeholder="filter every point: e.g. latency, LoRA, quorum, Passthrough…" aria-label="Filter cheatsheet points">
+      <button class="cstoolbtn" id="csTest" type="button" aria-pressed="false">&#9673; Test yourself</button>
+      <button class="cstoolbtn" id="csRevealAll" type="button" hidden>reveal all</button>
+    </div>
     <p class="cscount" id="csCount"></p>
   </header>
 
@@ -129,6 +149,46 @@
   }
   f.addEventListener('input',apply);
   apply();
+
+  /* active-recall "Test yourself" mode */
+  (function(){
+    const main=document.getElementById('csMain');
+    const tBtn=document.getElementById('csTest');
+    const rBtn=document.getElementById('csRevealAll');
+    if(!main||!tBtn) return;
+    const KEY='study-cs-test';
+    const cards=[...document.querySelectorAll('.cscard')];
+    // add a per-card peek button (reveal this card's points) into each card heading
+    cards.forEach(c=>{
+      const h=c.querySelector('h3'); if(!h) return;
+      const b=document.createElement('button'); b.className='cardpeek'; b.type='button'; b.textContent='reveal';
+      b.onclick=e=>{ e.preventDefault(); const on=c.dataset.peek!=='1'; c.dataset.peek=on?'1':'0';
+        c.querySelectorAll('li').forEach(li=>li.classList.toggle('revealed',on)); b.textContent=on?'hide':'reveal'; };
+      h.appendChild(b);
+    });
+    function setMode(on){
+      main.classList.toggle('testmode',on);
+      tBtn.classList.toggle('on',on); tBtn.setAttribute('aria-pressed',String(on));
+      tBtn.innerHTML=(on?'\u25C9':'\u25CE')+' Test yourself';
+      rBtn.hidden=!on;
+      if(!on){ document.querySelectorAll('.cscard li.revealed').forEach(li=>li.classList.remove('revealed'));
+        cards.forEach(c=>{c.dataset.peek='0'; const b=c.querySelector('.cardpeek'); if(b)b.textContent='reveal';}); }
+      try{ localStorage.setItem(KEY, JSON.stringify(on)); }catch(e){}
+    }
+    // click a blurred point to reveal just it (only in test mode)
+    main.addEventListener('click',e=>{
+      if(!main.classList.contains('testmode')) return;
+      const li=e.target.closest('.cscard li'); if(!li) return;
+      li.classList.toggle('revealed');
+    });
+    let allShown=false;
+    rBtn.onclick=()=>{ allShown=!allShown;
+      document.querySelectorAll('.cscard li').forEach(li=>li.classList.toggle('revealed',allShown));
+      rBtn.textContent=allShown?'hide all':'reveal all'; };
+    tBtn.onclick=()=>setMode(!main.classList.contains('testmode'));
+    let start=false; try{ start=JSON.parse(localStorage.getItem(KEY))===true; }catch(e){}
+    setMode(start);
+  })();
 })();
 </script>
 <script src="assets/version.js"></script>
