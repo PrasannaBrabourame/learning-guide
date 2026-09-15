@@ -42,8 +42,9 @@ cloud.html        Cloud lab: request journey, OSI (including what the data
                   component advice), network simulator, NGINX, IAM, SAP-C02
                   cheatsheet, pillars, DR simulator, translator
 agentcore.html    AgentCore lab: running agents in production, covering
-                  runtime, identity, gateway, memory, evaluation and
-                  multi-agent patterns
+                  runtime, identity, gateway, memory, observability
+                  (traces, the three signals and OpenTelemetry plumbing),
+                  evaluation and multi-agent patterns
 agentbuild.html   Agents-building-agents lab: spec-driven development with a
                   coding agent, the ADK loop, and the Managed Agents API
 adk.html          ADK lab: agents, tools and tool schemas, session state,
@@ -159,7 +160,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 250 simulations across the nineteen labs. Every one carries a
+There are 251 simulations across the nineteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
