@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **19 hands-on labs**, **250 in-browser simulations**,
+topics. **304 topics**, **19 hands-on labs**, **251 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 

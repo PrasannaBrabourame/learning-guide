@@ -208,6 +208,17 @@
       </div>
     </div>
     <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: why &ldquo;200 OK&rdquo; lies, and the plumbing that tells the truth</h2>
+      <div class="plain-line"><b>Try this:</b> the request came back in 1.12 seconds with a clean <b>200</b>, and every infrastructure dashboard is green. Turn the signals and the OpenTelemetry plumbing on one piece at a time, and watch the same request go from &ldquo;healthy&rdquo; to &ldquo;it read a stale document and answered wrong.&rdquo;</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A courier marks a parcel &ldquo;delivered, 200 OK&rdquo; and the tracking page turns green. It never mentions that the parcel was left at the wrong door. Fast and delivered is not the same as right.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>leave everything on and read the backend panel. Then try one switch at a time: turn <b>the collector</b> off and back on, drop <b>sampling</b> to 1%, and switch on <b>the evaluator span</b>.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>OpenTelemetry</b> a vendor-neutral standard for emitting traces, so any tool can read them</span><span class="sp-w"><b>signal</b> one kind of telemetry: a metric, a log, or a trace</span><span class="sp-w"><b>metric</b> a number counted over time (latency, error rate). Cheap and always on, but aggregate: blind to any single wrong answer</span><span class="sp-w"><b>log</b> a line of text a service writes as it runs; detailed, but hard to connect across services</span><span class="sp-w"><b>trace</b> the record of one whole request</span><span class="sp-w"><b>span</b> one step inside a trace, with its own start and end</span><span class="sp-w"><b>attribute</b> a labelled fact attached to a span: which model, how many tokens, which document</span><span class="sp-w"><b>tokens</b> the pieces of text a model reads and writes; you are billed per token</span><span class="sp-w"><b>traceparent</b> the header that carries the trace id downstream, so every service&rsquo;s spans join the same trace</span><span class="sp-w"><b>context propagation</b> passing that header on at every step; skip it and the trace shatters into fragments</span><span class="sp-w"><b>exporter</b> the piece inside your app that batches spans and sends them onward</span><span class="sp-w"><b>collector</b> the service that receives spans, processes them, and forwards them to a backend</span><span class="sp-w"><b>backend</b> where traces are stored and viewed (Cloud Trace, CloudWatch, Jaeger)</span><span class="sp-w"><b>sampling</b> keeping only a fraction of traces to save cost; head sampling decides before the request finishes, tail sampling after</span><span class="sp-w"><b>evaluator</b> a check that scores the answer&rsquo;s quality and emits its own span</span><span class="sp-w"><b>ground truth</b> the known-correct answer you score against</span><span class="sp-w"><b>HTTP 200</b> the success status code: the request completed. It says nothing about whether the answer was right</span><span class="sp-w"><b>retriever</b> the step that fetches documents for the model</span><span class="sp-w"><b>stale</b> out of date: a document that no longer reflects the truth</span><span class="sp-w"><b>orphan fragment</b> a span with no parent trace to attach to</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="otSvg"></div><div id="otBack" class="cidr-out" style="margin-top:12px"></div></div>
+        <div><div class="toggles" id="otOpts"></div>
+          <div class="segmented" id="otSample" style="margin-top:4px"></div>
+          <p class="simnote" id="otNote"></p></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
       <h2 class="sec">Would this change pass the gate?</h2>
       <div class="plain-line"><b>Try this:</b> you have changed the prompt. Scores move. Decide whether it ships, then notice that an average can rise while the thing you care about falls.</div>
   <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A blood test with several numbers on it. One improved, one got worse, and whether that is good news is not something a single number can tell you.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>accept a change where one score went up and another went down, then read the verdict.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>eval</b> a set of test cases used to score a change</span><span class="sp-w"><b>gate</b> the rule that decides whether a change is allowed to ship</span><span class="sp-w"><b>regression</b> something that used to work and now works less well</span><span class="sp-w"><b>tool</b> an ordinary function the model can choose to call</span><span class="sp-w"><b>trajectory</b> the sequence of steps the agent actually took</span></span></div></div>
@@ -900,6 +911,108 @@ document.getElementById('traceOpts').addEventListener('change',renderTrace);
 document.getElementById('traceRun').onclick=renderTrace;
 document.getElementById('traceClear').onclick=()=>{document.getElementById('traceWall').innerHTML='';document.getElementById('traceOut').innerHTML='';};
 renderTrace();
+
+/* ================= SIM: three signals + OpenTelemetry plumbing ================= */
+(function(){
+  const svgEl=document.getElementById('otSvg'), back=document.getElementById('otBack'),
+        opts=document.getElementById('otOpts'), samp=document.getElementById('otSample'),
+        note=document.getElementById('otNote');
+  if(!svgEl||!back) return;
+  const OPTS=[
+    {id:'prop',  label:'propagate trace context (traceparent) between services', on:true},
+    {id:'attrs', label:'record span attributes (model, tokens, document id)',    on:true},
+    {id:'coll',  label:'the collector is running',                               on:true},
+    {id:'evl',   label:'emit an evaluator span that scores the answer',          on:false},
+  ];
+  const SAMP=[['keep 100%',100],['keep 10%',10],['keep 1%',1]];
+  let sIdx=0;
+  opts.innerHTML=OPTS.map(o=>`<label><input type="checkbox" id="ot-${o.id}"${o.on?' checked':''}> ${o.label}</label>`).join('');
+  samp.innerHTML=SAMP.map((s,i)=>`<button class="seg${i===0?' on':''}" data-i="${i}">${s[0]}</button>`).join('');
+  const on=id=>document.getElementById('ot-'+id)?.checked;
+  const SVC=[['gateway','entry'],['runtime','invoke'],['model','reason'],['retriever','search']];
+  const G='var(--green)',R='var(--red)',A='var(--amber)',T='var(--teal)',M='var(--muted)';
+  const row=(k,v,c)=>`<div class="r"><span>${k}</span><b style="color:${c||'var(--text)'}">${v}</b></div>`;
+  const arrow=(x1,y1,x2,y2,col,dash)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="1.5"${dash?' stroke-dasharray="4 3"':''} marker-end="url(#oah)"/>`;
+
+  function render(){
+    const prop=on('prop'), attrs=on('attrs'), coll=on('coll'), evl=on('evl'), keep=SAMP[sIdx][1];
+    let stored;                                   // none | dropped | frags | trace
+    if(!coll) stored='none';
+    else if(keep<=1) stored='dropped';
+    else if(!prop) stored='frags';
+    else stored='trace';
+    const haveSpans = stored==='frags'||stored==='trace';
+
+    /* ---- diagram ---- */
+    const w=500,h=200, bw=100, bx=[6,130,254,378], by=40, bh=44, mid=by+bh/2;
+    const pc = prop?G:R;
+    let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Four services emit spans through an exporter and collector to a backend; the toggles change what the backend can store.">`;
+    s+=`<defs><marker id="oah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>`;
+    s+=tm(w/2,16, prop?'traceparent: one trace id flows through every service':'no context: each service starts its own trace', pc);
+    SVC.forEach((v,i)=>{
+      s+=box(bx[i],by,bw,bh,'var(--wire)');
+      s+=t(bx[i]+bw/2,by+19,v[0],SANS);
+      s+=tm(bx[i]+bw/2,by+34,v[1]);
+      if(i<3) s+=arrow(bx[i]+bw+2,mid,bx[i+1]-3,mid,pc,!prop);
+    });
+    // elbow down into the pipeline
+    s+=`<path d="M242 86 V102 H83 V118" fill="none" stroke="${M}" stroke-width="1.5" marker-end="url(#oah)"/>`;
+    // pipeline row
+    const py=118, pbh=44;
+    const exX=8,exW=150, coX=178,coW=140, baX=338,baW=154;
+    const collCol = coll?T:R;
+    s+=box(exX,py,exW,pbh,'var(--wire)')+t(exX+exW/2,py+19,'exporter',SANS)+tm(exX+exW/2,py+34,'batch spans');
+    s+=box(coX,py,coW,pbh,collCol)+t(coX+coW/2,py+19,'collector',SANS)+tm(coX+coW/2,py+34,coll?'process + route':'DOWN',coll?M:R);
+    s+=box(baX,py,baW,pbh,'var(--wire)')+t(baX+baW/2,py+19,'backend',SANS)+tm(baX+baW/2,py+34,'store + view');
+    s+=arrow(exX+exW+2,py+pbh/2,coX-3,py+pbh/2,M,false);
+    s+=arrow(coX+coW+2,py+pbh/2,baX-3,py+pbh/2,coll?M:R,!coll);
+    // stored summary line
+    const sum = stored==='none'?['0 spans stored',R]
+      : stored==='dropped'?['trace dropped by head sampling',R]
+      : stored==='frags'?['4 orphan fragments stored',A]
+      : ['1 linked trace, 5 spans stored',G];
+    s+=tm(baX+baW/2,py+pbh+18,sum[0],sum[1]);
+    s+='</svg>';
+    svgEl.innerHTML=s;
+
+    /* ---- backend panel ---- */
+    let storedTxt,storedCol;
+    if(stored==='none'){storedTxt='nothing, 0 spans (collector down, spans never leave the app)';storedCol=R;}
+    else if(stored==='dropped'){storedTxt='trace dropped, head sampling kept 1%';storedCol=R;}
+    else if(stored==='frags'){storedTxt='4 orphan fragments, ids 4e9c a1f3 7c02 b5d1';storedCol=A;}
+    else{storedTxt='1 linked trace, id 4e9c, 5 spans';storedCol=G;}
+    let detailTxt,detailCol;
+    if(!haveSpans){detailTxt='none, no spans to read';detailCol=M;}
+    else if(!attrs){detailTxt='span names and timings only, no attributes';detailCol=A;}
+    else{detailTxt='retriever span shows doc#4172 published 2023-04; model span 512 tokens';detailCol='var(--text)';}
+    const qTxt = evl?'evaluator score 0.31, FAIL: answer cites a 2023 figure, ground truth updated 2025'
+                    :'not measured, no evaluator span (every metric still reads green)';
+    const qCol = evl?R:A;
+    let verdict;
+    if(stored==='none') verdict='nothing. The app returned 200, so nobody is even alerted. This is the silent failure.';
+    else if(stored==='dropped') verdict='nothing about this request. Head sampling threw away the one slow, wrong trace you needed.';
+    else if(stored==='frags') verdict='that each service ran, but not how they connect, so no root cause across the request.';
+    else if(!attrs) verdict='where the time went, but not why. You see the retriever ran, not that it returned a stale document.';
+    else if(!evl) verdict='the whole request including the stale document, but nothing flags the answer as wrong. Metrics stay green.';
+    else verdict='everything: the stale document and the failing score that prove the clean 200 was a wrong answer.';
+    back.innerHTML =
+      row('The request itself','HTTP 200 · 1.12 s · 0 errors',G)+
+      row('Stored in the backend',storedTxt,storedCol)+
+      row('Detail on each span',detailTxt,detailCol)+
+      row('Quality of the answer',qTxt,qCol)+
+      row('What you can debug',verdict,T);
+
+    /* ---- note ---- */
+    note.innerHTML = keep>=100
+      ? '<b>Three signals, not one.</b> Metrics (latency, error rate) are cheap and always on, but aggregate: they cannot see a single wrong answer. Logs are detailed but hard to connect. Only a trace, linked by context and scored by an evaluator, shows both what happened and whether it was any good.'
+      : keep>=10
+      ? '<b>Sampling is a cost dial with teeth.</b> Keeping 10% is cheap, but nine in ten traces are gone. The slow, complained-about request is probably one you dropped.'
+      : '<b>Head sampling decided before the request finished.</b> The interesting traces, the slow and the wrong, are rare, so a 1% head sample throws away exactly the ones worth keeping. Tail sampling waits until the trace is complete, then keeps the interesting ones.';
+  }
+  opts.addEventListener('change',render);
+  samp.addEventListener('click',e=>{const b=e.target.closest('[data-i]'); if(!b) return; sIdx=Number(b.dataset.i); samp.querySelectorAll('.seg').forEach((x,k)=>x.classList.toggle('on',k===sIdx)); render();});
+  render();
+})();
 
 /* ================= SIM: the evaluation gate ================= */
 const GATEM=[
