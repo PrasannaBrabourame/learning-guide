@@ -50,12 +50,13 @@ agentbuild.html   Agents-building-agents lab: spec-driven development with a
 adk.html          ADK lab: agents, tools and tool schemas, session state,
                   callbacks and plugins, orchestration and delegation,
                   grounding and MCP, the Agent Sandbox, skills, deployment
-frames.html       Agent-frameworks lab: five ways to build the same
+frames.html       Agent-frameworks lab: eight ways to build the same
                   support-ticket agent (LangGraph's drawn graph with
                   checkpoints and resume, CrewAI's cast of roles,
                   Strands' model-driven loop, ADK's kit, the Hermes-style
-                  self-editor), which frame for which job including no
-                  framework at all, and the Lang family untangled
+                  self-editor, Smolagents' code-as-action, AG2/AutoGen's
+                  group chat, GenKit's typed flows), which frame for which
+                  job including no framework at all, and the Lang family untangled
                   (LangChain, LangGraph, LangSmith, Langflow, Langfuse)
                   by layer and vendor, and the Runnables and LCEL
                   bricks (Sequence, Parallel, Passthrough, Lambda,
@@ -160,7 +161,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 251 simulations across the nineteen labs. Every one carries a
+There are 254 simulations across the nineteen labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in

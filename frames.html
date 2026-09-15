@@ -58,6 +58,7 @@
     <button class="tab" data-pane="floop" role="tab">The model drives</button>
     <button class="tab" data-pane="fhermes" role="tab">The self-editor</button>
     <button class="tab" data-pane="fpick" role="tab">Which frame</button>
+    <button class="tab" data-pane="fmore" role="tab">Three more shapes</button>
     <button class="tab" data-pane="flang" role="tab">The Lang family</button>
     <button class="tab" data-pane="fbricks" role="tab">The five bricks</button>
     <button class="tab" data-pane="fexam" role="tab">Exam angle</button>
@@ -69,6 +70,7 @@
   <section class="pane" id="pane-floop"><div id="sec-floop"></div></section>
   <section class="pane" id="pane-fhermes"><div id="sec-fhermes"></div></section>
   <section class="pane" id="pane-fpick"><div id="sec-fpick"></div></section>
+  <section class="pane" id="pane-fmore"><div id="sec-fmore"></div></section>
   <section class="pane" id="pane-flang"><div id="sec-flang"></div></section>
   <section class="pane" id="pane-fbricks"><div id="sec-fbricks"></div></section>
   <section class="pane" id="pane-fexam"><div id="sec-fexam"></div></section>
@@ -219,7 +221,7 @@ document.getElementById('sec-fgraph').innerHTML=`
         parEl=document.getElementById('fgPar'), redEl=document.getElementById('fgRed');
   if(!out) return;
   let par=0, red=0, step=0, crashed=false, dead=false, ckpts=[];
-  const freshState=()=>({ticket:'&ldquo;Invoice 4417 charged me twice&rdquo;', category:'&mdash;', evidence:[], draft:'&mdash;', approved:'&mdash;'});
+  const freshState=()=>({ticket:'&ldquo;Invoice 4417 charged me twice&rdquo;', category:'&middot;', evidence:[], draft:'&middot;', approved:'&middot;'});
   let S=freshState();
   /* plan: each super-step = list of node executions */
   function plan(){
@@ -534,7 +536,7 @@ document.getElementById('sec-fhermes').innerHTML=`
 /* ================= 6 · WHICH FRAME ================= */
 document.getElementById('sec-fpick').innerHTML=`
 <div class="card" style="margin-bottom:16px">
-  <h2 class="sec">Five frames, one loop, and the honest sixth option</h2>
+  <h2 class="sec">Eight frames, one loop, and the honest ninth option</h2>
   <div class="plain-line"><b>In plain English:</b> the same table people wish existed. Every row is a real decision axis, and the last column is the one nobody prints: sometimes the right framework is no framework, because the loop really is an afternoon of code and every dependency is a security review you now own.</div>
   <div style="overflow-x:auto"><table class="osi"><thead><tr><th>Frame</th><th>Who owns the next step</th><th>Its signature</th><th>Reach for it when</th><th>The bill</th></tr></thead><tbody>
     <tr><td><b>LangGraph</b></td><td>the graph you drew</td><td>typed shared state, checkpoints, resume mid-run</td><td>the process is knowable and long, regulated or human-paced</td><td>you draw and maintain the map; verbose for simple jobs</td></tr>
@@ -542,14 +544,17 @@ document.getElementById('sec-fpick').innerHTML=`
     <tr><td><b>Strands Agents</b></td><td>the model, every turn</td><td>model + prompt + tools, loop exposed, almost no orchestration code</td><td>the task is open-ended and you trust a strong model to plan</td><td>predictability; you pay it back in tracing and eval gates</td></tr>
     <tr><td><b>ADK</b></td><td>you, inside a full kit</td><td>batteries included: sessions, memory, evals, a managed deploy path</td><td>you want the runway to production, especially on its home cloud</td><td>an opinionated kit and some lock-in to its surroundings</td></tr>
     <tr><td><b>Hermes-style</b></td><td>the agent, over time</td><td>writes its own skills and curates its own memory</td><td>one person&rsquo;s long-running assistant, high trust, low blast radius</td><td>review-then-release breaks; ops becomes continuous eval</td></tr>
+    <tr><td><b>Smolagents</b></td><td>the model, as code</td><td>actions are Python snippets; a tiny library; a sandboxed executor</td><td>the work is data-shaped and you want the fewest model round-trips</td><td>you run model-written code, so a sandbox is mandatory, not optional</td></tr>
+    <tr><td><b>AG2 / AutoGen</b></td><td>a manager, picking the next speaker</td><td>agents converse; a human proxy; code execution; you design the exit</td><td>specialists must critique in a loop and a human can step in</td><td>no termination condition means it argues, and bills you, forever</td></tr>
+    <tr><td><b>GenKit</b></td><td>you, inside a typed flow</td><td>schema in and out; a dev-UI trace; deploy as a function</td><td>shipping one typed AI feature you want inspectable, not a swarm</td><td>app-flow shaped, so multi-agent orchestration is not its job</td></tr>
     <tr><td><b>No framework</b></td><td>you, in plain code</td><td>a while-loop, your tools, your logging</td><td>one or two tools, a short loop, and you value owning every line</td><td>you rebuild sessions, retries and eval yourself as you grow</td></tr>
   </tbody></table></div>
   <div class="simnote" style="margin-top:10px">Names change yearly; the axes do not. A framework that cannot answer &ldquo;who owns the next step&rdquo; in one sentence is selling you a brand, not a philosophy.</div>
 </div>
 
 <div class="card">
-  <h2 class="sec">Try it: six jobs, six frames</h2>
-  <div class="plain-line"><b>Try this:</b> six real briefs, one best frame each, and yes, one of them is best served by no framework at all. Read for the deciding constraint, the same skill the whole guide keeps drilling: it is usually one clause, not the whole paragraph.</div>
+  <h2 class="sec">Try it: nine jobs, nine frames</h2>
+  <div class="plain-line"><b>Try this:</b> nine real briefs, one best frame each, and yes, one of them is best served by no framework at all. Read for the deciding constraint, the same skill the whole guide keeps drilling: it is usually one clause, not the whole paragraph.</div>
   <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Choosing a vehicle for a job: the constraint picks it. Daily fixed route, a bus. Anywhere today, a taxi. Move a piano, a van. Nobody argues buses versus taxis in the abstract; they argue about the trip.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>find each brief&rsquo;s hard constraint before you look at the frames.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>frame</b> a framework, chosen by who owns the next step</span><span class="sp-w"><b>constraint</b> the one requirement that eliminates most options</span><span class="sp-w"><b>durable run</b> a process that survives crashes and long waits, resuming where it stopped</span><span class="sp-w"><b>blast radius</b> how much damage a wrong action can do; small radius allows more autonomy</span><span class="sp-w"><b>lock-in</b> how hard it is to leave later; a kit&rsquo;s surroundings are the stickiest part</span></span></div></div>
   <div class="sim-layout">
     <div><div id="fmpOut"></div></div>
@@ -562,8 +567,8 @@ document.getElementById('sec-fpick').innerHTML=`
 (function(){
   const out=document.getElementById('fmpOut'), ctl=document.getElementById('fmpCtl'), note=document.getElementById('fmpNote');
   if(!out) return;
-  const FR=['LangGraph','CrewAI','Strands Agents','ADK','Hermes-style self-editor','No framework'];
-  const HOME=['a knowable process that must survive crashes and waits','work that maps to human job titles for non-engineers','an open-ended task you trust a strong model to plan','a kit with sessions, evals and a managed deploy path','one person&rsquo;s long-running self-improving assistant','a two-tool loop where you value owning every line'];
+  const FR=['LangGraph','CrewAI','Strands Agents','ADK','Hermes-style self-editor','Smolagents','AG2/AutoGen','GenKit','No framework'];
+  const HOME=['a knowable process that must survive crashes and waits','work that maps to human job titles for non-engineers','an open-ended task you trust a strong model to plan','a kit with sessions, evals and a managed deploy path','one person&rsquo;s long-running self-improving assistant','data-shaped work best written as code, with the fewest model round-trips','specialists debating in a conversation, with a human able to step in','one typed AI feature to ship, inspectable and deployable','a two-tool loop where you value owning every line'];
   const JOBS=[
    {a:0, key:'a regulated loan process that pauses days for human approval and must resume exactly where it stopped after any crash',
     j:'A loan-adjudication agent: a fixed sequence of checks, a mandatory human sign-off that can take three days, and an auditor who wants the flow on paper. A crash must never restart the applicant from scratch.',
@@ -577,12 +582,21 @@ document.getElementById('sec-fpick').innerHTML=`
    {a:3, key:'you want the deploy runway and managed surroundings, on a specific cloud',
     j:'A team standardising every internal agent on one cloud, who want sessions, memory, an eval harness and a managed deploy target out of the box, and accept the platform&rsquo;s opinions to get them.',
     why:'Kit-first: the loop is a tenth of the need, and this brings the other nine tenths plus a runway to production. The bill is opinionation and some lock-in to the surroundings.'},
-   {a:5, key:'two tools, a short loop, and a team that wants to own every line and add no dependencies',
+   {a:8, key:'two tools, a short loop, and a team that wants to own every line and add no dependencies',
     j:'A tiny internal tool: read a ticket, call two internal APIs, post a summary. The team is small, security review of dependencies is expensive here, and the loop is genuinely an afternoon of code.',
     why:'No framework: the honest answer. A while-loop and two tools owe nothing to a library, and every dependency avoided is a supply-chain review avoided. Reach for a frame when sessions, retries and eval start costing more to hand-roll than to adopt.'},
    {a:4, key:'a single trusted user&rsquo;s assistant that should get better on its own, with a small blast radius',
     j:'A personal ops assistant for one power user, who wants it to learn their workflows and build its own shortcuts over months. It touches only that user&rsquo;s own low-risk systems.',
-    why:'Self-editing: the closed improvement loop shines for one user with a small blast radius. It breaks review-then-release, so the price is continuous evaluation, versioned history and a working rollback.'}
+    why:'Self-editing: the closed improvement loop shines for one user with a small blast radius. It breaks review-then-release, so the price is continuous evaluation, versioned history and a working rollback.'},
+   {a:5, key:'per-request work that loops over a variable list, calls several tools each time and does arithmetic on the results, with the fewest model round-trips',
+    j:'A reconciliation agent that, per request, takes a variable list of invoices, looks each one up, sums and filters the balances, and retries any failed lookup. You want minimal model round-trips and are fine running generated code in a sandbox.',
+    why:'Code-as-action: the loop, the arithmetic and the retry are one Python snippet the model writes and a sandbox runs, not a round-trip per step. Smolagents is tiny by design; the price is that you must sandbox the code.'},
+   {a:6, key:'specialists that must critique each other in a conversation until a check passes, with a human able to approve before code runs',
+    j:'A coding task where a coder agent and a critic agent iterate by talking until the tests pass, a human can approve before any code executes, and engineers own the whole thing in Python.',
+    why:'Conversation-first: a group-chat manager routes turns between the agents, a user proxy runs the code or relays the human, and you design the termination. Not CrewAI&rsquo;s prose roles, but a message loop with real code execution.'},
+   {a:7, key:'one typed AI feature for an app, validated in and out, inspectable locally and deployable as a function',
+    j:'A menu-suggestion feature inside a web app: a single flow with a typed request and a typed response, rejected at the door if malformed, inspectable step by step in a local dev UI, and shipped as a cloud function.',
+    why:'Typed-flow-first: GenKit validates the input before spending a token and the output before a user sees it, traces every run for the dev UI, and deploys the flow as a function. An app-developer tool, not a multi-agent one.'}
   ];
   let cur=0, score=0, answered=false, results=[];
   function render(){
@@ -593,7 +607,7 @@ document.getElementById('sec-fpick').innerHTML=`
         +'<span style="flex:1">'+jb.key+'</span><span class="k" style="color:var(--accent);white-space:nowrap">'+FR[jb.a]+'</span></div>').join('')+'</div>';
       ctl.innerHTML='<button class="seg" id="fpAgain" style="width:100%;font-size:12px">&#9654; back to brief one</button>';
       document.getElementById('fpAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
-      note.innerHTML='<div class="simnote"><b>The keeper.</b> Every brief was decided by one constraint, not by which framework is fashionable. Durability picked LangGraph, readability CrewAI, open-endedness Strands, surroundings ADK, self-improvement Hermes, and smallness picked no framework at all.</div>';
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Every brief was decided by one constraint, not by which framework is fashionable. Durability picked LangGraph, readability CrewAI, open-endedness Strands, surroundings ADK, self-improvement Hermes, code-shaped work Smolagents, a critique conversation AG2/AutoGen, a typed shippable feature GenKit, and smallness picked no framework at all.</div>';
       return;
     }
     const jb=JOBS[cur];
@@ -619,6 +633,253 @@ document.getElementById('sec-fpick').innerHTML=`
       }
     });
   }
+  render();
+})();
+
+/* ================= 6b · THREE MORE SHAPES ================= */
+document.getElementById('sec-fmore').innerHTML=`
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Three more shapes: code-as-action, agents-as-conversation, and typed flows</h2>
+  <div class="plain-line"><b>In plain English:</b> the five frames so far disagree about who owns the next step. These three disagree about something more basic: <b>what an action even is</b>. In one, the model writes code and an action is a small program (Smolagents). In another, everything is a conversation and an action is a message to another agent (AG2, formerly AutoGen). In the third, the unit is a <b>typed flow</b> with a schema on the way in and the way out, built for app developers who want a run they can inspect and ship (GenKit). Each still wraps the same loop; each still bills you for its opinion.</div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Smolagents: the action is a snippet of code, not a JSON tool call</h2>
+  <div class="plain-line"><b>In plain English:</b> most agents act by emitting one <b>tool call</b> at a time as JSON: call a tool, send the result back to the model, wait, call the next. Smolagents, from Hugging Face, makes the model <b>write a short piece of Python</b> instead. That one snippet can call several tools, loop over a list, do arithmetic and branch on the result, and it runs in one go. Fewer round-trips to the model, and far more expressive for anything data-shaped. The bill: you are now <b>running code the model wrote</b>, so it must execute in a locked-down sandbox, and a hostile tool result that sneaks into that code is a real attack surface. The library itself is deliberately tiny, a thin loop you can read in an afternoon.</div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: the same job, one JSON call at a time, then as one code action</h2>
+  <div class="plain-line"><b>Try this:</b> run a simple lookup, then a loop, then a loop with a retry, and watch the model round-trips. For one call the two styles are level. The gap opens the moment the work has shape.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Sending a runner to the shop with a shopping list versus phoning them after every single item to ask what to buy next. Same shopping; one of them makes ten phone calls.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the <b>simple</b> job, then switch to <b>loop</b> and <b>loop + retry</b> and watch the round-trip counts pull apart.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool call</b> the agent asking a tool to run: a lookup, a calculation, a call into another system</span><span class="sp-w"><b>JSON tool-calling</b> the common style: the model emits one tool call as structured data, waits for the result, then emits the next</span><span class="sp-w"><b>code action</b> Smolagents&rsquo; style: the model writes a snippet of Python that calls the tools itself, with loops and branches, and runs in one go</span><span class="sp-w"><b>round-trip</b> one there-and-back to the model: you pay for the tokens and wait for the latency each time</span><span class="sp-w"><b>token</b> a piece of text the model reads or writes; you are billed per token</span><span class="sp-w"><b>executor</b> the sandbox that runs the model&rsquo;s code snippet and hands back the result</span><span class="sp-w"><b>sandbox</b> a locked-down place to run untrusted code: no filesystem, no network, a short list of allowed imports</span><span class="sp-w"><b>retry</b> calling a tool again after it failed once, before giving up</span><span class="sp-w"><b>latency</b> how long a run takes to answer: the delay you sit through</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="smOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE JOB</div>
+      <div class="segmented" id="smJob" style="flex-direction:column;align-items:stretch"></div>
+      <label style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);margin-top:12px;cursor:pointer"><input type="checkbox" id="smSandbox" checked style="width:16px;height:16px;accent-color:var(--amber)"> run the generated code in a sandbox</label>
+      <div id="smNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">AG2 / AutoGen: every action is a message, and a manager picks who speaks next</h2>
+  <div class="plain-line"><b>In plain English:</b> AutoGen, and its community fork AG2, models the whole system as a <b>conversation between agents</b>. You define a few specialists, a planner, a coder, a critic, and a <b>user proxy</b> that can run code or ask a human, then a <b>group-chat manager</b> decides whose turn it is next. Progress is agents talking to each other until a <b>termination condition</b> is met. A different bet from CrewAI: not prose roles for non-engineers, but a message loop engineers wire in code, with real code execution and a human able to step in at any turn. The thing you most have to design is when it <b>stops</b>, because two agents can politely correct each other forever.</div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">Try it: step the group chat, and watch who the manager calls next</h2>
+  <div class="plain-line"><b>Try this:</b> step the conversation one message at a time. Make the critic reasonable and it converges. Make it never satisfied and, without a cap, it argues forever, which is the whole reason a termination condition is a design decision, not an afterthought.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A meeting with a chairperson who decides who speaks next. It works until two people start politely correcting each other and nobody has agreed how the meeting ends.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>keep the critic <b>reasonable</b> and press <b>next turn</b> to the end. Then set it to <b>never satisfied</b>, untick the cap, and watch it run away.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>agent</b> here, one participant in the chat with a role: planner, coder, critic, executor</span><span class="sp-w"><b>group chat</b> several agents sharing one conversation about one task</span><span class="sp-w"><b>manager</b> the group-chat manager: it selects who speaks each turn</span><span class="sp-w"><b>speaker selection</b> how the next speaker is chosen: the manager picks the best fit (auto), or a fixed ring (round-robin)</span><span class="sp-w"><b>user proxy</b> the agent that runs code or relays a human&rsquo;s reply into the chat</span><span class="sp-w"><b>human in the loop</b> a person approving or steering before an action runs</span><span class="sp-w"><b>termination condition</b> the rule that ends the chat: a keyword, tests passing, or a round cap</span><span class="sp-w"><b>round</b> one message from one agent</span><span class="sp-w"><b>cap</b> a hard limit on rounds, so a runaway chat still stops</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="agOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">SPEAKER SELECTION</div>
+      <div class="segmented" id="agSel" style="flex-direction:column;align-items:stretch"></div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin:12px 0 6px">THE CRITIC</div>
+      <div class="segmented" id="agCritic" style="flex-direction:column;align-items:stretch"></div>
+      <label style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);margin-top:12px;cursor:pointer"><input type="checkbox" id="agHuman" style="width:16px;height:16px;accent-color:var(--amber)"> a human approves before code runs</label>
+      <label style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);margin-top:8px;cursor:pointer"><input type="checkbox" id="agCap" checked style="width:16px;height:16px;accent-color:var(--amber)"> cap the chat at 6 rounds</label>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="seg" id="agNext" style="flex:1;font-size:12px;color:var(--accent)">next turn &#9654;</button>
+        <button class="seg" id="agReset" style="font-size:12px">reset</button></div>
+      <div id="agNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2 class="sec">GenKit: the unit is a typed flow, checked at the door on the way in and out</h2>
+  <div class="plain-line"><b>In plain English:</b> GenKit, open source from Google, in TypeScript, Go and Python, is built for <b>app developers</b>, not for orchestrating swarms of agents. Its unit is a <b>flow</b>: a function with a declared <b>input schema</b> and <b>output schema</b>. Bad input is rejected at the door before you spend a single token on the model, and output that does not match the schema is caught before it ever reaches a user. Every run emits a <b>trace</b> you open in a local <b>dev UI</b> to see each step, and the same flow deploys as a cloud function. Less &ldquo;who owns the next step&rdquo;, more &ldquo;make one AI feature typed, inspectable and shippable&rdquo;.</div>
+</div>
+
+<div class="card">
+  <h2 class="sec">Try it: send input through a typed flow, and watch the schema gate the door</h2>
+  <div class="plain-line"><b>Try this:</b> send valid input, then input with a missing field, then a wrong type, and watch where the flow stops and how many tokens it spent. Then make the model return malformed output and see the other door catch it.</div>
+  <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A form with a bouncer at both doors. One checks your form is filled in correctly before you are let in; the other checks the parcel you leave with is the right shape before it reaches the customer.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>run the <b>valid</b> input, then switch to <b>missing field</b> and read where it stops and the tokens spent.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>flow</b> a GenKit function: a named run with a declared input and output shape</span><span class="sp-w"><b>schema</b> a written-down shape data must match: which fields, what type</span><span class="sp-w"><b>input schema</b> the shape the request must match before the flow does any work</span><span class="sp-w"><b>output schema</b> the shape the answer must match before it is returned to a user</span><span class="sp-w"><b>validate</b> check a value against a schema; reject it if it does not fit</span><span class="sp-w"><b>boundary</b> the door: the point where input enters or output leaves</span><span class="sp-w"><b>token</b> a piece of text the model reads or writes; you are billed per token</span><span class="sp-w"><b>retrieve</b> a step that fetches context or examples for the model</span><span class="sp-w"><b>generate</b> the step that calls the model</span><span class="sp-w"><b>trace</b> the recorded steps of one run, viewable in the dev UI</span><span class="sp-w"><b>dev UI</b> GenKit&rsquo;s local inspector for running a flow and reading its trace</span><span class="sp-w"><b>cloud function</b> a small piece of code you put online to run on demand, with no server to manage</span></span></div></div>
+  <div class="sim-layout">
+    <div><div id="gkOut"></div></div>
+    <div>
+      <div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE INPUT</div>
+      <div class="segmented" id="gkInput" style="flex-direction:column;align-items:stretch"></div>
+      <label style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);margin-top:12px;cursor:pointer"><input type="checkbox" id="gkBadOut" style="width:16px;height:16px;accent-color:var(--amber)"> the model returns malformed output</label>
+      <div id="gkNote" class="cidr-out" style="margin-top:12px"></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="sec">How the three line up, and their nearest cousin here</h2>
+  <div style="overflow-x:auto"><table class="osi"><thead><tr><th>Frame</th><th>An action is</th><th>Its signature</th><th>Reach for it when</th><th>Nearest cousin here</th></tr></thead><tbody>
+    <tr><td><b>Smolagents</b></td><td>a snippet of code</td><td>code-agent loop, a tiny library, a sandboxed executor</td><td>the work is data-shaped: loops, arithmetic, several tool calls per step, and you want the fewest round-trips</td><td>Strands (model-first), but code-as-action</td></tr>
+    <tr><td><b>AG2 / AutoGen</b></td><td>a message to another agent</td><td>group chat, a manager that selects the speaker, a human proxy, code execution</td><td>specialists must debate and critique in a loop, engineers own it, and a human can step in</td><td>CrewAI (multi-agent), but conversation-first and code-heavy</td></tr>
+    <tr><td><b>GenKit</b></td><td>a typed flow call</td><td>schema in and out, a dev-UI trace, deploy as a cloud function</td><td>you are shipping one typed AI feature you want inspectable and deployable, not a swarm</td><td>ADK or LangChain, but app-flows not agents</td></tr>
+  </tbody></table></div>
+  <div class="simnote" style="margin-top:10px"><b>The keeper.</b> &ldquo;Who owns the next step&rdquo; sorts the first five frames. These three add a second question underneath it: <b>what is an action</b>, a program, a message, or a typed flow. Answer both and any new framework lands on the map without the marketing.</div>
+</div>`;
+
+/* --- SIM: Smolagents, code action versus JSON tool calls --- */
+(function(){
+  const out=document.getElementById('smOut'), jobEl=document.getElementById('smJob'),
+        sbEl=document.getElementById('smSandbox'), note=document.getElementById('smNote');
+  if(!out) return;
+  let job='simple';
+  const JOBS={
+   simple:{label:'simple: look up one invoice balance',
+     json:[['model','&rarr; call invoice_lookup(481)'],['tool','invoice_lookup returns &pound;42.00'],['model','&ldquo;the balance is &pound;42.00&rdquo; &rarr; final answer']],
+     code:[['model','writes: b = invoice_lookup(481); final_answer(b)'],['exec','runs the snippet: 1 tool call &rarr; &pound;42.00'],['model','done']],
+     n:'For a single call the two are level. The gap only opens once the work has shape.'},
+   loop:{label:'loop: sum three invoice balances',
+     json:[['model','&rarr; call invoice_lookup(481)'],['tool','&pound;42.00'],['model','&rarr; call invoice_lookup(490)'],['tool','&pound;310.00'],['model','&rarr; call invoice_lookup(502)'],['tool','&pound;98.50'],['model','&ldquo;total &pound;450.50&rdquo; &rarr; final answer']],
+     code:[['model','writes: total = sum(invoice_lookup(i) for i in [481,490,502]); final_answer(total)'],['exec','runs the loop locally: 3 tool calls &rarr; &pound;450.50'],['model','done']],
+     n:'Four model round-trips versus two. The JSON agent returns to the model between every lookup; the code agent runs the whole loop inside one action.'},
+   branch:{label:'loop + retry: sum three, retry a failure, flag over &pound;1000',
+     json:[['model','&rarr; call invoice_lookup(481)'],['tool','&pound;42.00'],['model','&rarr; call invoice_lookup(490)'],['tool','&#10007; timeout'],['model','&ldquo;retry 490&rdquo; &rarr; call invoice_lookup(490)'],['tool','&pound;310.00'],['model','&rarr; call invoice_lookup(502)'],['tool','&pound;98.50'],['model','&ldquo;total &pound;450.50, under &pound;1000&rdquo; &rarr; final answer']],
+     code:[['model','writes: a loop that retries a failed lookup, then flags any total over &pound;1000'],['exec','runs it locally: 4 tool calls including one retry &rarr; &pound;450.50, nothing over &pound;1000'],['model','done']],
+     n:'Five round-trips versus two, and the gap only grows with branches and retries. The loops and retries the JSON agent narrates one turn at a time are, for the code agent, just code.'}
+  };
+  const KIND={model:'var(--amber)',tool:'var(--blue)',exec:'var(--violet)'};
+  function trace(title,rows,rt){
+    return '<div class="k" style="font-size:10.5px;color:var(--dim);margin:2px 0 6px">'+title+'</div>'
+      +rows.map(r=>'<div class="lzhop" style="border-left-color:'+KIND[r[0]]+'"><span class="n2" style="text-transform:uppercase;font-size:9px">'+r[0]+'</span><span style="font-size:12px;color:var(--muted)">'+r[1]+'</span></div>').join('')
+      +'<div style="font-size:12px;color:var(--muted);margin:6px 0 14px">model round-trips <b style="font-size:16px;color:var(--text)">'+rt+'</b></div>';
+  }
+  function render(){
+    jobEl.innerHTML=Object.keys(JOBS).map(k=>'<button class="seg'+(job===k?' on':'')+'" data-k="'+k+'" style="text-align:left;font-size:12px">'+JOBS[k].label+'</button>').join('');
+    jobEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{job=b.dataset.k;render();});
+    const j=JOBS[job];
+    const jrt=j.json.filter(r=>r[0]==='model').length, crt=j.code.filter(r=>r[0]==='model').length;
+    out.innerHTML=trace('JSON TOOL-CALLING AGENT',j.json,jrt)+trace('SMOLAGENTS CODE AGENT',j.code,crt);
+    const sb=sbEl.checked;
+    note.innerHTML='<div class="'+(job==='simple'?'simnote':'ok')+'">'+(job==='simple'?'':'<b>'+jrt+' round-trips versus '+crt+'.</b> ')+j.n+'</div>'
+      +'<div class="'+(sb?'simnote':'lzbad')+'" style="margin-top:10px">'+(sb
+        ? '<b>Sandbox on.</b> The snippet runs with no access to your files, no internet, and only a short list of approved building blocks. A hostile tool result folded into that code can, at worst, misbehave inside the box.'
+        : '<b>Sandbox off: do not do this.</b> The model&rsquo;s code runs with all the powers your own program has. A hostile tool result folded into that code could read your files or steal data. Code-as-action and a sandbox are one feature, not two.')+'</div>';
+  }
+  sbEl.onchange=render;
+  render();
+})();
+
+/* --- SIM: AG2 group chat stepper --- */
+(function(){
+  const out=document.getElementById('agOut'), note=document.getElementById('agNote'),
+        selEl=document.getElementById('agSel'), critEl=document.getElementById('agCritic'),
+        humanEl=document.getElementById('agHuman'), capEl=document.getElementById('agCap'),
+        nextB=document.getElementById('agNext'), resetB=document.getElementById('agReset');
+  if(!out) return;
+  let sel='auto', critic='reasonable', step=0;
+  const COL={sys:'var(--dim)',msg:'var(--wire)',human:'var(--teal)',term:'var(--green)',cap:'var(--red)',warn:'var(--amber)'};
+  function build(){
+    const human=humanEl.checked, cap=capEl.checked, T=[];
+    T.push({s:'manager',k:'sys',t:'group chat opened. speaker selection: '+(sel==='auto'?'the manager picks the best fit each turn':'a fixed round-robin ring')+'.'});
+    T.push({s:'planner',k:'msg',t:'plan: coder writes is_prime(n), critic reviews, executor runs a test.'});
+    T.push({s:'coder',k:'msg',t:'wrote is_prime(n). v1 also returns True for n = 1.'});
+    if(critic==='reasonable'){
+      T.push({s:'critic',k:'msg',t:'bug: is_prime(1) must be False. 1 is not prime.'});
+      T.push({s:'coder',k:'msg',t:'fixed: now returns False for anything below 2.'});
+      if(human) T.push({s:'human',k:'human',t:'approve running the code on the test cases? &rarr; yes.'});
+      T.push({s:'executor',k:'msg',t:'ran tests on 1, 2, 3, 4, 17: all correct.'});
+      T.push({s:'critic',k:'term',t:'looks good. TERMINATE.'});
+    } else {
+      const nits=['rename n to num for readability.','add a note explaining what it does.','handle negative numbers explicitly.','say clearly the input must be a whole number.','also reject decimals.'];
+      for(let i=0;i<nits.length;i++){
+        T.push({s:'critic',k:'msg',t:'nit: '+nits[i]});
+        T.push({s:'coder',k:'msg',t:'done.'});
+      }
+    }
+    // rounds = non-sys turns; apply the cap
+    let rounds=0, cut=-1;
+    for(let i=0;i<T.length;i++){ if(T[i].k!=='sys'){ rounds++; if(cap && rounds===6){ cut=i; break; } } }
+    if(critic==='never satisfied'){
+      if(cap && cut>=0){ const kept=T.slice(0,cut+1); kept.push({s:'manager',k:'cap',t:'terminated: max rounds (6) reached, still no agreement. The cap is the only thing that stopped it.'}); return kept; }
+      T.push({s:'manager',k:'warn',t:'&hellip; and it keeps going. With no termination condition, this chat is a bill, not automation.'});
+      return T;
+    }
+    return T;
+  }
+  function speakerTag(){ return sel==='auto'?'manager picked':'round-robin &rarr;'; }
+  function render(){
+    selEl.innerHTML=[['auto','auto: the manager picks'],['round-robin','round-robin ring']].map(([v,l])=>'<button class="seg'+(sel===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    critEl.innerHTML=[['reasonable','reasonable: converges'],['never satisfied','never satisfied: argues on']].map(([v,l])=>'<button class="seg'+(critic===v?' on':'')+'" data-v="'+v+'" style="text-align:left;font-size:12px">'+l+'</button>').join('');
+    selEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{sel=b.dataset.v;step=0;render();});
+    critEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{critic=b.dataset.v;step=0;render();});
+    const T=build(), shown=T.slice(0,step);
+    if(step===0){ out.innerHTML='<div class="simnote">A group chat is set up. Press <b>next turn</b> to let the manager run it.</div>'; note.innerHTML=''; return; }
+    let rounds=0;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">THE CONVERSATION</div>'+shown.map(m=>{
+      const tag = m.k==='sys'?'': '<span class="k" style="font-size:9px;color:var(--dim)">'+speakerTag()+'</span> ';
+      if(m.k!=='sys') rounds++;
+      return '<div class="lzhop" style="display:block;border-left-color:'+COL[m.k]+';padding:8px 12px"><div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:2px">'+tag+esc(m.s)+'</div><div style="font-size:12.5px;color:var(--muted)">'+m.t+'</div></div>';
+    }).join('')
+    +'<div style="font-size:12px;color:var(--muted);margin-top:8px">rounds so far <b style="font-size:16px;color:var(--text)">'+rounds+'</b></div>';
+    const last=shown[shown.length-1], done=step>=T.length;
+    if(done && (last.k==='term'||last.k==='cap'||last.k==='warn')){
+      note.innerHTML='<div class="'+(last.k==='term'?'ok':last.k==='cap'?'lzbad':'lzwarn')+'">'+(
+        last.k==='term'?'<b>It converged.</b> A clear termination condition (tests pass, critic approves) ended the chat. This is the well-behaved case.'
+       :last.k==='cap'?'<b>Only the cap stopped it.</b> A never-satisfied critic and a coder that always complies will ping-pong forever. In AG2 you design the exit: a keyword, a check, or a hard round limit.'
+       :'<b>No exit, no end.</b> Turn the cap back on to stop it. The lesson: in a conversation-first framework, deciding when it stops is the main thing you own.')+'</div>';
+    } else {
+      note.innerHTML='<div class="simnote">Turn '+step+'. '+(sel==='auto'?'The manager chose this speaker as the best fit.':'Round-robin passed the turn to the next agent in the ring.')+' Keep pressing <b>next turn</b>.</div>';
+    }
+  }
+  nextB.onclick=()=>{ const T=build(); if(step<T.length){ step++; render(); } };
+  resetB.onclick=()=>{ step=0; render(); };
+  humanEl.onchange=()=>{step=0;render();};
+  capEl.onchange=()=>{step=0;render();};
+  render();
+})();
+
+/* --- SIM: GenKit typed flow --- */
+(function(){
+  const out=document.getElementById('gkOut'), inEl=document.getElementById('gkInput'),
+        badEl=document.getElementById('gkBadOut'), note=document.getElementById('gkNote');
+  if(!out) return;
+  let input='valid';
+  const INPUTS={
+   valid:{label:'valid: { theme: "pirate", count: 3 }', ok:true, shown:'{ theme: "pirate", count: 3 }'},
+   missing:{label:'missing field: { count: 3 }', ok:false, shown:'{ count: 3 }', why:'field "theme" is required'},
+   wrong:{label:'wrong type: { theme: "pirate", count: "three" }', ok:false, shown:'{ theme: "pirate", count: "three" }', why:'"count" must be a number, but got text'}
+  };
+  function stage(name,detail,state){ // state: ok | fail | skip
+    const col=state==='ok'?'var(--green)':state==='fail'?'var(--red)':'var(--line)';
+    const mark=state==='ok'?'&#10003;':state==='fail'?'&#10007;':'&middot;';
+    return '<div class="lzhop" style="border-left-color:'+col+';opacity:'+(state==='skip'?'.5':'1')+'"><span class="n2" style="color:'+col+'">'+mark+'</span><span><b style="font-weight:500;font-size:12.5px">'+name+'</b><br><span style="color:var(--muted);font-size:12px">'+detail+'</span></span></div>';
+  }
+  function render(){
+    inEl.innerHTML=Object.keys(INPUTS).map(k=>'<button class="seg'+(input===k?' on':'')+'" data-k="'+k+'" style="text-align:left;font-size:12px">'+INPUTS[k].label+'</button>').join('');
+    inEl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{input=b.dataset.k;render();});
+    const I=INPUTS[input], bad=badEl.checked;
+    const rows=[]; let tokens=0, stop='';
+    if(!I.ok){
+      rows.push(stage('validate input','rejected at the input boundary: '+I.why,'fail'));
+      rows.push(stage('retrieve','not reached','skip'));
+      rows.push(stage('generate (model)','not reached','skip'));
+      rows.push(stage('validate output','not reached','skip'));
+      rows.push(stage('return + emit trace','not reached','skip'));
+      stop='input';
+    } else {
+      rows.push(stage('validate input','shape matches the input schema','ok'));
+      rows.push(stage('retrieve','fetched 3 example menus for context','ok'));
+      tokens=1840;
+      if(bad){
+        rows.push(stage('generate (model)','returned items: "kraken stew" (one piece of text, not a list)','ok'));
+        rows.push(stage('validate output','rejected at the output boundary: "items" must be a list of text items','fail'));
+        rows.push(stage('return + emit trace','nothing returned to the user; the trace records the failure','skip'));
+        stop='output';
+      } else {
+        rows.push(stage('generate (model)','returned items: ["Kraken Stew","Plank Fries","Doubloon Tart"]','ok'));
+        rows.push(stage('validate output','shape matches the output schema','ok'));
+        rows.push(stage('return + emit trace','returned to the user; 3 recorded steps ready in the dev UI','ok'));
+        stop='none';
+      }
+    }
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">FLOW: suggestMenu('+I.shown+')</div>'+rows.join('')
+      +'<div style="display:flex;gap:16px;margin-top:8px"><span style="font-size:12px;color:var(--muted)">tokens spent <b style="font-size:16px;color:var(--text)">'+tokens+'</b></span><span style="font-size:12px;color:var(--muted)">outcome <b style="font-size:16px;color:var(--'+(stop==='none'?'green':'red')+')">'+(stop==='none'?'delivered':stop==='input'?'stopped at input':'stopped at output')+'</b></span></div>';
+    note.innerHTML= stop==='input'
+      ? '<div class="ok"><b>Rejected at the door, for free.</b> A malformed request never reached the model, so it cost <b>zero tokens</b>. The typed input boundary is the cheapest bug you will ever catch.</div>'
+      : stop==='output'
+      ? '<div class="lzbad"><b>Caught on the way out.</b> The model produced the wrong shape, and the output schema stopped it before a user saw it. You paid for the generation, but shipped nothing broken.</div>'
+      : '<div class="ok"><b>Through both doors.</b> Input matched, output matched, and the run left a trace you can open step by step in the dev UI. Typed in, typed out, inspectable, and the same flow deploys as a cloud function.</div>';
+  }
+  badEl.onchange=render;
   render();
 })();
 
