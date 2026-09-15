@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **19 hands-on labs**, **251 in-browser simulations**,
+topics. **304 topics**, **19 hands-on labs**, **254 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -122,6 +122,17 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
+- **Three more agent frameworks.** The "Pick your frame" lab gained a "Three
+  more shapes" tab with a detail card and a distinctive simulation each for
+  **Smolagents** (code-as-action versus JSON tool-calls, and the round-trips it
+  saves), **AG2/AutoGen** (a steppable group chat where a manager picks the next
+  speaker and you design the termination), and **GenKit** (a typed flow whose
+  schema gates the door on the way in and out). The master "Which frame" table
+  and its brief-matcher now cover all eight frames.
+- **Observability, the OpenTelemetry angle.** The AgentCore lab's "Observe &
+  prove" tab gained a "why 200 OK lies" simulation: the three signals, and the
+  OTel plumbing (context propagation, sampling, exporter to collector to
+  backend) that turns a green dashboard into an actual root cause.
 - **Cheatsheet, three ways to use it.** A one-page revision cheatsheet
   distilling every lab's must-remember points; a **Test-yourself** active-recall
   mode that blurs the points until you click to check; and a **Mental models**
