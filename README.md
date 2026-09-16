@@ -41,6 +41,17 @@ cloud.html        Cloud lab: request journey, OSI (including what the data
                   design (how many, public vs private, subnet sizing,
                   component advice), network simulator, NGINX, IAM, SAP-C02
                   cheatsheet, pillars, DR simulator, translator
+atlas.html        Three-cloud atlas: every AWS, Google Cloud and Azure
+                  service (786 as of September 2026) mapped onto 175
+                  cross-cloud jobs, each with the three names, plain-English
+                  job, pros and cons per provider, when to pick which, and
+                  the cross-cloud trap; a home-cloud translator, the full
+                  per-provider catalogue with status and former names, a
+                  depth map counted live from the catalogue, a build-a-stack
+                  composer that swaps clouds in place, and a change log of
+                  308 launches, renames and retirements since 2024
+data/services.json The atlas data: families, rows, the three catalogues,
+                  the change log and the acronym dictionary, plain JSON
 agentcore.html    AgentCore lab: running agents in production, covering
                   runtime, identity, gateway, memory, observability
                   (traces, the three signals and OpenTelemetry plumbing),
@@ -161,7 +172,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 254 simulations across the nineteen labs. Every one carries a
+There are 260 simulations across the twenty labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -244,7 +255,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The nineteen labs are self-contained pages, but the chrome around the content
+The twenty labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped

@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **19 hands-on labs**, **254 in-browser simulations**,
+topics. **304 topics**, **20 hands-on labs**, **260 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -17,7 +17,7 @@ Two kinds of content, one site:
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered on the dashboard and browse view
   (`index.html` + `assets/app.js`).
-- **The labs** (`*.html`) — 19 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`) — 20 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -34,9 +34,11 @@ assets/lab.js      Shared lab chrome (theme, tabs, find, labs menu, bookmarks)
 assets/lab.css     Shared lab styling and theme tokens
 assets/styles.css  Dashboard styling
 data/topics.json   The 304 topics as plain JSON
+data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
+                   jobs with pros and cons, the change log, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -121,6 +123,20 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **The three-cloud atlas.** A new lab backed by `data/services.json`: the
+  complete current catalogues of AWS, Google Cloud and Azure (786 services)
+  mapped onto 175 cross-cloud jobs, each with the three names, a plain-English
+  job, pros and cons per provider, when to pick which, and the cross-cloud trap.
+  Simulations: name-that-cloud, the searchable atlas with a home-cloud toggle,
+  the full per-provider catalogue browser, a depth map counted live from the
+  data, a build-a-stack composer that swaps clouds in place, and a
+  which-name-is-current quiz over 308 launches, renames and retirements since
+  2024. The Cloud lab's translator tab became a door into it. The lab is
+  data-driven: to update a service, edit the JSON, not the page.
+- **The scenario drill works again.** Every lab's drill had been showing
+  "Not enough scenarios" in real browsers: the shared code wanted the
+  `&ldquo;` entity and browsers hand back the character. Both are accepted now.
 
 - **Three more agent frameworks.** The "Pick your frame" lab gained a "Three
   more shapes" tab with a detail card and a distinctive simulation each for
