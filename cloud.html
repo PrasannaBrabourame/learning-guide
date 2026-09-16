@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cloud study hub, request journey, OSI, network sim, three-cloud translator</title>
+<title>Cloud study hub, request journey, OSI, network sim, three-cloud differences</title>
 <link rel="stylesheet" href="assets/lab.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="assets/favicon.png" sizes="32x32">
@@ -109,7 +109,7 @@
     <div class="eyebrow">solutions architect · study hub</div>
     <h1>How the cloud actually works: <span class="thin">one request, every pillar, across AWS, GCP and Azure</span></h1>
     <p class="track" id="trackLine"></p>
-    <p class="sub">Companion to the network visualizer. Five sections: a step-by-step walk of one request from phone to database (start here if any of this is new), the non-networking exam domains as decision-oriented cards with a diagram each, an animated disaster-recovery failover simulator, a searchable service translator across AWS, GCP and Azure, and the deep conceptual differences between the three clouds that actually change your architecture. Every diagram has a plain-English caption, no cloud background assumed.</p>
+    <p class="sub">Companion to the network visualizer. Five sections: a step-by-step walk of one request from phone to database (start here if any of this is new), the non-networking exam domains as decision-oriented cards with a diagram each, an animated disaster-recovery failover simulator, a door into the three-cloud atlas of service names, and the deep conceptual differences between the three clouds that actually change your architecture. Every diagram has a plain-English caption, no cloud background assumed.</p>
   </header>
 
   <div class="tabs" role="tablist">
@@ -830,15 +830,10 @@
   <!-- ================= TRANSLATOR ================= -->
   <section class="pane" id="pane-map">
     <div class="card">
-      <h2 class="sec">Service translator: search any of the three clouds</h2><div class="plain-line" style="margin-bottom:12px"><b>What this is for:</b> the three clouds mostly sell the same things under different names, the way the same shop is a chemist, a drugstore and a pharmacy. Type what you know in any cloud and read across for the other two. The last column is the part that actually matters, where the two are <em>not</em> the same thing wearing a different label.</div>
-      <input class="search" id="q" placeholder="try: lambda, bigquery, cosmos, front door, transit, spanner…" aria-label="Search services">
-      <div class="cats" id="catFilters"></div>
-      <div style="overflow-x:auto">
-        <table class="map">
-          <thead><tr><th class="catcell">Domain</th><th>AWS</th><th>GCP</th><th>Azure</th><th>The difference that matters</th></tr></thead>
-          <tbody id="mapBody"></tbody>
-        </table>
-      </div>
+      <h2 class="sec">Service translator: it grew into its own lab</h2>
+      <div class="plain-line" style="margin-bottom:12px"><b>What this is for:</b> the three clouds mostly sell the same things under different names, the way the same shop is a chemist, a drugstore and a pharmacy. The translator that lived here has grown into the <a href="atlas.html">three-cloud atlas</a>: every service each provider lists, mapped onto the jobs they do, with what each buys you and bills you, what has been renamed or retired since 2024, and the small print where &ldquo;equivalent&rdquo; is not the same thing. Type a name from any cloud and it opens there.</div>
+      <form id="mapJump" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="search" id="q" placeholder="try: lambda, bigquery, cosmos, front door, transit, spanner&hellip;" aria-label="Search the atlas" style="flex:1;min-width:220px;margin:0"><button class="btn" type="submit">open in the atlas &rarr;</button></form>
+      <div class="note" style="margin-top:12px">The <a href="#pane-diffs">Cloud differences</a> tab next door keeps the handful of structural differences that change an architecture; the atlas keeps the names.</div>
     </div>
   </section>
 
@@ -1561,144 +1556,12 @@ function resetSim(silent){
 el('breakBtn').onclick=breakRegion; el('resetBtn').onclick=()=>resetSim(false);
 setStrat(STRATS[1]);
 
-/* ================= TRANSLATOR ================= */
-const MAP=[
-['compute','EC2','Compute Engine','Virtual Machines','GCP bills per second with automatic sustained-use discounts; live-migrates VMs during host maintenance (no reboot). AWS relies on Savings Plans/RIs you must commit to.'],
-['compute','Auto Scaling groups','Managed instance groups (MIGs)','Virtual Machine Scale Sets (VMSS)','Same idea; GCP MIGs integrate with global load balancing natively.'],
-['compute','Lambda','Cloud Functions / Cloud Run','Azure Functions','Azure Functions matches Lambda closely; Container Apps covers the longer-running container cases that need Fargate on AWS or Cloud Run on GCP.'],
-['compute','Fargate','Cloud Run','Container Apps / Container Instances','Cloud Run is GCP\u2019s serverless container answer and is generally simpler to adopt.'],
-['containers','EKS','GKE','AKS','GKE is widely considered the most mature managed K8s (Google wrote Kubernetes); Autopilot mode manages nodes entirely. EKS gives more AWS-ecosystem control.'],
-['containers','ECS','(no direct equivalent)','(Container Apps is the closest)','Neither GCP nor Azure has a proprietary orchestrator to match ECS: container work lands on Kubernetes or the serverless container service.'],
-['containers','ECR','Artifact Registry','Azure Container Registry','Artifact Registry also handles language packages (npm, Maven), not just images.'],
-['storage','S3','Cloud Storage','Blob Storage','One GCS bucket can be multi-region natively; storage classes (Standard/Nearline/Coldline/Archive) all keep millisecond access, no \u201cthaw\u201d like Glacier Flexible/Deep.'],
-['storage','EBS','Persistent Disk','Managed Disks','PD can be regional (synchronously replicated across two zones), AWS EBS is single-AZ, full stop.'],
-['storage','EFS','Filestore','Azure Files / NetApp Files','Similar managed NFS; Filestore tiers by performance.'],
-['storage','Glacier','Cloud Storage Archive class','Blob Archive tier','Archive class still has ms latency; you pay retrieval fees but never wait hours. Changes DR design.'],
-['db','RDS','Cloud SQL','Azure Database for PostgreSQL / MySQL','Same concept. GCP\u2019s AlloyDB is the Aurora-Postgres competitor.'],
-['db','Aurora','AlloyDB / Cloud Spanner','Azure SQL Database (Hyperscale)','Spanner is the headline difference: horizontally scalable, strongly consistent, GLOBAL relational SQL, AWS has no true equivalent (Aurora Global is read-replicas + promote).'],
-['db','DynamoDB','Firestore / Bigtable','Cosmos DB','Firestore = document DB with live sync to mobile clients; Bigtable = wide-column for huge analytical/time-series workloads (HBase API).'],
-['db','ElastiCache','Memorystore','Azure Cache for Redis','Managed Redis/Memcached on both.'],
-['db','Redshift','BigQuery','Synapse / Microsoft Fabric','Philosophical split: Redshift = provisioned clusters you size; BigQuery = fully serverless, pay-per-query-scanned. BigQuery is often the reason companies pick GCP.'],
-['networking','VPC (regional)','VPC (GLOBAL)','Virtual Network (regional)','The single biggest structural difference. AWS and Azure networks are <b>regional</b>; GCP’s VPC is <b>global</b>. Azure differs again on subnets: an AWS subnet lives in one availability zone, an Azure subnet spans the whole region.'],
-['networking','Transit Gateway','Network Connectivity Center / VPC peering','Virtual WAN','Because GCP VPCs are global, much of what TGW solves doesn\u2019t exist; NCC handles hybrid hub-and-spoke.'],
-['networking','ALB/NLB','Cloud Load Balancing','Load Balancer (L4) / Application Gateway (L7)','Azure splits by scope as well as layer: Front Door is the global L7 door, Application Gateway the regional L7 one, Load Balancer the L4 one. GCP does all of it with a single global load balancer.'],
-['networking','Route 53','Cloud DNS','Azure DNS + Traffic Manager','Comparable; Route 53\u2019s routing-policy set (geoproximity etc.) is richer.'],
-['networking','Direct Connect','Cloud Interconnect','ExpressRoute','Dedicated/Partner Interconnect mirror DX tiers; both pair with VPN for encryption.'],
-['networking','CloudFront','Cloud CDN','Azure Front Door / CDN','Cloud CDN attaches to the global LB; Lambda@Edge-style compute is a separate service (Cloud Run + CDN patterns).'],
-['networking','Global Accelerator','(built into global LB)','Front Door (anycast)','Anycast global entry: Global Accelerator on AWS, built into the global LB on GCP, Front Door on Azure.'],
-['networking','PrivateLink','Private Service Connect','Private Link / Private Endpoint','Same pattern: consumer-side endpoint fronting a producer service, no route exchange.'],
-['identity','IAM (policies/roles)','Cloud IAM (bindings)','Entra ID + Azure RBAC','GCP and Azure both attach a principal to a role at a scope and inherit downward. AWS writes JSON policy documents instead, more expressive, and easier to get wrong.'],
-['identity','AWS Organizations','Resource hierarchy (Org → Folders → Projects)','Management Groups → Subscriptions → Resource Groups','Three different weights of boundary: an AWS account is heavyweight, a GCP project is light, and Azure splits the job between a subscription (billing and quota) and a resource group (lifecycle, deleting it deletes everything inside).'],
-['identity','SCPs','Organization Policy','Azure Policy','Guardrails that say what may not be done: SCPs on AWS, Organization Policy on GCP, Azure Policy, which can also audit and auto-remediate, not only deny.'],
-['identity','KMS','Cloud KMS','Key Vault / Managed HSM','Key Vault covers secrets, keys and certificates in one service; on AWS those are KMS plus Secrets Manager plus ACM.'],
-['analytics','Athena','BigQuery','Synapse serverless SQL','BigQuery natively queries its own storage AND external data; Athena is S3-only Presto.'],
-['analytics','Kinesis','Pub/Sub + Dataflow','Event Hubs (Kafka-compatible)','Event Hubs speaks the Kafka protocol, so existing Kafka clients point at it with a connection-string change.'],
-['analytics','EMR','Dataproc','HDInsight / Databricks','Managed Spark/Hadoop on both; Dataproc spins clusters in ~90s, encouraging ephemeral clusters.'],
-['analytics','Glue','Dataflow / Data Fusion / Dataform','Data Factory','GCP splits ETL across several tools; Glue bundles catalog + ETL.'],
-['analytics','QuickSight','Looker / Looker Studio','Power BI','Looker is a full BI platform (owned by Google).'],
-['integration','SQS','Pub/Sub (pull)','Service Bus queues / Storage queues','Azure separates the two properly: Service Bus for ordered, transactional queues, Storage queues for cheap and simple. GCP uses one Pub/Sub for both push and pull.'],
-['integration','SNS','Pub/Sub (push)','Service Bus topics / Event Grid','Same service on GCP, one fewer distinction to manage.'],
-['integration','EventBridge','Eventarc','Event Grid','Eventarc routes GCP/SaaS events, typically into Cloud Run.'],
-['integration','Step Functions','Workflows','Logic Apps / Durable Functions','Comparable serverless orchestration; Step Functions\u2019 ecosystem integrations are broader.'],
-['integration','API Gateway','API Gateway / Apigee','API Management','Apigee is a much heavier enterprise API-management suite (monetization, analytics).'],
-['ops','CloudWatch','Cloud Monitoring & Logging','Azure Monitor + Log Analytics','Azure Monitor collects it all and you query with KQL, which is closer to Log Analytics than to CloudWatch Insights.'],
-['ops','CloudTrail','Cloud Audit Logs','Activity Log','Same purpose: admin/data access audit.'],
-['ops','CloudFormation','Deployment Manager (legacy), use Terraform','ARM templates / Bicep','Bicep is the readable language that compiles to ARM JSON. As on GCP, most teams still reach for Terraform across clouds.'],
-['ops','Systems Manager','OS Config / IAP','Azure Automation / Run Command / Bastion','GCP\u2019s Identity-Aware Proxy ≈ Session Manager\u2019s \u201cno open ports\u201d SSH story.'],
-['migration','DMS','Database Migration Service','Database Migration Service','Same name, same job on both clouds.'],
-['migration','MGN','Migrate to Virtual Machines','Azure Migrate','Both do block-level lift-and-shift.'],
-['migration','Snowball','Transfer Appliance','Data Box','Physical data shipping exists on both.'],
-['ai','SageMaker','Vertex AI','Azure Machine Learning / AI Foundry','Vertex AI is tightly unified (AutoML + custom + pipelines + model garden); SageMaker is broader but more assembled-from-parts.'],
-['compute','Elastic Beanstalk','App Engine','App Service','The oldest PaaS in each cloud. App Service is still the default for a Windows or .NET web app and carries the licence benefit with it.'],
-['compute','App Runner','Cloud Run','Container Apps','Push a container, get a URL. Cloud Run is the most mature of the three; Container Apps adds KEDA scaling and Dapr for service-to-service work.'],
-['compute','Batch','Batch','Azure Batch','All three schedule bulk compute onto cheap interruptible capacity. The pricing model matters more than the scheduler here.'],
-['compute','Spot Instances','Spot VMs','Spot VMs','Up to about 90 per cent off for capacity that can be taken back. AWS gives a two-minute warning, GCP thirty seconds, Azure thirty seconds, design for the shortest one.'],
-['compute','Dedicated Hosts','Sole-tenant nodes','Dedicated Host','Physical isolation for licensing or compliance. Usually the answer to a licence term rather than a technical need.'],
-['compute','Graviton (ARM)','Axion / Tau (ARM)','Cobalt (ARM)','ARM instances at roughly twenty to forty per cent better price-performance. The only real question is whether your image and dependencies build for ARM.'],
-['containers','App Mesh','Cloud Service Mesh (Istio)','Istio add-on / Open Service Mesh','GCP ships the most opinionated managed Istio. On the others a mesh is usually something you run yourself, and often something you do not need.'],
-['containers','EKS Anywhere','Google Distributed Cloud','Arc-enabled Kubernetes','Running the managed control plane experience on your own hardware. Arc is the odd one out: it manages clusters you already have rather than giving you new ones.'],
-['containers','Fargate profiles','GKE Autopilot','AKS Automatic / node auto-provisioning','Pods without managing nodes. Autopilot is the most complete version. You stop seeing nodes entirely and pay per pod.'],
-['storage','AWS Backup','Backup and DR Service','Azure Backup','Centralised, policy-driven backup across services. Almost always better than the per-service snapshot scripts it replaces.'],
-['storage','Storage Gateway','Storage Transfer / Filestore','Azure File Sync','Keeping on-premises workloads working while the data really lives in the cloud.'],
-['storage','FSx for NetApp ONTAP','NetApp Volumes','Azure NetApp Files','The same NetApp appliance in all three, and the standard answer for a lift-and-shift that depends on NFS or SMB semantics.'],
-['storage','S3 Intelligent-Tiering','Autoclass','Blob lifecycle rules','Automatic tiering by access pattern. AWS and GCP will move data for you on observed access; Azure moves on rules you write.'],
-['db','DocumentDB','Firestore','Cosmos DB (Mongo API)','Three different takes on documents. Only Cosmos gives multi-region writes with tunable consistency out of the box.'],
-['db','Neptune','Spanner Graph','Cosmos DB (Gremlin API)','Graph is a niche each cloud fills differently, and moving between them means rewriting queries, not just connection strings.'],
-['db','Keyspaces (Cassandra)','Bigtable','Cosmos DB (Cassandra API)','Wide-column at scale. Bigtable is the original design the others chase, and it is the one with no SQL layer at all.'],
-['db','Timestream','Bigtable / BigQuery','Azure Data Explorer','Time series. Data Explorer with KQL is unusually strong here and is the same engine underneath Azure Monitor.'],
-['db','OpenSearch Service','(Elastic Cloud on GCP)','Azure AI Search / Elastic','GCP has no first-party Elasticsearch, which is a genuine gap if search is central to the product.'],
-['db','MemoryDB','Memorystore','Azure Cache for Redis (Enterprise)','Redis you can treat as a durable store rather than a cache. An important distinction when it holds sessions.'],
-['db','Aurora Serverless','Cloud SQL / AlloyDB','Azure SQL serverless','Scale-to-low relational. Read the cold-start and minimum-capacity terms before promising a cost saving.'],
-['networking','NAT Gateway','Cloud NAT','NAT Gateway','Cloud NAT is not an appliance in your path. It is configured on the router, so there is no instance to size or fail. Azure has been retiring implicit outbound access, so an explicit NAT gateway is now the correct pattern.'],
-['networking','Site-to-Site VPN','Cloud VPN','VPN Gateway','IPsec to your own datacentre, in all three. The differences are throughput tiers and how BGP is configured.'],
-['networking','Security Groups','VPC firewall rules','Network Security Groups','All three are stateful. AWS attaches to the interface, GCP rules are network-wide and matched by tag or service account, and Azure NSGs attach to a subnet or a NIC, or both, in which case both must allow it.'],
-['networking','Network ACLs','(no equivalent)','(no equivalent)','A genuine AWS-only concept. The stateless, subnet-level second layer does not exist elsewhere, so an AWS design that leans on NACLs does not port directly.'],
-['networking','Network Firewall','Cloud NGFW','Azure Firewall','The managed inspection appliance for egress filtering and layer-7 rules, sitting above the basic firewall in every cloud.'],
-['networking','WAF','Cloud Armor','Azure WAF (Front Door / App Gateway)','Request inspection at the edge. Cloud Armor and Front Door WAF attach to the global load balancer; AWS WAF attaches per resource.'],
-['networking','Shield / Shield Advanced','Cloud Armor DDoS','Azure DDoS Protection','Basic protection is included everywhere. The paid tier buys you response support and a bill guarantee during an attack.'],
-['networking','Route 53 private zones','Cloud DNS private zones','Private DNS zones','Internal name resolution. The wiring differs most in hybrid setups, where you decide who resolves what.'],
-['networking','VPC endpoints','Private Service Connect / Private Google Access','Private Endpoint / Service Endpoint','Reaching managed services without traversing the internet. Azure draws the line between endpoint (a private IP in your VNet) and service endpoint (a routing shortcut). They are not interchangeable.'],
-['networking','Session Manager / EC2 Instance Connect','IAP TCP forwarding','Azure Bastion','Shell access with no public IP and no bastion of your own to patch. This should be the default in every new build.'],
-['networking','Availability Zone','Zone','Availability Zone','Same word, different guarantees: an AWS subnet lives in one AZ, a GCP subnet is regional, and an Azure subnet is regional with the zone chosen per resource. Not every Azure region has zones.'],
-['security','Secrets Manager','Secret Manager','Key Vault','Azure puts secrets, keys and certificates in one service. On AWS that is three: Secrets Manager, KMS and ACM.'],
-['security','ACM','Certificate Manager','Key Vault certificates / App Service certificates','Free managed certificates in all three, with renewal handled for you as long as validation stays in place.'],
-['security','GuardDuty','Security Command Center','Defender for Cloud','Threat detection from the provider’s own telemetry. Defender doubles as the posture-management tool, which the others split out.'],
-['security','Security Hub','Security Command Center','Defender for Cloud / Sentinel','Findings aggregation. Sentinel is a full SIEM, which is a larger product than anything AWS or GCP offers first-party.'],
-['security','Inspector','SCC vulnerability findings','Defender for Cloud','Workload and image vulnerability scanning, increasingly folded into the posture tool in all three.'],
-['security','Macie','Sensitive Data Protection (DLP)','Purview','Finding personal data you did not know you were storing. Google’s DLP is the most developed of the three.'],
-['security','Config','Config Controller / Policy Controller','Azure Policy','Azure Policy stands out by being able to deny and auto-remediate at deploy time, not only report drift after the fact.'],
-['security','Firewall Manager','Hierarchical firewall policies','Azure Firewall Manager','Central rules that individual teams cannot edit around, the control that makes delegated accounts safe.'],
-['security','Artifact','Compliance Reports Manager','Service Trust Portal','Where the auditor’s evidence pack comes from. Worth knowing before someone asks for SOC 2 on a Friday.'],
-['identity','IAM Identity Center','Cloud Identity / Workforce Identity','Microsoft Entra ID','Entra is the same directory as Microsoft 365, which is why identity so often decides that an enterprise goes to Azure.'],
-['identity','Cognito','Identity Platform / Firebase Auth','Entra External ID','Customer identity, kept deliberately separate from workforce identity in all three.'],
-['identity','IAM roles for service accounts (IRSA)','Workload Identity','Workload Identity / Managed Identity','How a pod or VM gets credentials without a stored key. The single most valuable thing to standardise, and the same idea under three names.'],
-['identity','STS AssumeRole','Service account impersonation','Managed identity token','Short-lived credentials. Anything long-lived in an environment variable is a finding waiting to happen.'],
-['identity','IAM Access Analyzer','Policy Analyzer / Recommender','Entra access reviews','Answering who can actually reach this resource, a harder question than it sounds in every cloud.'],
-['governance','Control Tower','Landing zone blueprints','Azure Landing Zones (CAF)','The opinionated multi-account or multi-subscription starting point. Adopting one late is far more painful than starting with it.'],
-['governance','Budgets','Budgets and alerts','Cost Management budgets','Alerts on spend, not caps. None of the three will stop your workload when the budget is hit.'],
-['governance','Cost Explorer','Billing reports / BigQuery export','Cost Management + Billing','Everyone ends up exporting billing data to the warehouse for real analysis. GCP makes that export the most natural.'],
-['governance','Tags','Labels','Tags','The same idea, and the same failure everywhere: without enforcement at creation time, cost allocation is guesswork within a quarter.'],
-['governance','Service Quotas','Quotas','Quotas and limits','Quotas cause more launch-day incidents than capacity does. Raise them in advance, per region, and test that the increase applied.'],
-['governance','Well-Architected Framework','Architecture Framework','Well-Architected Framework','Near-identical pillar sets. Useful as a review checklist, and as a shared vocabulary in an architecture board.'],
-['governance','Trusted Advisor','Active Assist / Recommender','Azure Advisor','Automated recommendations. Treat the cost ones as a starting list, never as instructions.'],
-['analytics','MSK','Managed Service for Kafka','Event Hubs (Kafka endpoint)','Event Hubs speaks the Kafka protocol without being Kafka, which is usually a benefit until you need a broker-level feature.'],
-['analytics','MWAA (Airflow)','Cloud Composer','Data Factory / Airflow in Fabric','Managed Airflow on AWS and GCP. Azure pushes Data Factory instead, which is a different model rather than a port.'],
-['analytics','Lake Formation','Dataplex / BigLake','Purview / OneLake','Governing a lake: catalogue, lineage and access in one place. Every one of these is younger and rougher than the storage it governs.'],
-['analytics','S3 as the lake','Cloud Storage as the lake','ADLS Gen2','ADLS Gen2 adds a real hierarchical namespace on top of blob storage, which makes directory operations cheap instead of simulated.'],
-['ai','Bedrock','Vertex AI Model Garden','Azure OpenAI / AI Foundry','Hosted frontier models behind an API. The practical differences are which models you can get, in which region, and at what quota.'],
-['ai','Kendra','Vertex AI Search','Azure AI Search','Managed retrieval over your own documents. Azure AI Search is the one most often used as the vector store in a custom RAG build.'],
-['ai','OpenSearch vector engine','Vertex AI Vector Search','Azure AI Search (vectors)','Vector indexes. All three now do hybrid keyword-plus-vector search, which is usually better than either alone.'],
-['ai','Textract / Rekognition / Comprehend','Document AI / Vision AI / Natural Language','AI Document Intelligence / Vision / Language','The pre-trained building blocks. Names differ, capabilities are close, and each is far cheaper than fine-tuning your own.'],
-['ai','Transcribe / Polly','Speech-to-Text / Text-to-Speech','Azure Speech','Speech in both directions, priced per audio hour or per character.'],
-['integration','AppFlow','Application Integration','Logic Apps connectors','Clicking together SaaS integrations. Logic Apps has by far the largest connector catalogue.'],
-['devops','CodePipeline / CodeBuild','Cloud Build / Cloud Deploy','Azure Pipelines','Most teams now use GitHub Actions across all three regardless, and treat the native service as the deploy target.'],
-['devops','CDK','(Terraform or KCC)','Bicep','Infrastructure in a real language. Bicep is a domain-specific language over ARM; CDK is TypeScript or Python that emits CloudFormation.'],
-['devops','X-Ray','Cloud Trace','Application Insights','Distributed tracing. Application Insights is the most complete out of the box, and all three now take OpenTelemetry.'],
-['devops','Managed Prometheus / Grafana','Managed Service for Prometheus','Azure Monitor managed Prometheus and Grafana','Every cloud eventually gave in and offered hosted Prometheus and Grafana rather than fighting them.'],
-['devops','CloudWatch Logs Insights','Log Analytics (Cloud Logging)','Log Analytics (KQL)','One query language across logs, metrics and traces is Azure’s real advantage here, KQL is the same in Monitor, Sentinel and Data Explorer.'],
-['hybrid','Outposts','Google Distributed Cloud','Azure Stack HCI','Provider hardware in your building. Azure adds Arc, which manages what you already own instead of shipping you a rack.'],
-['hybrid','VMware Cloud on AWS','Google Cloud VMware Engine','Azure VMware Solution','The escape hatch for a VMware estate that cannot be refactored on the timeline the datacentre lease demands.'],
-['hybrid','Systems Manager hybrid activations','Config Connector / Anthos','Azure Arc','Arc is the most ambitious: one control plane over servers, Kubernetes and databases wherever they run, including on the other two clouds.'],
-['hybrid','Local Zones / Wavelength','Distributed Cloud Edge','Azure Edge Zones','Compute pushed close to users or to a telco network, for the small set of workloads where tens of milliseconds actually matter.'],
-];
-const CATS=['all','compute','containers','storage','db','networking','security','identity','governance','analytics','ai','integration','ops','devops','hybrid','migration'];
-let activeCat='all';
-const catEl=document.getElementById('catFilters');
-CATS.forEach(c=>{
-  const b=document.createElement('button'); b.className='catf'+(c==='all'?' on':''); b.textContent=c;
-  b.onclick=()=>{activeCat=c; document.querySelectorAll('.catf').forEach(x=>x.classList.remove('on')); b.classList.add('on'); renderMap();};
-  catEl.appendChild(b);
-});
-const q=document.getElementById('q'), body=document.getElementById('mapBody');
-q.addEventListener('input',renderMap);
-function renderMap(){
-  const term=q.value.trim().toLowerCase();
-  body.innerHTML = MAP
-    .filter(r=>(activeCat==='all'||r[0]===activeCat) && (!term || r.join(' ').toLowerCase().includes(term)))
-    .map(r=>`<tr><td class="catcell">${r[0]}</td><td class="aws">${r[1]}</td><td class="gcp">${r[2]}</td><td class="az">${r[3]}</td><td class="note">${r[4]}</td></tr>`)
-    .join('') || '<tr><td colspan="5" class="note">no matches, try another term</td></tr>';
-}
-renderMap();
+/* ================= TRANSLATOR: now a door into the atlas ================= */
+(function(){
+  const f=document.getElementById('mapJump'), q=document.getElementById('q'); if(!f||!q) return;
+  f.addEventListener('submit',e=>{ e.preventDefault(); const term=q.value.trim();
+    location.href='atlas.html'+(term?'?q='+encodeURIComponent(term):'')+'#pane-amap'; });
+})();
 
 /* ================= DIFFS ================= */
 const DIFFS=[

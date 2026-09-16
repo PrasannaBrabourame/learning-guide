@@ -319,6 +319,7 @@
       ['peakweek.html',  'Peak Week, one agent, all the way through'] ] },
     { name:'Cloud and architecture', labs:[
       ['cloud.html',            'How the cloud actually works'],
+      ['atlas.html',            'The three-cloud atlas: same jobs, three dictionaries'],
       ['design.html',           'Diagrams, a picture that argues'],
       ['cloud.html#pane-pca',   'GCP Architect exam'],
       ['cloud.html#pane-cheat', 'SAP-C02 cheatsheet'] ] },

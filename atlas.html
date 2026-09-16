@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The three-cloud atlas: every AWS, Google Cloud and Azure service, side by side</title>
+<link rel="stylesheet" href="assets/lab.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/favicon.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+  /* page-specific: the atlas table, provider and status chips, the depth map,
+     the stack composer, the timeline. Everything else comes from lab.css. */
+  .pch{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:1px 7px;border-radius:99px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap;vertical-align:middle}
+  .pch.aws{color:var(--awsorange);border-color:var(--awsorange)} .pch.gcp{color:var(--gcpblue);border-color:var(--gcpblue)} .pch.az{color:var(--azblue);border-color:var(--azblue)}
+  .stch{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;border:1px solid transparent}
+  .stch.ga{color:var(--green);background:var(--n-teal)} .stch.preview{color:var(--amber);background:var(--n-amber)}
+  .stch.retiring{color:var(--red);border-color:var(--red)} .stch.retired{color:var(--dim);background:var(--dot);text-decoration:line-through} .stch.none{color:var(--dim);background:var(--dot)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .chip{cursor:pointer;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--line2);background:transparent;color:var(--muted)}
+  .chip.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+  .chip .n{opacity:.6;margin-left:4px}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:6px}
+  .ctlrow .lbl,.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  table.atlas{width:100%;border-collapse:collapse;font-size:13px}
+  table.atlas th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line2)}
+  table.atlas td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+  table.atlas tr.job{cursor:pointer}
+  table.atlas tr.job:hover td,table.atlas tr.job.open td{background:var(--sel)}
+  table.atlas td.jb b{display:block} table.atlas td.jb small{color:var(--muted);font-size:11.5px;display:block;line-height:1.45}
+  table.atlas td.jb .fam{font-family:var(--mono);font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:2px}
+  table.atlas td.aws{color:var(--awsorange);font-weight:500} table.atlas td.gcp{color:var(--gcpblue);font-weight:500} table.atlas td.az{color:var(--azblue);font-weight:500}
+  table.atlas td.sp{color:var(--muted);font-size:12px}
+  table.atlas tr.det td{background:var(--panel2);padding:14px 12px 16px;cursor:default}
+  .det3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  @media (max-width:900px){.det3{grid-template-columns:1fr}}
+  .pcard{border:1px solid var(--line2);border-radius:10px;padding:12px 14px;background:var(--panel)}
+  .pcard h4{font-size:14px;font-weight:600;margin-bottom:2px;line-height:1.3}
+  .pcard .was{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  .pcard .nt{font-size:12.5px;color:var(--muted);line-height:1.6;margin:6px 0 4px}
+  .pcard ul{list-style:none;font-size:12.5px;line-height:1.55}
+  .pcard li{padding-left:16px;position:relative;margin:3px 0}
+  .pcard li.p::before{content:'+';position:absolute;left:2px;color:var(--green);font-family:var(--mono)}
+  .pcard li.c::before{content:'\2212';position:absolute;left:2px;color:var(--red);font-family:var(--mono)}
+  .pcard .lbl{margin-top:8px}
+  .rowwords{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+  .rowwords b{color:var(--text);font-weight:600}
+  abbr[title]{text-decoration:underline dotted;text-decoration-color:var(--line2);text-decoration-thickness:1px;cursor:help}
+  .famnote{font-size:12.5px;color:var(--muted);margin:2px 0 8px;line-height:1.55}
+  .heat{display:grid;grid-template-columns:minmax(150px,190px) repeat(3,1fr);gap:4px;font-size:12.5px}
+  .heat .h{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:6px 8px}
+  .heat .f{padding:8px;color:var(--text);display:flex;align-items:center;font-size:12.5px}
+  .heat .c{cursor:pointer;border-radius:6px;padding:8px;text-align:center;font-family:var(--mono);font-size:12.5px;border:1px solid transparent;color:var(--text)}
+  .heat .c:hover,.heat .c.on{border-color:var(--accent)}
+  .heat .c.z{color:var(--dim)}
+  .stack{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px}
+  .layer{grid-column:1/-1;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+  .bsbox{border:1px solid var(--line2);border-radius:9px;padding:9px 10px;background:var(--panel2);min-height:60px}
+  .bsbox small{display:block;font-size:10.5px;color:var(--dim);font-family:var(--mono);letter-spacing:.04em}
+  .bsbox b{display:block;font-size:12.5px;line-height:1.3;margin-top:3px}
+  .bsbox.aws b{color:var(--awsorange)} .bsbox.gcp b{color:var(--gcpblue)} .bsbox.az b{color:var(--azblue)}
+  .bsbox.flip{animation:atflip .55s ease}
+  @keyframes atflip{0%{transform:rotateX(0);background:var(--sel)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+  .bom{font-size:12.5px;line-height:1.55}
+  .bom .r{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1.3fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .bom .r b{font-weight:600} .bom .r small{display:block;color:var(--dim);font-family:var(--mono);font-size:10.5px}
+  .bom .p{color:var(--green)} .bom .c{color:var(--red)}
+  @media (max-width:760px){.bom .r{grid-template-columns:1fr}}
+  .tl{border-left:2px solid var(--line2);margin-left:8px;padding-left:16px}
+  .tli{position:relative;padding:5px 0 10px;font-size:12.5px;line-height:1.55}
+  .tli::before{content:'';position:absolute;left:-21px;top:11px;width:8px;height:8px;border-radius:50%;background:var(--wire)}
+  .tli.aws::before{background:var(--awsorange)} .tli.gcp::before{background:var(--gcpblue)} .tli.azure::before{background:var(--azblue)}
+  .tli .when{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;margin-right:8px}
+  .tli b{font-weight:600}
+  .bigno{font-family:var(--display);font-size:30px;line-height:1;letter-spacing:-.02em}
+  .bigno small{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin-top:4px}
+  .cen3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+  @media (max-width:640px){.cen3{grid-template-columns:1fr}}
+  .stat{border:1px solid var(--line2);border-radius:10px;padding:12px 14px;background:var(--panel2)}
+  .mix{display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:8px;background:var(--dot)}
+  .mix i{display:block;height:100%}
+  .mixk{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px}
+  .mixk i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+  .evrow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,2fr) minmax(0,1fr);gap:10px;padding:7px 8px;border-bottom:1px solid var(--line);font-size:12.5px;align-items:start}
+  .evrow .nm{font-weight:600} .evrow .nm small{display:block;font-weight:400;color:var(--dim);font-size:11px;font-family:var(--mono)}
+  .evrow .jb{color:var(--muted)}
+  .evrow .tw{font-size:11.5px;color:var(--muted)} .evrow .tw a{color:var(--accent);text-decoration:none;cursor:pointer}
+  .evfam{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:16px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between}
+  @media (max-width:700px){.evrow{grid-template-columns:1fr}}
+  .qcard{border:1px solid var(--line2);border-radius:10px;padding:14px 16px;background:var(--panel2)}
+  .qname{font-family:var(--display);font-size:24px;line-height:1.2;letter-spacing:-.01em;margin:6px 0 10px}
+  .stamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em}
+  @media (prefers-reduced-motion: reduce){.bsbox.flip{animation:none}}
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" style="fill:var(--wire)"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=atlas">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark">&#127769; theme</button>
+      <button class="tn tn-quiet" id="findBtn" type="button" title="Find a section on this page">&#8981; find</button>
+    </nav>
+    <div class="eyebrow">aws &middot; google cloud &middot; azure &middot; one job, three names</div>
+    <h1>The three-cloud atlas: <span class="thin">same jobs, three dictionaries</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">Three companies sell roughly the same shop, and each wrote its own dictionary. A bottomless bucket for files is S3 in one, Cloud Storage in the next and Blob Storage in the third. This lab is the whole dictionary: every service each provider lists today, mapped onto the jobs those services actually do, with the small print that makes &ldquo;the same thing&rdquo; not quite the same. Type any name you know and read across. Then let the atlas tell you what has been renamed or retired since you last looked, because a cloud vocabulary from two years ago is already wrong in places.</p>
+    <div class="note" style="margin-top:14px"><b>Two neighbours.</b> The <a href="cloud.html">Cloud lab</a> explains how the machinery works: requests, networks, identity. Its <a href="cloud.html#pane-diffs">Cloud differences</a> tab holds the handful of structural differences that change an architecture. This atlas is the names: what each provider sells, what it calls it, and what it costs you to choose it. <span class="stamp" id="atStamp"></span></div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="astart" role="tab">Start here</button>
+    <button class="tab" data-pane="amap" role="tab">The atlas</button>
+    <button class="tab" data-pane="aevery" role="tab">Every service</button>
+    <button class="tab" data-pane="adepth" role="tab">Depth map</button>
+    <button class="tab" data-pane="astack" role="tab">Build a stack</button>
+    <button class="tab" data-pane="anew" role="tab">Renamed lately</button>
+    <button class="tab" data-pane="aexam" role="tab">Exam angle</button>
+  </div>
+
+  <!-- ================= 1 · START HERE ================= -->
+  <section class="pane on" id="pane-astart">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Three shops, one stock list: the names differ, the small print differs more</h2>
+      <div class="plain-line"><b>In plain English:</b> underneath the branding, the three big clouds rent out the same dozen kinds of thing: machines, storage, databases, networks, queues, identity, monitoring, and lately models and agents. So the first job is translation, and it is mostly mechanical: learn one cloud well and the second is a dictionary of new names for old ideas. The second job is the one people skip. Two services with the same job are rarely the same shape. One bucket can span a continent; another cannot. One archive returns a file in milliseconds; another makes you wait hours. Those differences are what this atlas is for, and every row carries them.</div>
+      <div id="atStartDiag"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">How to read a row</h2>
+      <div class="plain-line"><b>Try this:</b> every job in the atlas is one row with the same seven parts. Read them in this order and a row takes twenty seconds.</div>
+      <div class="kv" style="margin-top:10px">
+        <div class="row"><span class="k">the job</span><span class="v">what you are trying to do, in words that do not belong to any cloud: <b>&ldquo;object storage&rdquo;</b> (keeping files by name, any size, for as long as you like), not S3.</span></div>
+        <div class="row"><span class="k">three names</span><span class="v">what each provider calls its answer. A chip beside the name says whether it is <b>GA</b> (generally available, meaning sold and supported), in <b>preview</b> (usable, not promised), <b>retiring</b> (closed to new customers or given an end date) or <b>retired</b>.</span></div>
+        <div class="row"><span class="k">no twin</span><span class="v">honest gaps. Where a provider has nothing under that heading, the row says so instead of inventing a match.</span></div>
+        <div class="row"><span class="k">buys you / bills you</span><span class="v">the pros and cons of each provider&rsquo;s version, written as what you gain and what you pay for it, in time, money or freedom.</span></div>
+        <div class="row"><span class="k">pick when</span><span class="v">the situation in which one of the three is the obvious choice, if there is one.</span></div>
+        <div class="row"><span class="k">not the same thing</span><span class="v">the cross-cloud trap: where &ldquo;equivalent&rdquo; services behave differently in a way that changes a design.</span></div>
+        <div class="row"><span class="k">words on this row</span><span class="v">every acronym the row uses, defined right there, so you never leave the row to look one up.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: name that cloud</h2>
+      <div class="plain-line"><b>Try this:</b> ten real service names with the brand word removed. Guess which cloud sells each one. You will be wrong a few times. The pattern in the wrong ones is the lesson: each provider has a naming habit, and once you hear it you can place a service you have never met.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Three supermarkets, same aisles, different own-brand labels. After a few visits you can tell which shop a tin came from by the typeface alone. Cloud names work the same way: one prefers a plain noun, one prefixes its company name, one names things after what they do.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the first name aloud, guess, and read <b>why</b> under the answer before moving on; the reasons add up to three naming habits.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>AWS</b> Amazon Web Services, Amazon&rsquo;s cloud</span><span class="sp-w"><b>Azure</b> Microsoft&rsquo;s cloud</span><span class="sp-w"><b>Google Cloud</b> Google&rsquo;s cloud, often written GCP for Google Cloud Platform</span><span class="sp-w"><b>service</b> one thing a cloud sells you as a unit: a kind of storage, a kind of database, a tool</span><span class="sp-w"><b>brand word</b> the company part of a name, such as Amazon, AWS, Azure, Microsoft or Google, removed here so the name itself has to do the work</span><span class="sp-w"><b>GA</b> generally available: sold and supported, not a preview</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="atNtcOut" data-needs-data></div></div>
+        <div><div id="atNtcCtl"></div><div id="atNtcNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 · THE ATLAS ================= -->
+  <section class="pane" id="pane-amap">
+    <div class="card">
+      <h2 class="sec">Try it: the atlas, every job across three clouds, with the small print</h2>
+      <div class="plain-line"><b>Try this:</b> search by any name you already know, from any cloud, and read across. Click a row to open it: three cards, one per provider, each with what it buys you and what it bills you, then when to pick which, and the trap. Choose your <b>home cloud</b> and the atlas puts your cloud first on every row, so the other two read as translations of the one you know.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A phrasebook laid out as a table: one column per language, one row per thing you might need to say. The useful phrasebooks add a footnote when the literal translation will get you into trouble, and that footnote is the column on the right.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>type <b>queue</b>, open the row, and read the &ldquo;not the same thing&rdquo; box: one provider sells two products where the others sell one.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>job</b> the cloud-neutral thing you need done, the unit of a row</span><span class="sp-w"><b>home cloud</b> the provider you know best; the atlas puts it first and phrases the others as translations</span><span class="sp-w"><b>core / common / niche</b> how often teams need the job: almost every system, many systems, or a specialist few</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span><span class="sp-w"><b>preview</b> usable now, not yet promised; features and prices can change</span><span class="sp-w"><b>retiring</b> closed to new customers or given an end date; do not start new work on it</span><span class="sp-w"><b>retired</b> no longer offered</span><span class="sp-w"><b>no twin</b> the provider has no product under this heading</span><span class="sp-w"><b>buys you / bills you</b> the pros and cons: what you gain, and what you pay for it in money, time or freedom</span><span class="sp-w"><b>managed</b> the provider runs the servers and upgrades; you use the service</span><span class="sp-w"><b>region</b> one geographic area of data centres; a <b>zone</b> is one isolated site inside it</span></span></div></div>
+      <div class="ctlrow"><input class="search" id="atxQ" placeholder="try: s3, blob, spanner, front door, queue, kubernetes, model armor&hellip;" aria-label="Search the atlas" style="flex:1;min-width:220px;margin:0"><span class="k" id="atxCount" style="font-size:11px;color:var(--muted);white-space:nowrap"></span></div>
+      <div class="ctlrow"><span class="lbl">home cloud</span><div class="segmented" id="atxHome" style="margin:0"><button class="seg on" data-h="">none</button><button class="seg" data-h="aws">AWS</button><button class="seg" data-h="gcp">Google Cloud</button><button class="seg" data-h="azure">Azure</button></div><span class="lbl" style="margin-left:8px">how common</span><div class="chips" id="atxTiers" style="margin:0"><button class="chip on" data-t="all">all</button><button class="chip" data-t="core">core</button><button class="chip" data-t="common">common</button><button class="chip" data-t="niche">niche</button></div></div>
+      <div class="chips" id="atxFams"></div>
+      <div id="atxOut" data-needs-data style="margin-top:8px"></div>
+      <div id="atxNote" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ================= 3 · EVERY SERVICE ================= -->
+  <section class="pane" id="pane-aevery">
+    <div class="card">
+      <h2 class="sec">Try it: every service, one provider at a time</h2>
+      <div class="plain-line"><b>Try this:</b> the complete catalogue of one provider, grouped by family, with its status and its former name where it was renamed. Each entry that has twins in the other two clouds says so, and clicking the twin opens that row in the atlas. Filter to <b>retiring</b> and you have the list of things not to start new work on.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>The full product catalogue of one shop, shelf by shelf, with a sticker on each item: in stock, new and untested, or being discontinued. The atlas tab is the comparison; this tab is the inventory.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>pick <b>Azure</b>, filter to <b>retiring</b>, and count how many of them you have seen in an architecture diagram this year.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>catalogue</b> the provider&rsquo;s own list of everything it sells, as of this atlas&rsquo;s date</span><span class="sp-w"><b>family</b> one of fourteen groupings used across this lab, such as Storage or Databases, so the three catalogues line up</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span><span class="sp-w"><b>preview</b> usable now, not yet promised</span><span class="sp-w"><b>retiring</b> closed to new customers or given an end date</span><span class="sp-w"><b>retired</b> no longer offered</span><span class="sp-w"><b>was</b> the previous name of a renamed service</span><span class="sp-w"><b>twins</b> the services in the other two clouds that do the same job</span></span></div></div>
+      <div class="ctlrow"><div class="segmented" id="atevProv" style="margin:0"><button class="seg on" data-p="aws">AWS</button><button class="seg" data-p="gcp">Google Cloud</button><button class="seg" data-p="azure">Azure</button></div><input class="search" id="atevQ" placeholder="filter this catalogue&hellip;" aria-label="Filter the catalogue" style="flex:1;min-width:200px;margin:0"></div>
+      <div class="ctlrow"><span class="lbl">status</span><div class="chips" id="atevSt" style="margin:0"><button class="chip on" data-s="all">all</button><button class="chip" data-s="ga">GA</button><button class="chip" data-s="preview">preview</button><button class="chip" data-s="retiring">retiring</button><button class="chip" data-s="retired">retired</button></div></div>
+      <div class="chips" id="atevFams"></div>
+      <div id="atevSum" style="margin:8px 0"></div>
+      <div id="atevOut" data-needs-data></div>
+    </div>
+  </section>
+
+  <!-- ================= 4 · DEPTH MAP ================= -->
+  <section class="pane" id="pane-adepth">
+    <div class="card">
+      <h2 class="sec">Try it: the depth map, where each cloud has the most on the shelf</h2>
+      <div class="plain-line"><b>Try this:</b> a heat map counted live from the catalogue: how many services each provider lists in each family. Darker means more. Click a cell to see exactly which services are being counted. Then switch to <b>GA only</b> and watch some of the depth evaporate, because a thick shelf of previews is not the same as a thick shelf.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Three hardware shops. One has an entire aisle of screws; another has a shelf. That tells you where each shop concentrates, not which screw is better. Breadth is a clue about focus, not a verdict on quality.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>find the family where the three counts differ most, click the smallest cell, and ask what that provider expects you to do instead.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>family</b> one of fourteen groupings used across this lab, such as Storage or Databases</span><span class="sp-w"><b>heat map</b> a grid where a darker cell means a bigger number</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span><span class="sp-w"><b>preview</b> usable now, not yet promised</span><span class="sp-w"><b>retiring</b> closed to new customers or given an end date</span><span class="sp-w"><b>breadth</b> how many distinct services a provider lists; not the same as how good any one of them is</span></span></div></div>
+      <div class="ctlrow"><span class="lbl">count</span><div class="segmented" id="atdmMode" style="margin:0"><button class="seg on" data-m="all">everything listed</button><button class="seg" data-m="ga">GA only</button></div></div>
+      <div class="sim-layout">
+        <div><div id="atdmOut" data-needs-data></div></div>
+        <div><div id="atdmSum"></div><div id="atdmList" class="cidr-out" style="margin-top:12px;max-height:520px;overflow:auto"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 5 · BUILD A STACK ================= -->
+  <section class="pane" id="pane-astack">
+    <div class="card">
+      <h2 class="sec">Try it: build a stack, then swap the cloud underneath it</h2>
+      <div class="plain-line"><b>Try this:</b> pick a workload and the atlas assembles the services it needs, layer by layer, in one cloud. Press <b>swap cloud</b> and every box relabels itself in place with the equivalent from the next provider. Below the diagram is the bill of materials: one thing each chosen service buys you and one thing it bills you, straight from the atlas rows. The point is to feel how little changes in shape, and how much changes in the small print.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Rebuilding the same kitchen in a different country. The layout is identical: sink, hob, fridge, extractor. Every appliance has a different brand, a different plug, and one of them turns out not to exist there at all.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>choose <b>AI agent platform</b>, press <b>swap cloud</b> twice, and read the bill of materials each time: the boxes keep their places, the cons change completely.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>workload</b> one kind of system you might build, such as a web app or a data platform</span><span class="sp-w"><b>stack</b> the set of services a system is built from, drawn as layers</span><span class="sp-w"><b>layer</b> one band of the stack: the front door, the code, the data, the glue, the watching</span><span class="sp-w"><b>bill of materials</b> the list of parts used, here the services chosen and one pro and one con of each</span><span class="sp-w"><b>no twin</b> the provider has nothing for that box; the diagram leaves it hollow rather than guessing</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span></span></div></div>
+      <div class="ctlrow"><span class="lbl">workload</span><div class="chips" id="atbsWork" style="margin:0"></div></div>
+      <div class="ctlrow"><span class="lbl">cloud</span><div class="segmented" id="atbsProv" style="margin:0"><button class="seg on" data-p="aws">AWS</button><button class="seg" data-p="gcp">Google Cloud</button><button class="seg" data-p="azure">Azure</button></div><button class="btn" id="atbsSwap" type="button">&#8635; swap cloud</button></div>
+      <div id="atbsOut" data-needs-data style="margin-top:10px"></div>
+      <div id="atbsBom" style="margin-top:14px"></div>
+    </div>
+  </section>
+
+  <!-- ================= 6 · RENAMED LATELY ================= -->
+  <section class="pane" id="pane-anew">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">What changed: launches, renames and retirements since 2024</h2>
+      <div class="plain-line"><b>In plain English:</b> cloud vocabularies rot. A service you learned three years ago may now have a new name, a new owner inside the company, or an end date. This timeline is the change log the providers do not publish in one place, sorted by date: announced future retirements first, then the newest changes, filterable by provider and by kind of change. If a name in your notes is not here and not in the atlas, it is worth checking before you say it in an interview.</div>
+      <div class="ctlrow"><span class="lbl">provider</span><div class="chips" id="atnwProv" style="margin:0"><button class="chip on" data-p="all">all</button><button class="chip" data-p="aws">AWS</button><button class="chip" data-p="gcp">Google Cloud</button><button class="chip" data-p="azure">Azure</button></div><span class="lbl" style="margin-left:8px">kind</span><div class="chips" id="atnwKind" style="margin:0"><button class="chip on" data-k="all">all</button><button class="chip" data-k="launched">launched</button><button class="chip" data-k="renamed">renamed</button><button class="chip" data-k="retired">retired or retiring</button></div></div>
+      <div id="atnwOut" data-needs-data style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which name is current?</h2>
+      <div class="plain-line"><b>Try this:</b> eight quick rounds drawn from the change log. Sometimes two names for the same thing, one current and one old; sometimes a service, and the question is whether it is still sold; sometimes a recent launch and the question is whose it is. Each answer explains the change in one line.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Calling a company by the name it had before the merger. Everyone knows what you mean; everyone also knows how long ago you last looked.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>answer from memory first, then read the one-line reason; the reason is the part that sticks.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>current name</b> what the provider calls the service today</span><span class="sp-w"><b>former name</b> what it was called before a rename</span><span class="sp-w"><b>retired</b> no longer sold; existing customers may have a deadline to leave</span><span class="sp-w"><b>retiring</b> closed to new customers or given an end date that has not yet arrived</span><span class="sp-w"><b>launched</b> new since 2024, sometimes still in preview</span><span class="sp-w"><b>preview</b> usable now, not yet promised</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="atwnOut" data-needs-data></div></div>
+        <div><div id="atwnCtl"></div><div id="atwnNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 7 · EXAM ANGLE ================= -->
+  <section class="pane" id="pane-aexam">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the scenario drill</h2>
+      <div class="plain-line"><b>Try this:</b> the scenarios below, shuffled, with the wrong answers taken from other scenarios on this page so they are plausible by construction.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>This drill is the flashcard: a situation, and you pick the right service from look-alikes borrowed from the other scenarios. The list underneath is the revision guide. Read it after, not before, or you are only recognising, not producing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way an exam or an interviewer would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is a real answer to something else</span></span></div></div>
+      <div id="drillHost"></div>
+    </div>
+    <div class="card">
+      <h2 class="sec">When the scenario says&hellip; which service, in which cloud</h2>
+      <div class="plain-line"><b>In plain English:</b> interviewers and exams rarely ask &ldquo;what is Spanner&rdquo;. They describe a constraint and wait to see which name you reach for. Each line below is a constraint, then the answer in all three clouds, then the reason the other options lose.</div>
+      <div class="exam-line"><b>&ldquo;We need one relational database with strong consistency that scales writes across regions.&rdquo;</b> &rarr; Spanner on Google Cloud is the reference answer, and Aurora DSQL is AWS&rsquo;s first true equivalent since 2025. Aurora Global Database is read replicas plus a promotion, not multi-region writes, and Azure has no relational equivalent: Cosmos DB offers multi-region writes but it is not a relational database.</div>
+      <div class="exam-line"><b>&ldquo;A serverless warehouse where we pay only for what each query scans.&rdquo;</b> &rarr; BigQuery. On AWS the closest are Redshift Serverless and Athena, and on Azure the Fabric warehouse or Synapse serverless SQL. Redshift provisioned clusters and dedicated SQL pools are the opposite model: you size and pay for capacity whether or not you query.</div>
+      <div class="exam-line"><b>&ldquo;Our Kafka producers must keep working with no code change.&rdquo;</b> &rarr; Azure Event Hubs speaks the Kafka protocol natively, so clients repoint with a connection string. On AWS use Amazon MSK, on Google Cloud Managed Service for Apache Kafka; Kinesis and Pub/Sub are their own protocols and need client changes.</div>
+      <div class="exam-line"><b>&ldquo;Managed Kubernetes with the least node management we can get away with.&rdquo;</b> &rarr; GKE Autopilot has done it longest; EKS Auto Mode and AKS Automatic are the 2024 and 2025 answers on the other two. Standard EKS and AKS still leave node pools, upgrades and capacity to you.</div>
+      <div class="exam-line"><b>&ldquo;We already pay for Windows Server and SQL Server licences.&rdquo;</b> &rarr; Azure Hybrid Benefit lets those licences carry into Azure VMs and Azure SQL, and it frequently decides the whole business case. AWS and Google Cloud offer bring-your-own-licence paths for some products, but nothing as broad or as cheap.</div>
+      <div class="exam-line"><b>&ldquo;Reach a partner&rsquo;s service privately, and our address ranges overlap with theirs.&rdquo;</b> &rarr; A private endpoint: AWS PrivateLink, Google Cloud Private Service Connect, Azure Private Link. The overlap is irrelevant because the two networks never join; peering or a VPN would fail on exactly that overlap.</div>
+      <div class="exam-line"><b>&ldquo;Guardrails that can also fix a non-compliant resource, not only deny the request.&rdquo;</b> &rarr; Azure Policy, whose effects include audit, deny and deploy-if-not-exists remediation. AWS service control policies only deny, and Google Cloud Organization Policy constrains what may be created; both need a separate remediation service to change anything.</div>
+      <div class="exam-line"><b>&ldquo;Stop data leaving our project even when the identity is authorised.&rdquo;</b> &rarr; VPC Service Controls on Google Cloud: a perimeter around services that blocks calls from outside it regardless of IAM. Azure&rsquo;s Network Security Perimeter is the closest packaged equivalent; AWS assembles the effect from VPC endpoint policies and service control policies rather than selling it as one product.</div>
+      <div class="exam-line"><b>&ldquo;Run an agent in production with managed sessions, memory and a gateway to its tools.&rdquo;</b> &rarr; Amazon Bedrock AgentCore, Google Cloud&rsquo;s Agent Runtime with Agent Gateway inside the Gemini Enterprise Agent Platform, and Azure AI Foundry Agent Service. Bedrock, Vertex AI and Foundry Models alone give you model access, not the operating layer around the agent.</div>
+      <div class="exam-line"><b>&ldquo;Screen prompts for injection and responses for leaks before they reach the model or the user.&rdquo;</b> &rarr; Amazon Bedrock Guardrails, Google Cloud Model Armor, Azure AI Content Safety. A web application firewall is the wrong layer: it inspects HTTP traffic, not the meaning of a prompt.</div>
+      <div class="exam-line"><b>&ldquo;Where did Azure Active Directory go?&rdquo;</b> &rarr; It became Microsoft Entra ID in 2023 and the Entra family now covers workforce identity, external identity and permissions. Same service, same tenants; only the name and the product grouping changed.</div>
+      <div class="exam-line"><b>&ldquo;Which provider should host our source code?&rdquo;</b> &rarr; Usually GitHub or GitLab, with the cloud&rsquo;s own build service behind it. AWS closed CodeCommit to new customers in 2024 and quietly reopened it in late 2025, Google Cloud is retiring Cloud Source Repositories in favour of Secure Source Manager, and Azure points you at Azure Repos or GitHub, which Microsoft owns. None of the three treats hosting your code as a flagship.</div>
+      <div class="exam-line"><b>&ldquo;Archive petabytes cheaply, but a restore must return a file in milliseconds.&rdquo;</b> &rarr; Google Cloud Storage Archive class keeps millisecond access at archive prices, and S3 Glacier Instant Retrieval does the same on AWS. Azure&rsquo;s Blob Archive tier and S3 Glacier Deep Archive need rehydration measured in hours, which changes a disaster-recovery design.</div>
+      <div class="exam-line"><b>&ldquo;Redis changed its licence. What do the clouds sell now?&rdquo;</b> &rarr; ElastiCache and Memorystore both added Valkey, the open-source fork, and steer new work to it; Azure Managed Redis is built on Redis Enterprise under a partnership. The old &ldquo;managed Redis&rdquo; row is now three different answers.</div>
+      <div class="exam-line"><b>&ldquo;A container orchestrator that is not Kubernetes.&rdquo;</b> &rarr; Amazon ECS, in practice. Azure Service Fabric exists but is legacy-leaning, with Microsoft steering new work to AKS and Container Apps, and Google Cloud has none: container work there goes to GKE or Cloud Run.</div>
+      <div id="atExamWords"></div>
+    </div>
+  </section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="cloud.html">cloud lab</a> &middot; <a href="design.html">diagram lab</a> &middot; <a href="cloud.html#pane-pca">gcp architect exam</a> &middot; <a href="cloud.html#pane-cheat">sap-c02 cheatsheet</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:500 12px Inter,Helvetica,Arial,sans-serif";
+const D=(vb,label,body,cap)=>`<div class="diagram"><svg viewBox="${vb}" role="img" aria-label="${label}">${body}</svg><div class="diagcap"><b>How to read it:</b> ${cap}</div></div>`;
+const box=(x,y,w,hh,stroke,fill)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" style="fill:${fill||'var(--panel2)'};stroke:${stroke}"/>`;
+const t=(x,y,s,style,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${style};fill:var(--text)">${s}</text>`;
+const tm=(x,y,s,fill,anchor)=>`<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" style="${MONO};fill:${fill||'var(--muted)'}">${s}</text>`;
+
+/* ---- providers, order, seeded randomness ---- */
+const PROV={aws:{k:'aws',name:'AWS',cls:'aws',col:'var(--awsorange)'},gcp:{k:'gcp',name:'Google Cloud',cls:'gcp',col:'var(--gcpblue)'},azure:{k:'azure',name:'Azure',cls:'az',col:'var(--azblue)'}};
+const PK=['aws','gcp','azure'];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const shuffle=(arr,rnd)=>{const b=arr.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+const stch=s=>s?`<span class="stch ${s}">${s==='ga'?'GA':s}</span>`:'';
+const pch=k=>`<span class="pch ${PROV[k].cls}">${PROV[k].name}</span>`;
+const first=s=>{ const m=String(s||'').match(/^.*?[.!?](?=\s|$)/); return m?m[0]:String(s||''); };
+const gotoTab=pane=>{ const b=document.querySelector('.tab[data-pane="'+pane+'"]'); if(b) b.click(); };
+let HOME=null; try{ const h=JSON.parse(localStorage.getItem('study-atlas-home')); if(PK.includes(h)) HOME=h; }catch{}
+const colOrder=()=>HOME?[HOME,...PK.filter(k=>k!==HOME)]:PK.slice();
+const reduced=()=>{ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch{ return false; } };
+
+/* ---- data: one same-origin read, then every simulation fills in ---- */
+let DATA=null, FAM={}, ROW={}, TERMS={};
+const waiting=[]; const onData=f=>DATA?f(DATA):waiting.push(f);
+function failData(){ document.querySelectorAll('[data-needs-data]').forEach(el=>{ el.innerHTML='<div class="lzwarn"><b>The atlas data did not load.</b> This page reads <span class="k">data/services.json</span> from the same folder, so it must be served over HTTP: run <span class="k">python3 -m http.server 8000</span> in the guide folder and open <span class="k">localhost:8000/atlas.html</span>. Opening the file directly from disk blocks that read.</div>'; }); }
+fetch('data/services.json').then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.json(); }).then(d=>{
+  DATA=d; d.families.forEach(f=>FAM[f.id]=f); d.rows.forEach(r=>ROW[r.id]=r); TERMS=d.terms||{};
+  const st=document.getElementById('atStamp'); if(st&&d.generated) st.textContent='Catalogue as of '+d.generated+'.';
+  waiting.splice(0).forEach(f=>f(d));
+  const ew=document.getElementById('atExamWords');
+  if(ew) ew.innerHTML=words([...document.querySelectorAll('#pane-aexam .exam-line')].map(e=>e.textContent),'words on this tab');
+}).catch(failData);
+
+/* glossary engine: every defined term that appears in a piece of text, acronym or phrase,
+   defined right there so a row never sends the reader elsewhere. Acronym-like keys (two or
+   more capitals, no space: IAM, GiB, k-NN) match whole tokens case-sensitively; every other
+   key (Kubernetes, control plane, Entra ID, bucket) matches as a whole word, case-insensitively,
+   longest first, and is blanked before the token pass so "IP indemnity" never glosses "IP". */
+let ACR=null, PHR=null;
+function splitTerms(){
+  if(ACR) return;
+  ACR=new Set(); PHR=[];
+  const rx=x=>x.replace(/[.*+?^${}()|[\]\\\/-]/g,'\\$&');
+  Object.keys(TERMS).forEach(k=>{
+    const caps=(k.match(/[A-Z]/g)||[]).length;
+    if(caps>=2&&!k.includes(' ')) ACR.add(k);
+    else PHR.push({k,re:new RegExp('(?<![A-Za-z0-9])'+rx(k)+'(?![A-Za-z0-9])','i'),rg:new RegExp('(?<![A-Za-z0-9])'+rx(k)+'(?![A-Za-z0-9])','gi')});
+  });
+  PHR.sort((a,b)=>b.k.length-a.k.length);
+}
+function findTerms(text){
+  splitTerms();
+  const found=[], seen=new Set(); let work=String(text||'');
+  PHR.forEach(p=>{ const m=p.re.exec(work); if(!m) return; if(!seen.has(p.k)){ seen.add(p.k); found.push({k:p.k,pos:m.index}); } work=work.replace(p.rg,' '); });
+  work.split(/[^A-Za-z0-9+#]+/).forEach(w=>{
+    if(w.length<2) return;
+    const sing=w.replace(/s$/,'');
+    const k=(sing!==w&&ACR.has(sing))?sing:(ACR.has(w)?w:null);
+    if(!k||seen.has(k)) return; seen.add(k); found.push({k,pos:Math.max(0,work.indexOf(w))});
+  });
+  return found.sort((a,b)=>a.pos-b.pos).map(f=>f.k);
+}
+function words(texts,label,cap){
+  const ks=findTerms(texts.join(' ')).slice(0,cap||400);
+  if(!ks.length) return '';
+  return '<div class="rowwords"><span class="lbl">'+(label||'words on this row')+'</span><br>'+ks.map(k=>'<b>'+esc(k)+'</b> '+esc(TERMS[k])).join(' &nbsp;&middot;&nbsp; ')+'</div>';
+}
+const rowWords=texts=>words(texts,'words on this row');
+/* hover definitions for acronyms inside short data-driven strings (already HTML-escaped) */
+function abbrify(escaped){
+  splitTerms();
+  return String(escaped||'').replace(/[A-Za-z][A-Za-z0-9+#]*/g,w=>{
+    const sing=w.replace(/s$/,''); const k=(sing!==w&&ACR.has(sing))?sing:(ACR.has(w)?w:null);
+    return k?'<abbr title="'+esc(TERMS[k]).replace(/"/g,'&quot;')+'">'+w+'</abbr>':w;
+  });
+}
+function pcard(r,k){
+  const p=r[k]||{}, P=PROV[k];
+  if(!p.name) return `<div class="pcard"><h4 style="color:var(--dim)">${P.name}: no twin ${stch('none')}</h4><div class="nt">${esc(p.none||'Nothing sold under this heading; teams use a partner product or assemble the job from other services.')}</div></div>`;
+  return `<div class="pcard"><h4 style="color:${P.col}">${esc(p.name)}${stch(p.status)}</h4>${p.formerName?`<div class="was">was ${esc(p.formerName)}</div>`:''}<div class="nt">${esc(p.note)}</div><div class="lbl">buys you</div><ul>${(p.pros||[]).map(x=>'<li class="p">'+esc(x)+'</li>').join('')}</ul><div class="lbl">bills you</div><ul>${(p.cons||[]).map(x=>'<li class="c">'+esc(x)+'</li>').join('')}</ul></div>`;
+}
+function rowTexts(r){ return [r.job,r.plain,r.pick||'',r.gotcha||''].concat(PK.flatMap(k=>{const p=r[k]||{};return [p.name||'',p.note||''].concat(p.pros||[],p.cons||[]);})); }
+function detail(r){
+  return `<div class="plain-line" style="margin-bottom:10px"><b>In plain English:</b> ${esc(r.plain)}</div><div class="det3">${colOrder().map(k=>pcard(r,k)).join('')}</div>`
+    +(r.pick?`<div class="ok" style="margin-top:10px"><b>Pick when.</b> ${esc(r.pick)}</div>`:'')
+    +(r.gotcha?`<div class="lzwarn" style="margin-top:8px"><b>Not the same thing.</b> ${esc(r.gotcha)}</div>`:'')
+    +rowWords(rowTexts(r));
+}
+
+/* ================= 1 · START HERE: diagram ================= */
+document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the middle, three provider names around it, and the small print underneath.',
+  `${box(200,20,320,54,'var(--accent)')}${t(360,44,'the job',SANS)}${tm(360,62,'e.g. keep files by name, any size, forever','var(--dim)')}
+   ${box(20,110,200,46,'var(--awsorange)')}${t(120,130,'AWS name',SANS)}${tm(120,146,'Amazon S3','var(--awsorange)')}
+   ${box(260,110,200,46,'var(--gcpblue)')}${t(360,130,'Google Cloud name',SANS)}${tm(360,146,'Cloud Storage','var(--gcpblue)')}
+   ${box(500,110,200,46,'var(--azblue)')}${t(600,130,'Azure name',SANS)}${tm(600,146,'Blob Storage','var(--azblue)')}
+   <path d="M300 76 L150 108" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+   <path d="M360 76 L360 108" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+   <path d="M420 76 L570 108" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>
+   ${tm(360,186,'the small print: one bucket can span a continent, one archive answers in milliseconds, one cannot','var(--muted)')}`,
+  'Read a row top to bottom: the job in cloud-neutral words, the three names, then the line that says where they stop being the same thing. Every row in the atlas tab has this shape, plus what each buys you and bills you.');
+
+/* ================= 1 · START HERE: name that cloud ================= */
+(function(){
+  const out=document.getElementById('atNtcOut'), ctl=document.getElementById('atNtcCtl'), note=document.getElementById('atNtcNote');
+  if(!out) return;
+  const strip=n=>n.replace(/^(Amazon|AWS|Azure|Microsoft|Google Cloud|Google|Cloud)\s+/,'').replace(/\s*\([^)]*\)\s*$/,'').trim();
+  const HABIT={aws:'AWS habit: &ldquo;Amazon X&rdquo; for things you use directly (S3 storage, EC2 servers, RDS databases), &ldquo;AWS X&rdquo; for things that manage AWS itself (IAM permissions, Lambda functions, CloudFormation templates), and a fondness for invented words.',
+    gcp:'Google Cloud habit: a plain noun that says the job (Cloud Storage, Cloud Run, Cloud SQL), or a product name kept from a research paper or an acquisition (BigQuery, Spanner, Looker).',
+    azure:'Azure habit: &ldquo;Azure X&rdquo; for infrastructure, and &ldquo;Microsoft X&rdquo; when the product reaches beyond Azure into Microsoft 365 or other clouds (Entra, Purview, Defender, Fabric).'};
+  let Q=[], cur=0, score=0, answered=false, results=[];
+  onData(d=>{
+    const rnd=mulberry32(20260916);
+    const pool=PK.flatMap(k=>d.catalogue[k].filter(s=>s.status==='ga').map(s=>({k,name:s.name,short:strip(s.name),job:s.job})));
+    const per={aws:0,gcp:0,azure:0}, seen=new Set();
+    for(const s of shuffle(pool,rnd)){
+      if(Q.length>=10) break;
+      if(per[s.k]>=4||seen.has(s.short.toLowerCase())||s.short.length<3) continue;
+      per[s.k]++; seen.add(s.short.toLowerCase()); Q.push(s);
+    }
+    render();
+  });
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' first pick.</b> The three habits, which is what you actually learned:</div>'
+        +'<div style="margin-top:10px;font-size:12.5px;line-height:1.65">'+PK.map(k=>'<div style="padding:6px 0;border-bottom:1px solid var(--line)">'+pch(k)+' '+HABIT[k]+'</div>').join('')+'</div>'
+        +'<div style="margin-top:10px">'+Q.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:4px 0"><span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span><span style="flex:1">'+esc(q.short)+'</span><span class="k" style="white-space:nowrap;color:'+PROV[q.k].col+'">'+esc(q.name)+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="atNtcAgain" style="width:100%;font-size:12px">&#9654; play the same ten again</button>';
+      document.getElementById('atNtcAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Names carry the provider&rsquo;s habit more than the job. When a name is a plain noun, guess Google; when it is an invented word, guess AWS; when it starts with Microsoft, it reaches beyond one cloud.</div>';
+      return;
+    }
+    const q=Q[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">NAME '+(cur+1)+' OF '+Q.length+'</div>'
+      +'<div class="qcard"><div class="lbl">a real service, brand word removed</div><div class="qname">'+esc(q.short)+'</div><div style="font-size:12.5px;color:var(--muted)">'+abbrify(esc(q.job))+'</div></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">whose is it?</div><div class="segmented" style="flex-direction:column;align-items:stretch">'
+      +PK.map(k=>'<button class="seg" data-k="'+k+'" style="text-align:left;font-size:12px">'+PROV[k].name+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const right=b.dataset.k===q.k;
+      if(!answered){ answered=true; if(right) score++; results.push(right); }
+      if(right){
+        b.classList.add('on'); ctl.querySelectorAll('.seg').forEach(x=>{ if(x!==b) x.disabled=true; });
+        note.innerHTML='<div class="ok"><b>Yes: '+esc(q.name)+'.</b> '+HABIT[q.k]+'</div><button class="seg" id="atNtcNext" style="width:100%;margin-top:10px;font-size:12px">next name &rarr;</button>';
+        document.getElementById('atNtcNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+      } else {
+        b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65';
+        note.innerHTML='<div class="lzbad"><b>Not '+PROV[b.dataset.k].name+'.</b> '+HABIT[b.dataset.k]+' Try again.</div>';
+      }
+    });
+  }
+})();
+
+/* ================= 2 · THE ATLAS EXPLORER ================= */
+(function(){
+  const out=document.getElementById('atxOut'), q=document.getElementById('atxQ'), fams=document.getElementById('atxFams'),
+        tiers=document.getElementById('atxTiers'), home=document.getElementById('atxHome'), cnt=document.getElementById('atxCount'), note=document.getElementById('atxNote');
+  if(!out) return;
+  let fam='all', tier='all', open=null;
+  onData(d=>{
+    fams.innerHTML='<button class="chip on" data-f="all">all jobs<span class="n">'+d.rows.length+'</span></button>'
+      +d.families.map(f=>'<button class="chip" data-f="'+f.id+'" title="'+esc(f.plain).replace(/"/g,'&quot;')+'">'+esc(f.name)+'<span class="n">'+d.rows.filter(r=>r.family===f.id).length+'</span></button>').join('')+'<div class="famnote" id="atxFamNote"></div>';
+    fams.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ fam=b.dataset.f; fams.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); const fn=document.getElementById('atxFamNote'); if(fn) fn.innerHTML=fam==='all'?'':'<b>'+esc(FAM[fam].name)+':</b> '+esc(FAM[fam].plain); render(); });
+    tiers.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ tier=b.dataset.t; tiers.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+    home.querySelectorAll('.seg').forEach(b=>{
+      b.classList.toggle('on',(b.dataset.h||null)===HOME);
+      b.onclick=()=>{ HOME=b.dataset.h||null; try{ localStorage.setItem('study-atlas-home',JSON.stringify(HOME)); }catch{}
+        home.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); render();
+        note.innerHTML=HOME?'<div class="simnote"><b>Home cloud set.</b> '+PROV[HOME].name+' now leads every row, and the other two columns read as translations of it. The small print does not move: it was never about which column you read first.</div>':''; };
+    });
+    q.addEventListener('input',()=>{ open=null; render(); });
+    const m=(location.search||'').match(/[?&]q=([^&]+)/);
+    if(m){ try{ q.value=decodeURIComponent(m[1].replace(/\+/g,' ')); }catch{} gotoTab('amap'); }
+    render();
+  });
+  function match(r,term){
+    if(!term) return true;
+    const hay=[r.job,r.plain,FAM[r.family]&&FAM[r.family].name].concat(PK.flatMap(k=>{const p=r[k]||{};return [p.name||'',p.formerName||''];})).join(' ').toLowerCase();
+    return term.split(/\s+/).every(w=>hay.includes(w));
+  }
+  function render(){
+    if(!DATA) return;
+    const term=q.value.trim().toLowerCase(), order=colOrder();
+    const rows=DATA.rows.filter(r=>(fam==='all'||r.family===fam)&&(tier==='all'||r.tier===tier)&&match(r,term));
+    cnt.textContent=rows.length+' of '+DATA.rows.length+' jobs';
+    if(rows.length===1&&term) open=rows[0].id;
+    const head='<tr><th>job</th>'+order.map((k,i)=>'<th style="color:'+PROV[k].col+'">'+(HOME&&i===0?'you know: ':'')+PROV[k].name+'</th>').join('')+'<th>the small print</th></tr>';
+    out.innerHTML='<div style="overflow-x:auto"><table class="atlas"><thead>'+head+'</thead><tbody>'+(rows.map(r=>{
+      const cells=order.map(k=>{ const p=r[k]||{}; return '<td class="'+PROV[k].cls+'">'+(p.name?esc(p.name)+stch(p.status):'<span style="color:var(--dim);font-weight:400">no twin</span>')+'</td>'; }).join('');
+      return '<tr class="job'+(open===r.id?' open':'')+'" data-id="'+r.id+'"><td class="jb"><span class="fam">'+esc(FAM[r.family].name)+'</span><b>'+abbrify(esc(r.job))+'</b><small>'+abbrify(esc(r.plain))+'</small></td>'+cells
+        +'<td class="sp">'+abbrify(esc(first(r.gotcha||r.pick||'')))+'</td></tr>'
+        +(open===r.id?'<tr class="det"><td colspan="'+(order.length+2)+'">'+detail(r)+'</td></tr>':'');
+    }).join('')||'<tr><td colspan="5" class="sp">Nothing matches. Try the name from another cloud, or a job word such as &ldquo;queue&rdquo; or &ldquo;warehouse&rdquo;.</td></tr>')+'</tbody></table></div>';
+    out.querySelectorAll('tr.job').forEach(tr=>tr.onclick=()=>{ open=open===tr.dataset.id?null:tr.dataset.id; render(); });
+  }
+  window.atlasOpen=id=>{
+    if(!ROW[id]) return;
+    open=id; fam='all'; tier='all'; q.value='';
+    fams.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.f==='all'));
+    tiers.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.t==='all'));
+    gotoTab('amap'); render();
+    setTimeout(()=>{ const tr=out.querySelector('tr.job.open'); if(tr) window.scrollTo({top:tr.getBoundingClientRect().top+window.scrollY-110,behavior:'smooth'}); },60);
+  };
+})();
+
+/* ================= 3 · EVERY SERVICE ================= */
+(function(){
+  const out=document.getElementById('atevOut'), prov=document.getElementById('atevProv'), fams=document.getElementById('atevFams'),
+        st=document.getElementById('atevSt'), q=document.getElementById('atevQ'), sum=document.getElementById('atevSum');
+  if(!out) return;
+  let P='aws', fam='all', S='all';
+  onData(d=>{
+    prov.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ P=b.dataset.p; prov.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); chips(); render(); });
+    st.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ S=b.dataset.s; st.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+    q.addEventListener('input',render);
+    chips(); render();
+  });
+  function chips(){
+    const list=DATA.catalogue[P];
+    fams.innerHTML='<button class="chip'+(fam==='all'?' on':'')+'" data-f="all">all families<span class="n">'+list.length+'</span></button>'
+      +DATA.families.map(f=>{ const n=list.filter(s=>s.family===f.id).length; return n?'<button class="chip'+(fam===f.id?' on':'')+'" data-f="'+f.id+'" title="'+esc(f.plain).replace(/"/g,'&quot;')+'">'+esc(f.name)+'<span class="n">'+n+'</span></button>':''; }).join('');
+    fams.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ fam=b.dataset.f; fams.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+  }
+  function render(){
+    if(!DATA) return;
+    const list=DATA.catalogue[P], term=q.value.trim().toLowerCase();
+    const c={ga:0,preview:0,retiring:0,retired:0}; list.forEach(s=>{ if(c[s.status]!=null) c[s.status]++; });
+    const tot=list.length, mapped=list.filter(s=>s.row).length;
+    sum.innerHTML='<div class="cen3"><div class="stat"><div class="bigno" style="color:'+PROV[P].col+'">'+tot+'<small>services listed by '+PROV[P].name+'</small></div></div>'
+      +'<div class="stat"><div class="bigno">'+c.ga+'<small>GA &middot; '+c.preview+' preview &middot; '+c.retiring+' retiring &middot; '+c.retired+' retired</small></div>'
+      +'<div class="mix"><i style="width:'+(c.ga/tot*100)+'%;background:var(--green)"></i><i style="width:'+(c.preview/tot*100)+'%;background:var(--amber)"></i><i style="width:'+(c.retiring/tot*100)+'%;background:var(--red)"></i><i style="width:'+(c.retired/tot*100)+'%;background:var(--wire)"></i></div>'
+      +'<div class="mixk"><span><i style="background:var(--green)"></i>GA</span><span><i style="background:var(--amber)"></i>preview</span><span><i style="background:var(--red)"></i>retiring</span><span><i style="background:var(--wire)"></i>retired</span></div></div>'
+      +'<div class="stat"><div class="bigno">'+mapped+'<small>have twins in the atlas &middot; '+(tot-mapped)+' are this cloud&rsquo;s own</small></div></div></div>';
+    const rows=list.filter(s=>(fam==='all'||s.family===fam)&&(S==='all'||s.status===S)&&(!term||(s.name+' '+(s.formerName||'')+' '+s.job).toLowerCase().includes(term)));
+    if(!rows.length){ out.innerHTML='<div class="simnote">Nothing in this catalogue matches those filters.</div>'; return; }
+    out.innerHTML=DATA.families.map(f=>{
+      const fr=rows.filter(s=>s.family===f.id); if(!fr.length) return '';
+      return '<div class="evfam" title="'+esc(f.plain).replace(/"/g,'&quot;')+'"><span>'+esc(f.name)+'</span><span>'+fr.length+'</span></div>'+fr.sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{
+        const r=s.row&&ROW[s.row]; let tw='<span style="color:var(--dim)">this cloud&rsquo;s own; no twin row</span>';
+        if(r){ const others=PK.filter(k=>k!==P).map(k=>{ const p=r[k]||{}; return p.name?'<span style="color:'+PROV[k].col+'">'+esc(p.name)+'</span>':'<span style="color:var(--dim)">no twin</span>'; }).join(' &middot; ');
+          tw=others+' &nbsp;<a data-row="'+r.id+'">open in the atlas &rarr;</a>'; }
+        return '<div class="evrow"><div class="nm">'+esc(s.name)+stch(s.status)+(s.formerName?'<small>was '+esc(s.formerName)+'</small>':'')+'</div><div class="jb">'+abbrify(esc(s.job))+'</div><div class="tw">'+tw+'</div></div>';
+      }).join('');
+    }).join('');
+    out.insertAdjacentHTML('beforeend',words(rows.map(s=>s.job),'words in this list',60));
+    out.querySelectorAll('a[data-row]').forEach(a=>a.onclick=()=>window.atlasOpen(a.dataset.row));
+  }
+})();
+
+/* ================= 4 · DEPTH MAP ================= */
+(function(){
+  const out=document.getElementById('atdmOut'), list=document.getElementById('atdmList'), sum=document.getElementById('atdmSum'), mode=document.getElementById('atdmMode');
+  if(!out) return;
+  let ga=false, sel=null;
+  onData(()=>{ mode.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ ga=b.dataset.m==='ga'; mode.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); render(); }); render(); });
+  const cell=(k,f)=>DATA.catalogue[k].filter(s=>s.family===f&&(!ga||s.status==='ga'));
+  function render(){
+    if(!DATA) return;
+    const fams=DATA.families;
+    let html='<div class="heat"><div class="h">family</div>'+PK.map(k=>'<div class="h" style="color:'+PROV[k].col+';text-align:center">'+PROV[k].name+'</div>').join('');
+    fams.forEach(f=>{
+      const ns=PK.map(k=>cell(k,f.id).length), mx=Math.max(1,...ns);
+      html+='<div class="f" title="'+esc(f.plain).replace(/"/g,'&quot;')+'">'+esc(f.name)+'</div>'+PK.map((k,i)=>{ const n=ns[i], pct=Math.round(n/mx*70)+(n?12:0);
+        return '<div class="c'+(n?'':' z')+(sel&&sel.k===k&&sel.f===f.id?' on':'')+'" data-k="'+k+'" data-f="'+f.id+'" style="background:color-mix(in srgb, '+PROV[k].col+' '+(n?pct:0)+'%, transparent)">'+n+'</div>'; }).join('');
+    });
+    const tots=PK.map(k=>DATA.catalogue[k].filter(s=>!ga||s.status==='ga').length);
+    html+='<div class="f" style="font-weight:600;border-top:1px solid var(--line2)">everything</div>'+tots.map((n,i)=>'<div class="c" style="font-weight:600;border-top:1px solid var(--line2);cursor:default">'+n+'</div>').join('')+'</div>';
+    out.innerHTML=html;
+    out.querySelectorAll('.c[data-k]').forEach(c=>c.onclick=()=>{ sel={k:c.dataset.k,f:c.dataset.f}; render(); });
+    const deepest=DATA.families.map(f=>{ const ns=PK.map(k=>cell(k,f.id).length); const i=ns.indexOf(Math.max(...ns)); return {f,k:PK[i],n:ns[i],spread:Math.max(...ns)-Math.min(...ns)}; }).sort((a,b)=>b.spread-a.spread);
+    sum.innerHTML='<div class="simnote"><b>'+(ga?'GA only.':'Everything listed, previews and retirements included.')+'</b> Widest gap: <b>'+esc(deepest[0].f.name)+'</b>, where '+PROV[deepest[0].k].name+' lists '+deepest[0].n+'. Breadth here is a clue about where a provider concentrates, not a score; the atlas rows carry the judgement.</div>';
+    if(sel){ const items=cell(sel.k,sel.f);
+      list.innerHTML='<div class="lbl" style="margin-bottom:6px">'+PROV[sel.k].name+' &middot; '+esc(FAM[sel.f].name)+' &middot; '+items.length+'</div>'+(items.length?items.sort((a,b)=>a.name.localeCompare(b.name)).map(s=>'<div style="font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line)"><b>'+esc(s.name)+'</b>'+stch(s.status)+'<div style="color:var(--muted);font-size:12px">'+abbrify(esc(s.job))+'</div></div>').join(''):'<div style="color:var(--dim);font-size:12.5px">nothing listed under this family</div>'); }
+    else list.innerHTML='<div class="simnote">Click a cell to see exactly which services are being counted.</div>';
+  }
+})();
+
+/* ================= 5 · BUILD A STACK ================= */
+(function(){
+  const out=document.getElementById('atbsOut'), bom=document.getElementById('atbsBom'), work=document.getElementById('atbsWork'), prov=document.getElementById('atbsProv'), swap=document.getElementById('atbsSwap');
+  if(!out) return;
+  const WORK=[
+    {id:'web',name:'Web app with a database',layers:[['front door',['dns','cdn','waf','lb']],['run the code',['srvcontainers','functions']],['keep the data',['rdbms','cache','object']],['glue',['queue','secrets','ciam']],['watch it',['monitoring','logging','tracing']]]},
+    {id:'events',name:'Event-driven backend',layers:[['front door',['apigw','ciam']],['run the code',['functions','workflow']],['keep the data',['kv','object']],['glue',['queue','pubsub','eventbus','scheduler']],['watch it',['monitoring','tracing']]]},
+    {id:'data',name:'Data platform',layers:[['land it',['object','streamingest','transferonline']],['shape it',['etl','streamproc','orchestration']],['store and query',['warehouse','lakehouse','adhocquery']],['govern it',['catalog','dlp']],['show it',['bi']]]},
+    {id:'agents',name:'AI agent platform',layers:[['models',['fmapi','mlplatform','accelerators']],['the agent',['agentplatform','agentgov','guardrails']],['what it knows',['vector','enterprisesearch','object']],['prove it',['llmeval','tracing']],['glue',['secrets','iam']]]},
+    {id:'k8s',name:'Kubernetes microservices',layers:[['front door',['lb','apigw']],['run the code',['k8s','registry','mesh']],['ship it',['cicd','iac']],['keep the data',['rdbms','cache','object']],['watch it',['monitoring','tracing','managedobs']]]},
+    {id:'lift',name:'Lift and shift an estate',layers:[['plan',['discovery','servermig']],['run it',['vm','block','nfs']],['connect it',['vpc','vpn','interconnect','dns']],['protect it',['backup','iam','kms']],['watch it',['monitoring','cost']]]},
+    {id:'mobile',name:'Mobile app backend',layers:[['the app',['mobilebackend','statichost','cdn']],['sign in',['ciam']],['run the code',['functions']],['keep the data',['kv','object']],['reach people',['push','email']]]}
+  ];
+  let W=WORK[0], P='aws';
+  onData(()=>{
+    work.innerHTML=WORK.map(w=>'<button class="chip'+(w===W?' on':'')+'" data-w="'+w.id+'">'+esc(w.name)+'</button>').join('');
+    work.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ W=WORK.find(w=>w.id===b.dataset.w); work.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(false); });
+    prov.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ P=b.dataset.p; sync(); render(true); });
+    swap.onclick=()=>{ P=PK[(PK.indexOf(P)+1)%3]; sync(); render(true); };
+    render(false);
+  });
+  function sync(){ prov.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x.dataset.p===P)); }
+  function render(flip){
+    if(!DATA) return;
+    const ids=W.layers.flatMap(l=>l[1]).filter(id=>ROW[id]);
+    out.innerHTML='<div class="stack">'+W.layers.map(([lay,rs])=>'<div class="layer">'+esc(lay)+'</div>'+rs.filter(id=>ROW[id]).map(id=>{ const r=ROW[id], p=r[P]||{};
+      return '<div class="bsbox '+PROV[P].cls+'" data-id="'+id+'"><small>'+esc(r.job)+'</small>'+(p.name?'<b>'+esc(p.name)+'</b>'+stch(p.status):'<b style="color:var(--dim);font-weight:400">no twin</b>')+'</div>'; }).join('')).join('')+'</div>';
+    if(flip&&!reduced()){ out.querySelectorAll('.bsbox').forEach((b,i)=>setTimeout(()=>b.classList.add('flip'),i*45)); }
+    const gaps=ids.filter(id=>!(ROW[id][P]||{}).name).length, gotchas=ids.filter(id=>ROW[id].gotcha).length;
+    bom.innerHTML='<div class="lbl" style="margin-bottom:6px">bill of materials &middot; '+PROV[P].name+' &middot; '+ids.length+' parts'+(gaps?' &middot; '+gaps+' with no twin':'')+' &middot; '+gotchas+' carry a cross-cloud trap</div><div class="bom">'
+      +ids.map(id=>{ const r=ROW[id], p=r[P]||{};
+        return '<div class="r"><div><b style="color:'+(p.name?PROV[P].col:'var(--dim)')+'">'+esc(p.name||'no twin')+'</b><small>'+esc(r.job)+'</small></div><div class="p">'+(p.name?'+ '+esc((p.pros||[])[0]||''):esc(p.none||''))+'</div><div class="c">'+(p.name?'&minus; '+esc((p.cons||[])[0]||''):'')+'</div></div>'; }).join('')+'</div>'
+      +words(ids.flatMap(id=>{ const r=ROW[id], p=r[P]||{}; return [r.job,p.name||'',(p.pros||[])[0]||'',(p.cons||[])[0]||'',p.none||'']; }),'words in this bill of materials')
+      +'<div class="simnote" style="margin-top:10px"><b>Same shape, different small print.</b> Press swap again and watch which column changes: the jobs never do, the names always do, and the cons are where the real decision lives. Open any part in the atlas for the full row.</div>';
+    bom.querySelectorAll('.r').forEach((el,i)=>{ el.style.cursor='pointer'; el.onclick=()=>window.atlasOpen(ids[i]); });
+  }
+})();
+
+/* ================= 6 · RENAMED LATELY: timeline ================= */
+(function(){
+  const out=document.getElementById('atnwOut'), provC=document.getElementById('atnwProv'), kindC=document.getElementById('atnwKind');
+  if(!out) return;
+  let P='all', K='all';
+  onData(()=>{
+    provC.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ P=b.dataset.p; provC.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+    kindC.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ K=b.dataset.k; kindC.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+    render();
+  });
+  const kindOf=c=>c.kind==='retiring'?'retired':c.kind==='preview'?'launched':c.kind;
+  function render(){
+    const items=DATA.changes.filter(c=>(P==='all'||c.provider===P)&&(K==='all'||kindOf(c)===K)).sort((a,b)=>String(b.when).localeCompare(String(a.when)));
+    const KC={launched:'var(--green)',renamed:'var(--blue)',retired:'var(--red)',retiring:'var(--red)',preview:'var(--amber)'};
+    out.innerHTML='<div class="lbl" style="margin-bottom:8px">'+items.length+' changes'+(P!=='all'?' &middot; '+PROV[P].name:'')+'</div><div class="tl">'+(items.map(c=>'<div class="tli '+c.provider+'"><span class="when">'+esc(c.when)+'</span>'+pch(c.provider)+' <span class="stch" style="color:'+KC[c.kind]+';border-color:'+KC[c.kind]+'">'+esc(c.kind)+'</span> <b>'+(c.kind==='renamed'?esc(c.from)+' &rarr; '+esc(c.to):esc(c.name))+'</b><div style="color:var(--muted)">'+abbrify(esc(c.note))+'</div></div>').join('')||'<div class="simnote">No changes match those filters.</div>')+'</div>'+words(items.map(c=>c.note+' '+c.name),'words in these changes',60);
+  }
+})();
+
+/* ================= 6 · RENAMED LATELY: which name is current ================= */
+(function(){
+  const out=document.getElementById('atwnOut'), ctl=document.getElementById('atwnCtl'), note=document.getElementById('atwnNote');
+  if(!out) return;
+  let Q=[], cur=0, score=0, answered=false, results=[];
+  onData(d=>{
+    const rnd=mulberry32(77);
+    const ren=shuffle(d.changes.filter(c=>c.kind==='renamed'&&c.from&&c.to),rnd).slice(0,4)
+      .map(c=>({type:'rename',q:'Which is the current name?',opts:shuffle([{t:c.to,ok:true},{t:c.from,ok:false}],rnd),why:c.note,label:c.to,k:c.provider}));
+    const ret=shuffle(d.changes.filter(c=>c.kind==='retired'||c.kind==='retiring'),rnd).slice(0,2)
+      .map(c=>({type:'retired',q:'Still open for new work?',name:c.name,opts:[{t:'yes, still sold',ok:false},{t:'no: '+c.kind,ok:true}],why:c.note,label:c.name,k:c.provider}));
+    const lau=shuffle(d.changes.filter(c=>c.kind==='launched'||c.kind==='preview'),rnd).slice(0,2)
+      .map(c=>({type:'launch',q:'Whose launch is this?',name:c.name,opts:PK.map(k=>({t:PROV[k].name,ok:k===c.provider})),why:c.note,label:c.name,k:c.provider}));
+    Q=shuffle(ren.concat(ret,lau),rnd);
+    render();
+  });
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' first pick.</b> Each one was a real change since 2024.</div><div style="margin-top:10px">'+Q.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)"><span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'+pch(q.k)+'<span style="flex:1">'+esc(q.label)+'</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="atwnAgain" style="width:100%;font-size:12px">&#9654; same eight again</button>';
+      document.getElementById('atwnAgain').onclick=()=>{cur=0;score=0;results=[];answered=false;note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> A rename usually signals a regrouping: the product moved under a bigger brand. A retirement usually signals a replacement: find what the provider now points to before you delete the old name from your notes.</div>';
+      return;
+    }
+    const q=Q[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">ROUND '+(cur+1)+' OF '+Q.length+'</div>'
+      +'<div class="qcard">'+pch(q.k)+'<div class="lbl" style="margin-top:8px">'+esc(q.q)+'</div>'+(q.name?'<div class="qname">'+esc(q.name)+'</div>':'<div class="qname" style="font-size:18px;color:var(--muted)">two names, one service</div>')+'</div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="segmented" style="flex-direction:column;align-items:stretch">'+q.opts.map((o,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+esc(o.t)+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const o=q.opts[+b.dataset.i];
+      if(!answered){ answered=true; if(o.ok) score++; results.push(o.ok); }
+      if(o.ok){ b.classList.add('on'); ctl.querySelectorAll('.seg').forEach(x=>{ if(x!==b) x.disabled=true; });
+        note.innerHTML='<div class="ok"><b>Yes.</b> '+esc(q.why)+'</div><button class="seg" id="atwnNext" style="width:100%;margin-top:10px;font-size:12px">next round &rarr;</button>';
+        document.getElementById('atwnNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
+      } else { b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65'; note.innerHTML='<div class="lzbad"><b>Not that one.</b> Try again.</div>'; }
+    });
+  }
+})();
+</script>
+<script src="assets/version.js"></script>
+<script src="assets/lab.js"></script>
+</body>
+</html>
