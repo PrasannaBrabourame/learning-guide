@@ -66,11 +66,16 @@
     const html=el.innerHTML;
     /* .exam-line is also used for pillar notes, which are multi-fact and start differently.
        A drillable scenario is authored as <b>“…”</b> → answer, so require that shape. */
-    if(!/^\s*<b>\s*&ldquo;/.test(html)) return null;
-    const i=html.indexOf('&rarr;')>=0?html.indexOf('&rarr;'):html.indexOf('→');
+    /* innerHTML hands back the curly quote and the arrow as characters, not as the
+       &ldquo; and &rarr; entities the source was authored with (the old DOM-stub harness
+       kept the entities, which is how a drill that found zero scenarios in every real
+       browser passed its checks). Accept both spellings, and slice by the arrow's own length. */
+    if(!/^\s*<b>\s*(?:&ldquo;|\u201c)/.test(html)) return null;
+    let i=html.indexOf('&rarr;'), al=6;
+    if(i<0){ i=html.indexOf('\u2192'); al=1; }
     if(i<0) return null;
-    const q=html.slice(0,i).replace(/<\/?b>/g,'').replace(/&ldquo;|&rdquo;/g,'').trim();
-    const full=html.slice(i+6).trim();
+    const q=html.slice(0,i).replace(/<\/?b>/g,'').replace(/&ldquo;|&rdquo;|[\u201c\u201d]/g,'').trim();
+    const full=html.slice(i+al).trim();
     /* the headline answer is the first sentence; the rest is the explanation */
     const m=full.match(/^(.*?[.!?])(\s|$)([\s\S]*)$/);
     const head=(m?m[1]:full).replace(/^\s+/,'');
