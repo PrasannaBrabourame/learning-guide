@@ -76,6 +76,7 @@ function init(topics) {
   gemini: { name: "Gemini Enterprise rollout", hue: 212, cats: ["GCP", "Cloud Architecture", "Security", "Retrieval-Augmented Generation", "Data & Databases", "Data Engineering", "AI Governance", "Leadership"] },
     govern: { name: "Govern & secure agents", hue: 352, cats: ["Security", "AI Governance", "Agentic AI", "AI Agents", "Agent Frameworks & Runtimes", "Model Context Protocol"] },
     design: { name: "Architecture diagrams", hue: 250, cats: ["Software Architecture", "Production Readiness", "Candidate Validation", "Leadership"] },
+    fde1: { name: "The FDE bootcamp, day one", hue: 320, cats: ["Agentic AI", "AI Agents", "Agent Frameworks & Runtimes", "Model Context Protocol", "Security", "AI Governance", "Production Readiness", "Multi-Tenancy", "Observability", "GCP"] },
     peakweek: { name: "Peak Week \u2014 one agent end to end", hue: 320, cats: ["Agent Frameworks & Runtimes", "AI Agents", "Agentic AI", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "GCP"] },
     gpu: { name: "The machine underneath", hue: 280, cats: ["Large Language Models", "Deep Learning & Neural Networks", "Performance", "LLMOps", "Math, Probability & Statistics"] },
     train: { name: "Wrong, then less wrong", hue: 280, cats: ["Deep Learning & Neural Networks", "Classical Machine Learning", "Math, Probability & Statistics"] },
@@ -174,7 +175,7 @@ function init(topics) {
   });
   /* a lab page can link straight back at its own reading: index.html#lab=evals */
   function openFromHash() {
-    const m = /^#lab=([a-z]+)$/.exec(location.hash);
+    const m = /^#lab=([a-z0-9]+)$/.exec(location.hash);
     if (m && LABS[m[1]]) { showBrowse(m[1]); return true; }
     return false;
   }

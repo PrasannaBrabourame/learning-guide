@@ -153,6 +153,16 @@ peakweek.html     Peak Week lab, a sorter fails at a parcel hub on the
                   safe (Model Armor, least privilege), make it good (graded
                   eval, LLM-as-judge), make it theirs (publishing, and the
                   session-id bug that only shows up there)
+fde1.html         FDE bootcamp lab, day one: the anatomy of an enterprise
+                  agent (same model, different body), one turn of the runtime
+                  stepped and crashed, state scopes, five ways to compose
+                  agents with a fan-out-and-join race, the two open protocols
+                  (which edge, task lifecycle, an agent-card inspector), the
+                  day's build of five specialists on three runtimes with a
+                  401-versus-403 tester and a troubleshooting drill, zero-trust
+                  identity (the lethal trifecta, a token inspector, own
+                  authority versus on behalf of), and a discovery engine that
+                  evolves an order quantity out of a local dip
 design.html       Diagram lab, audiences, levels of zoom, anatomy, notation,
                   choosing services, what people leave out, the questions
                   behind the picture, surviving a review, diagram rot, the
@@ -179,7 +189,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 267 simulations across the twenty-one labs. Every one carries a
+There are 282 simulations across the twenty-two labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -262,7 +272,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-one labs are self-contained pages, but the chrome around the content
+The twenty-two labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
