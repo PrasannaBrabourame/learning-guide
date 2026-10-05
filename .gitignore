@@ -17,3 +17,6 @@ Thumbs.db
 .env
 
 .tmp/
+# Personal interview transcripts, local only
+Interview/
+interview/
