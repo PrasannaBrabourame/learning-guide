@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **21 hands-on labs**, **267 in-browser simulations**,
+topics. **304 topics**, **22 hands-on labs**, **282 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -17,7 +17,7 @@ Two kinds of content, one site:
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered on the dashboard and browse view
   (`index.html` + `assets/app.js`).
-- **The labs** (`*.html`) — 21 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`) — 22 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -38,7 +38,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    jobs with pros and cons, the change log, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, hotseat, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, hotseat, fde1, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -123,6 +123,17 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **The FDE bootcamp, day one.** A four-day forward-deployed-engineer
+  bootcamp is being rebuilt as one lab per day; day one covers the anatomy
+  of an enterprise agent, the runtime, orchestration, the two open protocols,
+  the day's heterogeneous build, zero-trust identity and a discovery engine.
+  Fifteen original simulations, including a turn you can crash and resume, a
+  fan-out-and-join race with the day's two real mistakes as levers, an
+  agent-card inspector, a 401-versus-403 tester, the lethal-trifecta attack
+  with five controls, and an evolutionary search that escapes a local dip.
+  White-labelled: product names only. Days two to four follow as `fde2.html`
+  onwards; a lab key may now contain a digit in the related-topics deep link.
 
 - **The hot seat.** The questions AI engineering and forward-deployed
   engineer panels actually ask, grouped by theme with what the panel is
