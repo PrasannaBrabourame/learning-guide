@@ -38,7 +38,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    jobs with pros and cons, the change log, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, interview, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, hotseat, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -124,7 +124,7 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
-- **The interview lab.** The questions AI engineering and forward-deployed
+- **The hot seat.** The questions AI engineering and forward-deployed
   engineer panels actually ask, grouped by theme with what the panel is
   testing, a strong answer in plain and technical terms, the weak pattern and
   the follow-up. Simulations: an answer grader, an operable RAG pipeline with

@@ -41,7 +41,7 @@ cloud.html        Cloud lab: request journey, OSI (including what the data
                   design (how many, public vs private, subnet sizing,
                   component advice), network simulator, NGINX, IAM, SAP-C02
                   cheatsheet, pillars, DR simulator, translator
-interview.html    Interview lab: the questions AI engineering and
+hotseat.html      The hot seat: the questions AI engineering and
                   forward-deployed engineer panels actually ask, by theme,
                   each with what the panel is testing, a strong answer in
                   plain and technical terms, the weak pattern and the
