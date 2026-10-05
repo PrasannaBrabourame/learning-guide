@@ -175,7 +175,8 @@ function init(topics) {
   /* a lab page can link straight back at its own reading: index.html#lab=evals */
   function openFromHash() {
     const m = /^#lab=([a-z]+)$/.exec(location.hash);
-    if (m && LABS[m[1]]) showBrowse(m[1]);
+    if (m && LABS[m[1]]) { showBrowse(m[1]); return true; }
+    return false;
   }
   addEventListener("hashchange", openFromHash);
 
@@ -534,5 +535,8 @@ function init(topics) {
     toast("Progress reset on this browser");
   };
 
-  renderHeatmap(); renderLabBookmarks(); showDash(); openFromHash();
+  renderHeatmap(); renderLabBookmarks();
+  /* a lab's "related topics" link arrives as #lab=<key>; read it before showDash(),
+     which deliberately strips that hash and so used to swallow every deep link */
+  if (!openFromHash()) showDash();
 }
