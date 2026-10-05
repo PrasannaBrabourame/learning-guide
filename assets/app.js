@@ -65,7 +65,7 @@ function init(topics) {
      because a link that returns half the site is the problem, not the fix. */
   const LABS = {
     cloud: { name: "Cloud lab", hue: 212, cats: ["Cloud Architecture", "GCP", "Kubernetes", "Security", "Observability", "Infrastructure as Code", "DevOps", "Deployment", "FinOps", "Performance", "Event-Driven Architecture", "Production Readiness", "Production Operations", "Data & Databases"] },
-    interview: { name: "The interview", hue: 352, cats: ["Candidate Validation", "Scenario Exercise", "Agentic AI Scenarios", "Retrieval-Augmented Generation", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "Model Context Protocol", "AI Agents", "Leadership"] },
+    hotseat: { name: "The hot seat", hue: 352, cats: ["Candidate Validation", "Scenario Exercise", "Agentic AI Scenarios", "Retrieval-Augmented Generation", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "Model Context Protocol", "AI Agents", "Leadership"] },
     atlas: { name: "The three-cloud atlas", hue: 212, cats: ["Cloud Architecture", "GCP", "Data & Databases", "Kubernetes", "Security", "FinOps", "Deployment", "Event-Driven Architecture", "Infrastructure as Code"] },
     agentcore: { name: "AgentCore lab", hue: 320, cats: ["AI Agents", "Agentic AI", "Agent Frameworks & Runtimes", "Model Context Protocol", "Observability", "Production Readiness"] },
     agentbuild: { name: "Agents building agents", hue: 320, cats: ["AI Agents", "Agentic AI", "Agentic AI Scenarios", "Agent Frameworks & Runtimes", "AI & GenAI"] },
