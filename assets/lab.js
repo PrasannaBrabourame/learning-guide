@@ -318,7 +318,8 @@
       ['gemini.html',    'Rolling it out to a whole company'],
       ['peakweek.html',  'Peak Week, one agent, all the way through'],
       ['fde1.html',      'The FDE bootcamp, day one: build an enterprise agent'],
-      ['fde2.html',      'The FDE bootcamp, day two: govern it, prove it, run it at scale'] ] },
+      ['fde2.html',      'The FDE bootcamp, day two: govern it, prove it, run it at scale'],
+      ['fde3.html',      'The FDE bootcamp, day three: judge it, climb it, pay for it'] ] },
     { name:'Cloud and architecture', labs:[
       ['cloud.html',            'How the cloud actually works'],
       ['atlas.html',            'The three-cloud atlas: same jobs, three dictionaries'],

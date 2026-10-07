@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The FDE bootcamp, day three: judge it, climb it, pay for it</title>
+<link rel="stylesheet" href="assets/lab.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/favicon.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+  /* page-specific: pillars and day map, sorter statements, rating matrices, the ledger, the scatter, the harness table, the response preview, the context chart */
+  .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .pill4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+  @media (max-width:760px){.pill4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .pill{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--panel2);font-size:12.5px;line-height:1.5}
+  .pill h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+  .pill small{display:block;color:var(--muted);font-size:11.5px;margin-top:4px}
+  .daymap{display:grid;grid-template-columns:70px 1fr;gap:6px 12px;font-size:12.5px;line-height:1.5;margin-top:8px}
+  .daymap b{font-family:var(--mono);font-size:11px;color:var(--accent);padding-top:2px}
+  .daymap .now{background:var(--accent-soft);border-radius:6px;padding:2px 6px;margin-left:-6px}
+  .stmt{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.5;background:var(--panel2)}
+  .segmented.col{flex-direction:column;align-items:stretch}
+  .segmented.col .seg{text-align:left;font-size:12px;line-height:1.4;white-space:normal}
+  .segmented.col .seg small{display:block;font-family:var(--sans);font-size:11px;color:var(--dim);margin-top:2px}
+  .rv{display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .rv i{font-style:normal;color:var(--dim)}
+  .sl{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:12px;padding:5px 0}
+  .sl label{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .sl input[type=range]{width:100%}
+  .sl output{font-family:var(--mono);font-size:11.5px;text-align:right}
+  .answer{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--panel2);font-size:12.5px;line-height:1.55;margin-top:10px}
+  .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .btns .btn{font-size:11.5px;padding:6px 10px} .btns .btn:disabled{opacity:.35;cursor:not-allowed}
+  .json{font-family:var(--mono);font-size:11px;line-height:1.55;border:1px solid var(--line2);border-radius:9px;padding:10px 12px;background:var(--panel2);white-space:pre-wrap;word-break:break-word}
+  .json .k{color:var(--muted)} .json .bad{color:var(--red);font-weight:700} .json .good{color:var(--green)} .json .hi{color:var(--accent)} .json .dim{color:var(--dim)}
+  .toggles2{display:flex;flex-direction:column;gap:6px}
+  .toggles2 label{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.4;cursor:pointer}
+  .toggles2 label small{display:block;color:var(--dim);font-size:11px}
+  .chart{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
+  .meter{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:8px 0}
+  .meter .big{font-family:var(--display);font-size:30px;letter-spacing:-.02em;line-height:1}
+  .meter .big small{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin-top:4px}
+  .probe{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.55}
+  .probe .n{font-family:var(--display);font-size:20px;color:var(--accent);line-height:1}
+  .probe b{display:block} .probe small{color:var(--muted);font-size:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .tbl th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2)}
+  .tbl td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .tbl td:first-child{font-weight:600}
+  .tbl td.v{font-family:var(--mono);font-size:11px}
+  .tbl td.r{text-align:right;font-family:var(--mono);font-size:11px}
+  .tbl tr.sum td{border-top:2px solid var(--line2);font-weight:700}
+  .evlog{font-family:var(--mono);font-size:11px;line-height:1.6;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;background:var(--panel2);min-height:100px}
+  .evlog .ev{display:flex;gap:8px} .evlog .ev i{color:var(--green);font-style:normal;flex:none} .evlog .ev.bad i{color:var(--red)} .evlog .ev.warn i{color:var(--amber)} .evlog .ev.dim{opacity:.6}
+  .bars{display:flex;flex-direction:column;gap:10px}
+  .barrow{font-size:12px} .barrow .barlbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-bottom:3px}
+  .barrow .bar{height:16px;border-radius:99px;background:var(--dot);overflow:hidden;display:flex}
+  .barrow .bar i{display:block;height:100%} .barrow .bar i.a{background:var(--accent)} .barrow .bar i.b{background:var(--amber)} .barrow .bar i.c{background:var(--green)} .barrow .bar i.d{background:var(--red)}
+  .barrow .bar.over{outline:2px solid var(--red)}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin:6px 0}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px} .legend i.a{background:var(--accent)} .legend i.b{background:var(--amber)} .legend i.c{background:var(--green)} .legend i.d{background:var(--red)}
+  .lint{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.45}
+  .lint i{font-style:normal;font-weight:700} .lint.ok i{color:var(--green)} .lint.bad i{color:var(--red)} .lint.warn i{color:var(--amber)}
+  .lint small{display:block;color:var(--muted);font-size:11.5px}
+  .conf{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .conf div{border:1px solid var(--line2);border-radius:9px;padding:8px 10px;font-size:12px;background:var(--panel2);line-height:1.4}
+  .conf b{display:block;font-family:var(--display);font-size:26px;line-height:1.1}
+  .conf .good b{color:var(--green)} .conf .badc b{color:var(--red)} .conf .warnc b{color:var(--amber)} .conf .nac b{color:var(--dim);font-size:18px}
+  .conf small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+  .mx{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;margin-top:8px}
+  .mx th,.mx td{padding:3px 6px;border-bottom:1px solid var(--line);text-align:center}
+  .mx th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+  .mx td:first-child,.mx th:first-child{text-align:left;color:var(--muted)}
+  .mx td.lo{color:var(--red)} .mx td.hi{color:var(--green)} .mx td.na{color:var(--dim)} .mx td.m{color:var(--muted);border-left:1px solid var(--line2)}
+  .traj{font-family:var(--mono);font-size:11px;line-height:1.6;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;background:var(--panel2);white-space:pre-wrap;margin-bottom:8px}
+  .traj .bad{color:var(--red)} .traj .dim{color:var(--dim)} .traj .hi{color:var(--accent)}
+  .pass{color:var(--green);font-weight:700} .fail{color:var(--red);font-weight:700} .warnt{color:var(--amber);font-weight:700}
+  .mini{font-family:var(--mono);font-size:11px;color:var(--muted)}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=fde3">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark">&#127769; theme</button>
+      <button class="tn tn-quiet" id="findBtn" type="button" title="Find a section on this page">&#8981; find</button>
+    </nav>
+    <div class="eyebrow">forward deployed engineer &middot; day three of four &middot; the optimise chapter</div>
+    <h1>The FDE bootcamp, day three: <span class="thin">judge it, climb it, pay for it</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">Day three of a four-day forward-deployed-engineer bootcamp, rebuilt as a lab. Day one built the agent and day two let a thousand of them loose inside a company; day three asks the three questions that decide whether any of it was worth it. <b>Can you trust the judge?</b> An automatic rater is a model reading a rubric, and the day's first lesson is that it needs labelled data after all, so you learn to measure agreement with coefficients that do not lie, pick the criteria consistent enough to climb on, and climb. <b>Can you fix the harness?</b> The day's coding agent runs on a fixed small model; every gain has to come from its tools and instructions, and a diagnosis that names the task's bug instead of the agent's gap scores low. <b>Can you afford the answer?</b> One question fans out into coordinator turns, sub-agent calls, retrievals and thinking tokens, so you meter it, pull the levers (tiering, caching, thinking, retrieval, routing) and prove the bill halved while the quality held, on queries you never tuned against.</p>
+    <div class="note" style="margin-top:14px"><b>Neighbours.</b> <a href="fde1.html">Day one</a> is the anatomy and the build; <a href="fde2.html">day two</a> is governance and scale. The hill-climbing loop in full is in <a href="evals.html">the evaluation lab</a>, the metrics behind the coefficients in <a href="metrics.html">the number to trust</a>, and coding agents as builders in <a href="agentbuild.html">agents building agents</a>. Day four (your own connectors, the enterprise front door) arrives as its own lab.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="ostart" role="tab">Start here</button>
+    <button class="tab" data-pane="ojudge" role="tab">The judge on trial</button>
+    <button class="tab" data-pane="oclimb" role="tab">Climb with a judge</button>
+    <button class="tab" data-pane="oharness" role="tab">The harness, not the model</button>
+    <button class="tab" data-pane="ocost" role="tab">The bill</button>
+    <button class="tab" data-pane="otokens" role="tab">Fewer tokens</button>
+    <button class="tab" data-pane="ohonest" role="tab">Keep it honest</button>
+    <button class="tab" data-pane="oexam" role="tab">Exam angle</button>
+  </div>
+
+  <!-- ================= 1 · START HERE ================= -->
+  <section class="pane on" id="pane-ostart">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Judge, climb, pay</h2>
+      <div class="plain-line"><b>In plain English:</b> by day three the agent exists and the fleet is governed. What is left is the uncomfortable part: deciding whether it is any good, making it better on purpose rather than by vibes, and paying for it. The day's three chapters are three questions. <b>Judge:</b> when a model grades another model's work, how do you know the grade means anything? You measure how far the judge agrees with people, and with itself, using coefficients that correct for luck, and you throw out the criteria that cannot be scored consistently. <b>Climb:</b> with a judge you trust on two or three criteria, you change the agent, re-run, read the judge's reasons, and repeat until the score clears a bar. For a coding agent the model is deliberately fixed and small, so every gain must come from the harness: the tools, the instructions, the verification loop. <b>Pay:</b> a single answer fans out into many calls, and nobody notices until the invoice; you meter each call, pull the levers, and prove on held-out questions that the bill halved and the quality held.</div>
+      <div class="plain-line" style="margin-top:8px"><b>The analogy the day leaned on.</b> A cooking competition. The judge (the autorater) has to be calibrated against the head chef's palate before their scores mean anything, and a judge who gives every dish ten out of ten is useless, not generous. The climb is the contestant changing the recipe between rounds, reading the judge's notes rather than guessing. The bill is the kitchen manager pointing out that the winning dish costs more to make than it sells for, and that the same dish with a cheaper cut and a hotter pan would have scored the same.</div>
+      <div class="pill4">
+        <div class="pill"><h4>Judge</h4>What an autorater is, the big lie that it needs no labels, pointwise against pairwise, rubrics and prompts, agreement that corrects for chance.<small>Today.</small></div>
+        <div class="pill"><h4>Climb</h4>Self-consistency when you have no experts, the metrics that are distractors, the homogeneity trap, and a hill climb that reads the judge's rationales.<small>Today.</small></div>
+        <div class="pill"><h4>Harness</h4>A fixed small model, two tools and a one-line prompt: win the pass rate in the tools and instructions, and diagnose the agent's gap, never the task's bug.<small>Today.</small></div>
+        <div class="pill"><h4>Bill</h4>Four billing models, five consumption options, three token meters; tier, cache, think less, route, retrieve less; budget and quality floor on held-out queries.<small>Today.</small></div>
+      </div>
+      <div class="lbl" style="margin-top:12px">the four days, and where today sits</div>
+      <div class="daymap">
+        <b>Day 1</b><span>Anatomy, the runtime, orchestration, agent-to-agent and tool protocols, identity foundations, a discovery engine.</span>
+        <b>Day 2</b><span>Skills and the registry, identity without secrets, the seven-layer perimeter, evaluation-driven development, the fleet under load, the deputy done right.</span>
+        <b><span class="now">Day 3</span></b><span>More reliable autoraters; hill climbing with autoraters; the design and optimisation of coding agents; cost and token estimation, analysis and optimisation.</span>
+        <b>Day 4</b><span>Your own connectors, cryptographic agent identity end to end, enterprise data, screening and redaction inside the enterprise app, publishing to the company's front door.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which check sees it?</h2>
+      <div class="plain-line"><b>Try this:</b> twelve questions a team asks about an agent, one at a time. For each, name the cheapest thing that can answer it: a rule in code, a check on the steps, a model reading a rubric, or people. The reflex matters because day three's lessons split along exactly this line: deterministic verifiers for what code can decide, trajectory checks for what the agent did, autoraters for what is subjective, and people before any judge is trusted.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Marking an exam. A multiple-choice answer is marked by a machine (deterministic). Whether the student showed their working is a look at the steps (trajectory). Whether an essay is persuasive needs a reader with a marking scheme (autorater). Whether two readers mean the same thing by persuasive needs the readers in a room first (people).</span></div><div class="sp-row"><span class="sp-k">start by</span><span>asking whether a line of code could decide it; if yes, nothing else should.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>autorater</b> a model that scores a response against a criterion and explains why; also called a judge model or a model as judge</span><span class="sp-w"><b>final-answer evaluation</b> scoring the reply, against a reference or a rubric</span><span class="sp-w"><b>trajectory evaluation</b> scoring the sequence of steps and tool calls that produced the reply</span><span class="sp-w"><b>deterministic verifier</b> a test, a compiler, a type checker, a rule: the same verdict every time</span><span class="sp-w"><b>labelled data</b> examples scored by people, used to check that a judge agrees with them</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="evOut"></div></div>
+        <div><div id="evCtl"></div><div id="evNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 · THE JUDGE ON TRIAL ================= -->
+  <section class="pane" id="pane-ojudge">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">What an autorater is, and the big lie</h2>
+      <div class="plain-line"><b>In plain English:</b> an autorater is a model that reads a criterion, the agent's reply, the input and whatever context you give it, and returns a score with its reasoning. The job it does is grading the final response on things that are subjective or slow for people: tone and style, organisation and flow, nuance, faithfulness to the sources, safety and security aspects, multimodal content, and the on-demand monitoring of live traffic that no team could read by hand. The history explains why it tempted everyone. First, people labelled everything: accurate and ruinously expensive. Then maths with no labels, like perplexity: cheap and weak. Then overlap scores against one reference answer: brittle, because the right answer in different words scores as wrong. Then embeddings against one reference: better. Then autoraters, and the big lie: that an autorater needs no labelled data at all. It does. You still need people to tell you whether the judge is right, and the judge saves you money only after that.</div>
+      <div class="plain-line" style="margin-top:8px"><b>A case the trainer told.</b> A large hospital group wanted nurse-to-nurse handover notes drafted from the records, because a handover for five patients was eating half an hour of every shift. Before any judge existed the team spent six weeks with doctors and nurses in batches, each rating the same drafts, and they disagreed: what a cardiac nurse wanted in a handover was not what a general-ward nurse wanted. The disagreements forced the guidelines to be written down sharply, and only then could the rubric be handed to a model as a judge. After that the judge did in minutes what the batches had done in weeks, and the half hour became five to ten minutes per handover. The order mattered: people first, judge second, never the reverse.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Pointwise or pairwise.</b> A <b>pointwise</b> rating scores one output on a scale, say one to five. It is absolute and interpretable, has no cold-start problem, tells you the exact change on every data point between versions, maps cleanly to a business threshold, and its biases are less understood but easier to detect; it needs every criterion and every scale step defined, and very small improvements can be hard to see. A <b>pairwise</b> rating compares output A with output B. It is relative only, suffers a cold start (no benchmark yet, nothing to compare against), reports a win rate that can hide a regression on individual points, but it is mathematically simpler, needs only one definition of good, detects small consistent gains, and is what researchers and model builders favour. Its biases, position above all, are better understood and more likely to mislead. The day's rule: start projects pointwise; do pairwise later, as champion against challenger when a new version wants the old one's place.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Rubrics, prompts, and not everyone gets an A</h2>
+      <div class="plain-line"><b>In plain English:</b> a <b>rubric</b> is a set of criteria; each <b>criterion</b> is scored on a scale with every step defined and distinct. The autorater's output is a function of the criterion, the response, the input and the context; the rubric's output is a function of all the autorater outcomes, for example at least four on every criterion before anything goes to production. A strong autorater prompt has six parts: a role (&ldquo;you are an evaluator&rdquo;), the steps to perform, as close as possible to what the human raters actually do and as specific to your criteria as you can make them, the criteria with each scale step defined, an output format that writes the reasoning before the scores, few-shot examples of inputs and scored outputs with reasoning, especially on the boundaries between scale steps, and the delimited inputs themselves. Two settings surprised the room: temperature one, because you want to see the judge's variance so you can measure it, and no structured-output forcing until you have checked it does not change the scores.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Not everyone gets an A.</b> If every output scores the top mark there is no evaluation signal, and the usual cause is the <b>homogeneity trap</b>: criteria too easy to expose any difference, and a model that was trained to be agreeable giving your work full marks. Criteria must be challenging enough to expose real variance. And a good rubric is a <b>consistent</b> rubric: people apply it consistently, the autorater applies it consistently, and you have to test both. The process: draft the rubric; subject-matter experts test it in isolation; update it from their disagreements; test again; repeat until they agree; then a second group of experts; only then the autorater. The practicalities bite: redundant labelling irks people, fatigue sets in, you will probably need to test the same person twice (intra-rater reliability), do not label the labels, and watch out for panels, where the labels are the destination and the rubric is the friendship made on the way.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the agreement bench</h2>
+      <div class="plain-line"><b>Try this:</b> five rating sheets, each from a real pattern the day warned about. For each, four ways of measuring agreement are computed live from the sheet: percent agreement, correlation, Cohen's kappa and Krippendorff's alpha. Watch the first two lie, watch kappa refuse to work, and watch alpha keep going. The last sheet is the trap.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Two weather forecasters in a desert. They agree it will be sunny 95 days in 100, so they look brilliant together; but they would have agreed by luck almost as often, and on the five days that mattered they said different things. Percent agreement is the brilliance; kappa and alpha are the five days.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>opening <b>the shifted rater</b> and comparing the correlation box with the agreement box.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>percent agreement</b> share of rater pairs that gave the exact same score; blind to chance</span><span class="sp-w"><b>Pearson correlation</b> how two columns move together; [1,2,3] against [3,4,5] is perfect</span><span class="sp-w"><b>Cohen's kappa</b> agreement corrected for chance; exactly two raters, no blanks, exact match</span><span class="sp-w"><b>Krippendorff's alpha</b> agreement corrected for chance for any number of raters, with blanks, on nominal, ordinal or interval scales</span><span class="sp-w"><b>skew</b> most items share one score, so chance agreement is already high</span><span class="sp-w"><b>homogeneity trap</b> every rater gives every item the same score: no variance, no signal</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="lbl">the sheet: items down, raters across</div>
+          <div id="agSheet"></div>
+          <div class="conf" id="agMetrics"></div>
+          <div id="agVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:6px">which sheet?</div>
+          <div class="segmented col" id="agScn">
+            <button class="seg on" data-v="careful">two careful raters, balanced scale<small>what calibrated looks like</small></button>
+            <button class="seg" data-v="skew">a skewed pass/fail set<small>18 of 20 items are passes</small></button>
+            <button class="seg" data-v="shift">the shifted rater<small>one rater scores two higher on everything</small></button>
+            <button class="seg" data-v="five">five raters, some blanks<small>a real study, not a pair</small></button>
+            <button class="seg" data-v="homog">everyone gives everything five<small>the trap</small></button>
+          </div>
+          <div id="agNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Measuring agreement, and when the judge disagrees</h2>
+      <div class="plain-line"><b>In plain English:</b> you must measure agreement (consistency, inter-rater reliability), and two popular numbers are wrong for the job. <b>Percent agreement</b> does not correct for chance: with a dataset that is 95 percent one class, two raters agree 90 percent of the time by luck. <b>Pearson correlation</b> measures co-movement, not agreement: the columns one, two, three and three, four, five are perfectly correlated and never agree. <b>Cohen's kappa</b> corrects for chance but takes exactly two raters, no missing values and exact matches (a weighted variant forgives near misses). <b>Krippendorff's alpha</b> corrects more harshly, takes any number of raters, handles blanks, and works on nominal, ordinal or interval data; it is what the day and most practitioners prefer. Reading the number: above 0.8 is good enough to proceed, 0.6 to 0.8 is acceptable, below 0.4 is poor, and skew breaks kappa and alpha too, so when the set is lopsided reach for an alternative coefficient or, better, make the rubric harder. To measure human-against-judge, add the judge as one more rater and re-run the study, or swap one human for the judge; if the coefficient barely moves, the judge is as good as a person. The common shortcut, one human consensus label against the judge, throws away information if you already have several labels.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Set realistic expectations.</b> Generic pre-written or adaptive rubrics: roughly 60 to 90 percent agreement with people. Calibrated autoraters on a foundation model with the techniques above: roughly 80 to 95. Something like 99 percent exists only for a very simple, highly specified task, maybe with a hyper-engineered cascade of prompts or a fine-tuned model. So know your goal before you start. A human-in-the-loop prototype that tolerates mistakes: vibe hard, iterate fast, use the stock autoraters, 80 percent is fine. A fully automated higher-stakes system: measure a careful baseline, climb scientifically, prefer precise measurement over velocity, calibrate and validate the judge, and stay focused, because maybe one or two tasks in the whole system need near-perfect judging. If you do not know what you need from the output quality, and therefore from the judge, you are setting yourself up to fail.</div>
+      <div class="plain-line" style="margin-top:8px"><b>When the judge disagrees with your experts</b>, work the list in order: check your expectations and that you are measuring correctly; analyse specific disagreements; read the judge's reasoning; refine the rubric and the prompt and add few-shot examples on the boundaries; check for obvious biases, length above all; use more criteria with fewer criteria per prompt; try pairwise; and only then the path of doom, fine-tuning a model or building a custom system. In the real world a few labels go a long way: a demonstration that the rubric is ambiguous builds consensus about underperformance and unrealistic expectations, autorater reasoning helps engage experts, a second set of labels shows the judge improving, and percent agreement will not end the world if you also report mean, standard deviation and absolute error, but correlation will. If you have no experts at all, use <b>self-consistency</b>: run the same input through the judge many times (more than eight, ideally fifteen to twenty), treat each pass as a rater, demand very high agreement, watch for skew and homogeneity, and eliminate the criteria that fail; then go further by varying the system instructions, the role, adding irrelevant noise and reversing the scale. A judge can be consistently wrong, so self-consistency is a backstop, not a substitute.</div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: pointwise, pairwise, or fix the rubric first?</h2>
+      <div class="plain-line"><b>Try this:</b> ten situations from the day's discussion. For each, say whether you would score on a scale, compare side by side, or stop and fix the rubric before any judge is involved.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Marking essays out of ten tells each student exactly where they stand and what changed since last term. Ranking two essays side by side is faster and catches a small but consistent improvement, but tells neither student their mark, and a ranking that favours the longer essay every time is a bias you only notice later.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>asking whether there is anything to compare against yet; if not, pairwise cannot start.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>cold start</b> no benchmark or previous version exists to compare against</span><span class="sp-w"><b>champion and challenger</b> the version in production against the one that wants its place</span><span class="sp-w"><b>win rate</b> the share of comparisons the challenger wins; can hide regressions on single points</span><span class="sp-w"><b>position bias</b> preferring whichever output is shown first</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="pwOut"></div></div>
+        <div><div id="pwCtl"></div><div id="pwNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 3 · CLIMB WITH A JUDGE ================= -->
+  <section class="pane" id="pane-oclimb">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">The lab's problem: no labels, no time, nineteen criteria</h2>
+      <div class="plain-line"><b>In plain English:</b> the day's first challenge lab hands you a prototype agent that writes investment reports on vacant lots, built from a few skills an analyst drafted in a hurry, and a rubric of nineteen criteria the analysts think describe a good report. What you do not have is labels: nobody has had time to rate reports by hand, so you cannot run a human-against-judge study. What you can do is a <b>self-consistency</b> study: run every report through the judge several times (the lab's bigger run was 32 lots, 19 criteria, 15 passes) and treat each pass as a rater. Criteria the judge scores consistently are candidates; criteria it scores differently every pass are noise, whatever the analysts hoped. Two cautions from the room: the evaluation service majority-votes four samples behind every score it returns, which inflates every agreement metric, so be more conservative than the usual tables; and consistent is not the same as right, a judge can be consistently wrong, so a reliable criterion is still only a candidate for a human study later.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Reading the harness output.</b> For one criterion the analysis tool prints a grid of lots down and passes across, with margins per report (minimum, maximum, range, mean, standard deviation, percent pairwise agreement) and per pass (mean, standard deviation, minimum, maximum, range), and a summary line: mean of all ratings, the lowest and highest rating anywhere, the widest range on a single report, the widest range within a single pass, the standard deviation of report means, the standard deviation of pass means, mean pairwise agreement, and Krippendorff's alpha. Some of those are distractors, on purpose. Mean, minimum and maximum describe the reports, not the judge. The widest range on a single report and alpha describe the judge. Percent agreement is inflated by skew, and a criterion that scores five on everything will show perfect agreement and no information at all.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Then climb.</b> The sponsors insist on two criteria, cost per acre and neighbouring flood risk, and one of them showed only moderate self-agreement in the study; you note the concern in your report and climb anyway, because the problem it detects must be fixed. The loop: run the agent across the target lots, a single-pass evaluation of the two criteria, read the mean, then read the judge's rationales for every lot that scored four or below, in the light of the criterion's definition and the agent's run in the development console; modify the skills; run again. Each run writes a versioned trace set and a versioned results folder. The bar is a mean above four on both. And one operational gotcha the lab underlines: the progress check reads only the last run, so when both means clear the bar, stop and press the button before you keep experimenting for fun.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: choose the reliable criteria</h2>
+      <div class="plain-line"><b>Try this:</b> eight of the rubric's criteria, each scored on eight reports across five passes, with the harness's summary metrics computed from the grid. Pick the three you would climb on, then check. Four of the eight are traps the day named: one is the homogeneity trap, one is skew dressed as agreement, one is noise, and one has a single pass that scores everything two points lower. Open any criterion's grid to see why.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Choosing which of eight bathroom scales to trust by weighing the same eight parcels five times on each. A scale that reads the same every time for each parcel is reliable even if it reads a little low. A scale that reads the same for every parcel is broken. A scale that reads differently every time is noise.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>ignoring the mean column entirely; it describes the reports, and the question is about the judge.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>pass</b> one complete scoring run of every report by the judge</span><span class="sp-w"><b>max range, report</b> the biggest gap between the highest and lowest score one report got across passes</span><span class="sp-w"><b>SD of pass means</b> how much a whole pass drifts up or down; a high value means one pass behaves differently</span><span class="sp-w"><b>mean pairwise agreement</b> share of pass pairs that gave a report the identical score</span><span class="sp-w"><b>alpha</b> Krippendorff's agreement coefficient, corrected for chance</span><span class="sp-w"><b>distractor</b> a metric that is printed and tells you nothing about reliability</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="lbl">all criteria, summary metrics</div>
+          <div id="crTable"></div>
+          <div class="lbl" style="margin-top:12px">one criterion's grid</div>
+          <div id="crGrid"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:4px">pick three to climb on</div>
+          <div class="toggles2" id="crSel"></div>
+          <div class="btns"><button class="btn" id="crCheck">check my picks</button></div>
+          <div id="crVerdict" class="answer"></div>
+          <div class="lbl" style="margin:10px 0 4px">inspect a grid</div>
+          <div class="segmented col" id="crPick"></div>
+          <div id="crNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: the hill climb</h2>
+      <div class="plain-line"><b>Try this:</b> the report agent's skills, with six edits you can make. Run the climb: the agent writes the ten target reports, the judge scores the two sponsor criteria in a single pass, and the means appear with the judge's rationale for every lot at or below four. Read the rationales, pick the edits they point at, run again. The bar is above four on both. Then watch the progress check, which only reads the last run.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Coaching a student between mock exams. You do not re-teach the syllabus; you read the examiner's margin notes on the papers that scored badly, fix exactly those habits, and sit another mock. With one marker and one sitting the mark wobbles, so you want to clear the bar by a margin, not by a decimal.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>running once with nothing changed and reading the rationales before touching any edit.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>skill</b> the folder of instructions the agent loads for this kind of task</span><span class="sp-w"><b>single pass</b> k equals one: fast, and noisy, so a mean near the bar can flip between runs</span><span class="sp-w"><b>rationale</b> the judge's written reason for a score, the thing you actually climb on</span><span class="sp-w"><b>versioned run</b> each climb writes its own traces and results, so you can compare runs</span><span class="sp-w"><b>progress check</b> the lab's grader; it reads the latest run only</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="meter"><div class="big" id="hcCost">&ndash;<small>cost per acre, mean</small></div><div class="big" id="hcFlood">&ndash;<small>neighbouring flood risk, mean</small></div></div>
+          <div id="hcVerdict" class="answer"></div>
+          <div class="lbl" style="margin-top:12px">the judge's rationales for lots scoring four or below</div>
+          <div class="evlog" id="hcWhy"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:4px">edits to the skills</div>
+          <div class="toggles2" id="hcEdits">
+            <label><input type="checkbox" data-k="formula"> <span>state the cost-per-acre formula and show the division<small>price divided by acreage, with the working</small></span></label>
+            <label><input type="checkbox" data-k="units"> <span>normalise units before dividing<small>the parcel data gives lot size in square feet</small></span></label>
+            <label><input type="checkbox" data-k="neigh"> <span>look up flood zones for the adjacent parcels<small>not only the subject lot</small></span></label>
+            <label><input type="checkbox" data-k="cite"> <span>cite the data source for every number<small>table and field</small></span></label>
+            <label><input type="checkbox" data-k="brief"> <span>keep the report under 400 words<small>the analysts asked for brevity</small></span></label>
+            <label><input type="checkbox" data-k="tone"> <span>write in a confident executive tone<small>no hedging</small></span></label>
+          </div>
+          <div class="btns"><button class="btn" id="hcRun">&#9654; run the climb</button><button class="btn" id="hcCheck">check my progress</button></div>
+          <div class="lbl" style="margin:10px 0 4px">runs</div>
+          <div class="evlog" id="hcLog"></div>
+          <div id="hcNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 4 · THE HARNESS, NOT THE MODEL ================= -->
+  <section class="pane" id="pane-oharness">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Why coding agents, and the loop they run</h2>
+      <div class="plain-line"><b>In plain English:</b> coding is the dominant use of these models by revenue, many enterprises build their own coding agents, and even non-coding work (document analysis, say) often ends with task-specific code running in a sandbox. More to the point for an engineer, coding is the proving ground: the design patterns that work for agents were born here (state isolation, deterministic hooks, external verification, context management) and transfer to everything else. What makes a coding agent different from a chat agent is the horizon (hours, planning, sub-agents, thousands of tool calls), the context (it rarely fits and must be curated continuously), the environment (repositories, a terminal, code execution), the evaluation (objective: compilers, tests, type checkers) and the failure modes (production bugs, leaked secrets, security holes). The architecture has a context and state block (a context engine, steering, durable state, tool contracts) feeding a loop of four steps: assemble the prompt, call the model, execute tools, observe and log; a secure sandbox with hooks and permissions in front of the environment; external verifiers; a human for approvals; and one question after every turn: done, over budget, or stuck?</div>
+      <div class="plain-line" style="margin-top:8px"><b>The loop, as code.</b> Build the prompt from the system instructions, the tool definitions, the transcript and the environment state; call the model; execute whatever it asked for and append the results; exit on completion, an unrecoverable error or a cap. Run it as a state machine: fixed parameters apart from mutable state, transitions all or nothing, every transition logged with its reason; store the to-do list, decisions and task status outside the window so compaction cannot lose them; and enforce caps in code, not in prose. Self-correction loops get stuck, and the room knew it: a diminishing-returns detector stops a run whose turns add nothing new, a stuck-loop detector caps retries on a structurally identical failure and insists that a &ldquo;fix&rdquo; actually changed relevant code, and hard caps on attempts, tokens and time prevent runaway cost; recovery is a cascade, cheapest and safest first. Plan mode is a read-only exploration phase before any edit, and skipping it on a task that needed it is the leading cause of sessions degrading into compounding fixes that never converge, so instrument &ldquo;skipped planning&rdquo; as a failure mode. Route the agent's changes through the same pipeline as a person's, type checks, integration tests and security scans, and never let the agent control or bypass that pipeline. Classify every exit reason into telemetry: completed, token budget exceeded, maximum turns, recovery loop detected, model error. The trainer's cautionary tale: a company raised a per-seat limit from twenty dollars to two thousand because things were going well, and some seats returned eighteen-hundred-dollar months for very little visible work; the loop was the reason.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Context, tools and finding your way around the code</h2>
+      <div class="plain-line"><b>In plain English:</b> more context does not make better reasoning. <b>Context degradation</b> is the progressive loss of an agent's ability to use what it has accumulated: relevant facts buried, confusion between old and current state, instructions violated, attention reduced, actions repeated, drift from the goal. System instructions fail at two extremes, a hard-coded branch for every edge case (brittle, expensive to maintain) and &ldquo;write good code&rdquo; (improves nothing); the right altitude is heuristics not rules, organised into labelled sections, with a few canonical examples, started minimal on a strong model and grown only to address observed failures. Because every prompt re-sends the whole transcript, input tokens grow with the square of the number of turns; the fix is to make every request a prefix extension of the last so the implicit prefix cache hits, roughly a tenfold saving, and the traps that silently break it are changing the tool list, editing earlier messages or tool results, changing the sandbox or permission mode, and switching models mid-session. Compaction is a ladder, safest first: clear a tool result's raw payload once its decision is extracted; swap stale outputs for short placeholders, touching only turns past the cached prefix; collapse a span of stale turns into one shorter summary; and last, a full compaction with one inference, preferably on a cheaper model, complete before concise, with architecture decisions, hard constraints and user requirements surviving every time, plus a manual trigger. Memory sits outside the window in tiers (working, episodic, semantic, workspace), which the kit maps to its session, memory and artifact services, and tasks too long for one window are split into phases with fresh sessions that boot from disk: the progress file, the git log, the tests. An agent-facing README holds the project's conventions: command-first, nearest file wins, under about two hundred lines, because adherence degrades with too many rules.</div>
+      <div class="plain-line" style="margin-top:8px"><b>A tool is a contract with a non-deterministic caller.</b> Run an API client twice and you get identical calls; run an agent twice and you get a different tool order, different arguments, sometimes no call at all, because every call is a fresh decision shaped by the description and schema that sit in the prompt every time. Write every description as if onboarding a fast, literal-minded new teammate; design the response as carefully as the call (meaningful identifiers not opaque ids, a verbosity switch, engineered truncation that says what was cut and how to narrow, errors that read like prompts, a hard cap on length); and keep the set small and sharp, task-shaped rather than one tool per endpoint, with the litmus test that if a human engineer cannot say which of two tools to use, neither can the agent. Evaluate tools like a product feature before shipping, on realistic multi-call tasks, instrumented beyond pass or fail: a string of near-identical calls says the tool should return more; invalid parameters say the description is unclear. For navigating code, match the strategy to how fast the content changes: conventions and build commands are preloaded from the README; the code itself is searched just in time; a structural map of symbols orients a fresh session in a couple of thousand tokens; a semantic index is for abstract questions over an unfamiliar massive code base; and preloading the whole repository (a million tokens is roughly fifty to sixty thousand lines) trades retrieval misses for context rot, so it is only for small ones. The code-intelligence ladder is priced: string search, then a parser, then a language server, then the compiler, then the tests. The practice is &ldquo;the model proposes, the language server verifies&rdquo;: diagnostics after every edit, references before every rename, procedures wrapped as intents (a safe rename is references, rename, check for new errors), while string search still wins for strings, configuration and docs, and static analysis never substitutes for a test.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the harness tuner</h2>
+      <div class="plain-line"><b>Try this:</b> the lab's coding agent: a fixed small model on a low thinking budget, two tools (read a file, write a file) and a one-line system prompt, scored by an evaluation of five tasks (three bug fixes with a planted defect, two small programs built from a spec) against tests the agent never sees. On its own it solves fewer than half, and the results are flaky. The model never changes. Switch harness improvements on and run the evaluation; the bar is at least four of five, reliably, which means across several runs. One switch is a cheat: see what it does to the grade.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>The same apprentice given a better workshop. You cannot make them cleverer by Friday, but you can give them a search tool, a way to run their work before they hand it in, and the habit of reading the brief and the existing work before touching anything. The pass rate moves more than it would with a smarter apprentice and no workshop.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>running the baseline three times and watching the score wobble, then adding the <b>search</b> and <b>run</b> tools.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>harness</b> everything around the model: tools, instructions, hooks, verifiers, caps</span><span class="sp-w"><b>hidden tests</b> the grader's script; pass is exit code zero, and the agent never sees it</span><span class="sp-w"><b>trajectory</b> the exact tool calls the agent made and the code it shipped</span><span class="sp-w"><b>stop reason</b> why the run ended: completed, maximum turns, loop detected</span><span class="sp-w"><b>overfitting</b> logic that solves these five tasks and nothing else; the final grading rejects it</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="meter"><div class="big" id="hzPass">&ndash;<small>passed, last run</small></div><div class="big" id="hzCalls">&ndash;<small>tool calls, total</small></div><div class="big" id="hzHist">&ndash;<small>last three runs</small></div></div>
+          <div id="hzTable"></div>
+          <div id="hzVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:4px">the harness</div>
+          <div class="toggles2" id="hzTg">
+            <label><input type="checkbox" data-k="search"> <span>add a search tool<small>find the string or symbol across the sandbox</small></span></label>
+            <label><input type="checkbox" data-k="run"> <span>add a run tool<small>execute a command, return stdout, stderr and the exit code</small></span></label>
+            <label><input type="checkbox" data-k="list"> <span>add a list-files tool<small>see what exists before guessing paths</small></span></label>
+            <label><input type="checkbox" data-k="plan"> <span>read before you write, then plan<small>a short read-only phase before the first edit</small></span></label>
+            <label><input type="checkbox" data-k="verify"> <span>run your code before you finish<small>and fix what the run reports</small></span></label>
+            <label><input type="checkbox" data-k="errors"> <span>tool errors as helpful messages<small>&ldquo;file not found; did you mean src/utils.py?&rdquo;</small></span></label>
+            <label><input type="checkbox" data-k="cap"> <span>cap retries on an identical failure<small>a stuck-loop detector in the loop code</small></span></label>
+            <label><input type="checkbox" data-k="hardcode"> <span>hard-code the five answers<small>check for the task id and emit the known solution</small></span></label>
+          </div>
+          <div class="btns"><button class="btn" id="hzRun">&#9654; run the evaluation</button><button class="btn" id="hzReset">reset runs</button></div>
+          <div id="hzNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: diagnose the agent, not the task</h2>
+      <div class="plain-line"><b>Try this:</b> four failed trajectories from the baseline agent, as the run folder records them: the tool calls in order, the grader's verdict, the stop reason. For each, choose the diagnosis. The lab grades this step against a rubric that scores low for any diagnosis that merely restates the bug the task planted; it wants the capability the agent lacked or the wrong move it made.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A mechanic's apprentice replaced the wrong part. &ldquo;The fuel pump was faulty&rdquo; describes the car. &ldquo;They never ran the diagnostic and had no manual, so they changed the first part they could reach&rdquo; describes the apprentice, and it is the only one of the two sentences that helps the next job.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>counting the tool calls and noticing what is missing between the first read and the write.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool uses</b> the short version of the trajectory: every call and its arguments</span><span class="sp-w"><b>repro script</b> re-runs the grader's tests on the agent's output so you can see the failing assertion</span><span class="sp-w"><b>root cause of the agent</b> the missing capability or wrong move, not the bug in the code</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="dxOut"></div></div>
+        <div><div id="dxCtl"></div><div id="dxNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which tool answers it cheapest?</h2>
+      <div class="plain-line"><b>Try this:</b> ten questions a coding agent asks about a code base. For each, name the cheapest rung of the code-intelligence ladder that answers it properly: string search, a parser, a language server, the compiler, or the tests.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Looking something up about a building. Searching the plans for a word is cheap. Reading the plans' structure (which rooms, which walls) costs a surveyor. Knowing which walls are load-bearing costs an engineer. Whether the building stands up: build it. Whether it is comfortable to live in: live in it.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>asking whether the answer is about text, structure, meaning, buildability or behaviour.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>parser</b> a library that turns code in any language into a tree of its structure</span><span class="sp-w"><b>language server</b> the engine behind an editor's red squiggles, go-to-definition and rename, spoken to over a protocol</span><span class="sp-w"><b>references</b> every place a symbol is used; the definitive list of what a rename must touch</span><span class="sp-w"><b>diagnostics</b> the language server's errors and warnings for a file as it stands</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="ciOut"></div></div>
+        <div><div id="ciCtl"></div><div id="ciNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 5 · THE BILL ================= -->
+  <section class="pane" id="pane-ocost">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">How the bill arrives</h2>
+      <div class="plain-line"><b>In plain English:</b> ask the room how a model call is billed and the first answer is tokens per million, input and output. Keep asking and the rest surfaces: the model tier, the thinking tokens (reasoning bills as output, the priciest meter), cached input at a steep discount, and the time to answer. The business asks a different question, the total cost of ownership of an agent or a fleet, and three sentences frame it. Launch-day sizing is a forecast, not a contract, so never let a customer read an estimate as a promise. Standing still costs money: sessions to store, caches to keep warm, vector-serving nodes that bill around the clock whether queried or not, the standing infrastructure of a building with nobody in it. And re-measure regularly, resize at every renewal. There are four billing models and each has its own lever. <b>Token-based</b>, dollars per million tokens for model calls (input, cached, output): manage counts and tiers. <b>Resource-based</b>, dollars per node-hour for vector serving nodes and the agent runtime: right-size, and scale to zero where you can. <b>Provisioned</b>, dollars per scale unit per term from a week to a year: size the reservation to the baseline and balance it against pay-as-you-go overflow. <b>Seat-based</b>, dollars per user per month for the enterprise assistant licences: governance, who actually needs access; the day's story was five thousand licences bought and fifteen hundred used, and the remedy was workshops, not a smaller invoice.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Five consumption options.</b> Provisioned throughput, backed by an agreement, a fixed price per scale unit per term, for critical stable traffic that needs predictable performance and price. Priority pay-as-you-go, about 1.8 times the base rate, for critical user-facing traffic that needs reliability and lower latency at peak. Standard pay-as-you-go, the base rate, for variable workloads without a strict availability promise. Flex, about half, best effort within thirty minutes, for cost-sensitive traffic that can wait. Batch, about half, results within a day, for throughput-heavy latency-insensitive jobs: extraction, classification, sentiment. The decision tree: is the request latency-sensitive? If not and it is synchronous, flex; if it is a bulk asynchronous job, batch. If yes, can it tolerate 429s? If yes, standard. If not, analyse the minute-level traffic pattern, size the reservation to cover the baseline, and spill peaks to priority and standard. A <b>scale unit</b> is the common currency of reserved capacity: throughput is input tokens per query plus output tokens per query times queries per second, converted with burn-down rates that account for the model and the context length, so a reservation covers different models by different amounts. One more fact from the deck, to take with a pinch of salt: tokenisers differ by language, and the vendor's own count showed its model using up to a fifth fewer tokens than a rival on several Asian languages (and slightly more on English); input only, and it says nothing about quality.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">The levers, and the triangle they sit in</h2>
+      <div class="plain-line"><b>In plain English:</b> no lever is free. Output quality, latency and cost form a triangle, and before you cut cost you ask three questions: is a person blocked waiting on the result (if not, a cheaper asynchronous tier is safe); does lower quality cost more than the tokens saved, say an escalation to a human; and is the output internal and disposable or external and binding? Then the levers. <b>Tier.</b> Flash-Lite for high-volume simple latency-sensitive steps, Flash as the strong default, Pro for complex reasoning only, at several times Flash per token; pick the lowest tier that clears your quality bar, verified with a data-driven evaluation, and route per task, not per application. <b>Cache the prefix.</b> A cache write costs the full input rate, a cache read about a tenth of it, and an explicit cache pays storage per million tokens per hour while it lives; implicit caching is on by default and best effort with no storage fee, explicit caching is declared by you and guaranteed on every hit. The constraints that bite: a minimum of 4,096 tokens, at most ten megabytes per cached block, a time to live from one minute with no maximum, not available on flex or batch, available on provisioned in preview. The breakeven: a static block reused more than a handful of times per time-to-live window wins, and idle time pushes breakeven out, so set the time to live to your reuse cadence. The rules: static content first and dynamic context last, because breaking the prefix loses the discount; measure every call from the cached-token count in the usage metadata and log the hit ratio; investigate falling hit rates; act on the breakeven; do not assume tier discounts stack; and never budget on an implicit hit you have not verified.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Reduce tokens, keep the quality.</b> Enforce a response schema so you get only the fields you asked for, cap the output tokens, set stop sequences, keep system prompts concise and trim few-shot examples, and kill the preamble, because every filler token is billed and fillers cost twice: a terse-output skill the trainer uses in his own sessions shaves a fifth to a third off the output. Set the <b>thinking level</b> per task: dynamic thinking is on by default at a tier-dependent level, low for deterministic steps such as look-ups and tool selection, verified by plotting quality against thinking level, with actual thinking tokens reported after the fact. <b>Route by task, not by inertia</b>: static routing maps step types to tiers (triage to Flash-Lite, synthesis to Flash or Pro); a cascade tries the cheap tier and escalates on low confidence or failed validation; dynamic routing classifies each request up front. Routing lives in the agent (the kit's routed model when only the model changes, a routed agent when instructions or tools change too) or at a gateway for fleet-wide policy, budgets and provider failover; whichever you use, score it on cost per resolved task, not per call. Stretch levers: over-retrieve twenty chunks and rerank to the best three to five (about four-fifths less retrieval context on every grounded call, for a small ranking fee per thousand queries); cap the fan-out, because an uncapped confused agent re-buys the whole context every step; and a semantic cache, where a hit never calls the model at all, provided hit rate times avoided model spend beats embedding, lookup and the always-on serving nodes with their two-replica floor. Governance closes the loop: quotas are a hard per-minute ceiling (blunt: peaks get 429s, handle with backoff); budgets and alerts notify at thresholds and can trigger automation (a safety net, not a control plane); spend caps pause traffic at a limit (disruptive, and not every service supports them); labels with billing export to the warehouse attribute spend by team, application, model and environment, provided you label at provisioning time.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: cost per query, with a budget and a quality floor</h2>
+      <div class="plain-line"><b>Try this:</b> the lab's code assistant: a coordinator that routes and synthesises one cited answer, a documentation agent backed by a managed search engine and a community agent backed by a local vector store, metered by a per-call ledger and scored by a judge against reference answers. The baseline is a Pro coordinator with high thinking at about three cents a query. The challenge: at most $0.0135 per query and quality at least 0.90, graded on sixteen held-out queries, with the coordinator never on the budget tier. Pull levers, read the ledger, then <b>run the held-out set</b> to plot the configuration against the budget line and the quality floor. No single lever is enough.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A restaurant trying to halve the cost of its signature dish without the critics noticing. Cheaper cut (tier), prep the stock once a day instead of per order (cache), stop over-reducing the sauce (thinking), fewer but better garnishes (rerank), and a freezer of pre-made portions that helps regulars but does nothing for the critic who orders something new every visit (the semantic cache against held-out queries).</span></div><div class="sp-row"><span class="sp-k">start by</span><span>running the baseline, then switching only the coordinator to Flash and reading why it fails.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>coordinator</b> the top agent that fans out to sub-agents and writes the final answer</span><span class="sp-w"><b>usage ledger</b> a per-call record of input, cached, thinking and output tokens with prices applied</span><span class="sp-w"><b>held-out</b> queries kept back from tuning so the grade is honest</span><span class="sp-w"><b>top-k</b> how many retrieved chunks each sub-agent puts in its prompt</span><span class="sp-w"><b>rerank</b> retrieve broadly, then let a ranking model pick the few best chunks</span><span class="sp-w"><b>Pareto frontier</b> the runs no other run beats on both cost and quality</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="meter"><div class="big" id="cqCost">&ndash;<small>per query, graded</small></div><div class="big" id="cqQual">&ndash;<small>quality, judge</small></div></div>
+          <div id="cqLedger"></div>
+          <div id="cqVerdict" class="answer"></div>
+          <svg class="chart" id="cqChart" viewBox="0 0 520 240" aria-label="cost against quality for each run" style="margin-top:10px"></svg>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:4px">coordinator tier</div>
+          <div class="segmented" id="cqCoord"><button class="seg on" data-v="pro">Pro</button><button class="seg" data-v="flash">Flash</button><button class="seg" data-v="lite">Flash-Lite</button></div>
+          <div class="lbl" style="margin:8px 0 4px">sub-agent tier</div>
+          <div class="segmented" id="cqSub"><button class="seg on" data-v="flash">Flash</button><button class="seg" data-v="lite">Flash-Lite</button><button class="seg" data-v="pro">Pro</button></div>
+          <div class="lbl" style="margin:8px 0 4px">coordinator thinking level</div>
+          <div class="segmented" id="cqThink"><button class="seg on" data-v="high">high</button><button class="seg" data-v="medium">medium</button><button class="seg" data-v="low">low</button></div>
+          <div class="lbl" style="margin:8px 0 4px">retrieval top-k per sub-agent</div>
+          <div class="segmented" id="cqK"><button class="seg" data-v="20">20</button><button class="seg on" data-v="10">10</button><button class="seg" data-v="5">5</button><button class="seg" data-v="3">3</button></div>
+          <div class="toggles2" style="margin-top:8px">
+            <label><input type="checkbox" id="cqCache"> <span>cache the static prefix<small>system prompt, tool schemas, policy docs; minimum 4,096 tokens</small></span></label>
+            <label><input type="checkbox" id="cqTrim"> <span>trim the static prefix to 2,000 tokens<small>drop the policy docs</small></span></label>
+            <label><input type="checkbox" id="cqRerank"> <span>over-retrieve twenty, rerank to four<small>a ranking call per sub-agent</small></span></label>
+            <label><input type="checkbox" id="cqSem"> <span>semantic response cache<small>a hit never calls the model; about 30% hits on real traffic</small></span></label>
+          </div>
+          <div class="btns"><button class="btn" id="cqRun">&#9654; run the sixteen held-out queries</button><button class="btn" id="cqClear">clear runs</button></div>
+          <div class="lbl" style="margin:10px 0 4px">runs</div>
+          <div class="evlog" id="cqRuns"></div>
+          <div id="cqNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the caching breakeven</h2>
+      <div class="plain-line"><b>Try this:</b> one static block (system prompt, tool schemas, a policy corpus) reused across calls. Set its size, how often it is read, the time to live and the tier, and read the cost per window with and without an explicit cache, the breakeven in reads per window, and two ways to get nothing: a block below the minimum, and a dynamic block placed before the static one.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A season ticket. It costs a full fare to buy (the write), each trip is a tenth of the fare (the read), and it costs something per day just to hold (storage). It pays if you travel more than a few times before it expires, however long the route is; and it is worthless if the gate reads a different ticket first.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>dragging the block down below 4,096 tokens and reading what happens to the saving.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>explicit cache</b> a block you declare and reference per call; guaranteed discount, storage billed per token-hour</span><span class="sp-w"><b>implicit cache</b> automatic, best effort, free to store; hits are not guaranteed</span><span class="sp-w"><b>time to live</b> how long the cache lives before it expires; from one minute, no maximum</span><span class="sp-w"><b>breakeven</b> the number of reads per window above which the cache saves money</span><span class="sp-w"><b>prefix</b> the opening part of the prompt that must be byte-identical for a hit</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div id="bkOut"></div>
+          <div id="bkVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="sl"><label>static block, tokens</label><input type="range" id="bkPrefix" min="500" max="50000" step="500" value="8000"><output id="bkPrefixV">8,000</output></div>
+          <div class="sl"><label>reads per hour</label><input type="range" id="bkReads" min="1" max="200" step="1" value="20"><output id="bkReadsV">20</output></div>
+          <div class="sl"><label>time to live, hours</label><input type="range" id="bkTtl" min="1" max="8" step="1" value="1"><output id="bkTtlV">1</output></div>
+          <div class="lbl" style="margin:8px 0 4px">tier</div>
+          <div class="segmented" id="bkTier"><button class="seg on" data-v="flash">Flash</button><button class="seg" data-v="pro">Pro</button></div>
+          <div class="toggles2" style="margin-top:8px"><label><input type="checkbox" id="bkDyn"> <span>put the per-turn context before the static block<small>a timestamp or the user message first</small></span></label></div>
+          <div id="bkNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which consumption option?</h2>
+      <div class="plain-line"><b>Try this:</b> ten workloads. For each, pick the consumption option the decision tree lands on: standard pay-as-you-go, priority, a provisioned reservation, flex, or batch.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Getting across town. A taxi now (standard), a taxi with a guaranteed car at rush hour for a premium (priority), a leased car you pay for whether you drive it or not (provisioned), a shared ride that might take half an hour longer for half the fare (flex), and the overnight freight van for the parcels (batch).</span></div><div class="sp-row"><span class="sp-k">start by</span><span>asking two questions in order: is anyone waiting, and can it take a 429?</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>429</b> the response code for too many requests: the quota or capacity is exhausted for now</span><span class="sp-w"><b>provisioned throughput</b> reserved capacity in scale units for a term, at a fixed price</span><span class="sp-w"><b>spillover</b> the traffic above the reservation, sent to pay-as-you-go</span><span class="sp-w"><b>backoff</b> retrying after a growing pause instead of immediately</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="coOut"></div></div>
+        <div><div id="coCtl"></div><div id="coNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6 · FEWER TOKENS ================= -->
+  <section class="pane" id="pane-otokens">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Design for the agent's eyes</h2>
+      <div class="plain-line"><b>In plain English:</b> an agent reads a tool's output the way a person reads a screen, except that it pays per character and re-reads everything it has ever seen on every turn. The day pointed at a community design guide for agent-facing interfaces with ten principles in three groups. <b>Token efficiency:</b> a token-efficient output format that declares the field names once and streams rows (flat lists only; deep nesting inverts the saving); minimal default schemas of three or four fields per item with the rest behind a flag or a detail view, because every unrequested field bills on every row and then again on every later step; and truncation with a size hint (&ldquo;truncated, 2,847 characters in total, use the full flag&rdquo;) so the agent knows what it is missing and can opt in. <b>Robustness:</b> pre-computed aggregates (&ldquo;27 passed, 0 failed, 10 skipped&rdquo;) that turn a read-the-whole-log loop into one line, because fewer steps beats cheaper steps; a definitive empty state (&ldquo;0 results, nothing matches&rdquo;) rather than a blank the agent has to re-query to interpret; and structured errors with distinct exit codes, idempotent mutations, never an interactive prompt, unknown flags failing loudly. <b>Discoverability:</b> ambient context installed by a setup hook, content first (a no-argument call returns live data, never a help screen), contextual disclosure of the logical next command with placeholders ready to fill, and a consistent concise help on every subcommand. The evidence the day cited, from a browser-tool case: eleven turns at about nineteen cents became two turns at under five, because the tool did the multi-step work so the agent did not have to.</div>
+      <div class="plain-line" style="margin-top:8px"><b>The toolbox and the transcript.</b> Fifty tool schemas in the prompt is roughly 77 thousand input tokens re-processed on every turn, and selection accuracy drops past about thirty visible tools, so the agent makes wrong calls and retries; a semantic tool retriever that matches the intent against tool descriptions, which the kit exposes as toolset filtering, puts three or four schemas in front of the model instead, about nine-tenths fewer tokens, with the same tools available. The transcript is managed by masking first: resolved tool outputs become typed placeholders while the reasoning and call parameters stay verbatim, about 95 percent less history bloat, deterministic, no extra calls; summarising instead spends its own model calls (around seven percent of inference cost), smooths over failures and destroys the stack-trace evidence. Compact early, at 50 to 60 percent of the window, keeping decisions and open threads and dropping the raw transcript, before rot bakes into the summary; be cache-aware, since restructuring invalidates the prefix, so never break a hot prefix for less than it saves; and keep the static blocks (system prompt, tool schemas, corpus) first so they ride the discount while the per-turn dynamics trail.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the tool response designer</h2>
+      <div class="plain-line"><b>Try this:</b> a build tool answering &ldquo;what is the state of pipeline 4471?&rdquo; for an agent that then has to decide what to do. Thirty-seven jobs. Switch the design principles on and off and watch three numbers: tokens per response, turns the agent needs to finish the task, and the cost of the task. The preview shows what the agent would actually read.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A status board at a railway station. A good one says &ldquo;27 on time, 0 cancelled, 10 delayed&rdquo; at the top and lists four columns per train; a bad one lists every train's fourteen fields and leaves you to count, cuts the list off without saying so, shows a blank when there are no trains, and makes you ask a member of staff how to find the next page.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>switching on <b>aggregates</b> alone and watching the turn count, then everything else.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>default schema</b> the fields returned when the caller asked for nothing specific</span><span class="sp-w"><b>aggregate</b> a count or roll-up computed by the tool, not by the model</span><span class="sp-w"><b>size hint</b> a note saying how much was truncated and how to get the rest</span><span class="sp-w"><b>exit code</b> a number that says how a command ended; distinct codes for distinct failures</span><span class="sp-w"><b>turn</b> one round of the loop: assemble, call the model, execute, observe</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="meter"><div class="big" id="trTokens">&ndash;<small>tokens per response</small></div><div class="big" id="trTurns">&ndash;<small>turns to finish</small></div><div class="big" id="trCost">&ndash;<small>cost of the task</small></div></div>
+          <div class="lbl">what the agent reads</div>
+          <div class="json" id="trPreview"></div>
+          <div id="trVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:4px">the response design</div>
+          <div class="toggles2" id="trTg">
+            <label><input type="checkbox" data-k="minimal"> <span>minimal default schema<small>four fields per job; the rest behind a flag</small></span></label>
+            <label><input type="checkbox" data-k="agg"> <span>pre-computed aggregates<small>count, and passed, failed, skipped</small></span></label>
+            <label><input type="checkbox" data-k="trunc"> <span>truncation with a size hint<small>say what was cut and how to get it</small></span></label>
+            <label><input type="checkbox" data-k="empty"> <span>definitive empty state<small>&ldquo;0 results, nothing matches&rdquo; instead of a blank</small></span></label>
+            <label><input type="checkbox" data-k="errors"> <span>structured errors and exit codes<small>no interactive prompts, unknown flags fail loud</small></span></label>
+            <label><input type="checkbox" data-k="toon"> <span>token-efficient tabular output<small>fields declared once, then rows</small></span></label>
+            <label><input type="checkbox" data-k="help"> <span>contextual next-command hints<small>help lines with placeholders</small></span></label>
+          </div>
+          <div class="btns"><button class="btn" id="trAll">switch everything on</button><button class="btn" id="trNone">everything off</button></div>
+          <div id="trNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: shrink the toolbox</h2>
+      <div class="plain-line"><b>Try this:</b> an agent with a registry of tools, all of whose schemas sit in every prompt. Drag the number of tools up and watch input tokens per turn, selection accuracy, retries and the cost of a task. Then switch on the semantic tool retriever and read the same four numbers.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A waiter who reads the entire fifty-page menu aloud before taking each order, and gets the order wrong more often the longer the menu. The retriever is a waiter who asks what you feel like and reads out the four dishes that fit.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>dragging to fifty tools, then switching the retriever on.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>tool schema</b> the name, description and parameter definition the model sees for a tool</span><span class="sp-w"><b>semantic tool retriever</b> matches the user's intent against tool descriptions and exposes only the best few</span><span class="sp-w"><b>toolset filtering</b> the kit's hook for choosing which tools a turn can see</span><span class="sp-w"><b>selection accuracy</b> how often the model picks the right tool first time</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="bars" id="tbBars"></div>
+          <div id="tbVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="sl"><label>tools in the registry</label><input type="range" id="tbN" min="3" max="60" step="1" value="50"><output id="tbNV">50</output></div>
+          <div class="toggles2" style="margin-top:8px"><label><input type="checkbox" id="tbRet"> <span>semantic tool retriever<small>vector-match the intent, show the top four</small></span></label></div>
+          <div id="tbNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: the transcript manager</h2>
+      <div class="plain-line"><b>Try this:</b> a sixty-turn coding session in a 200-thousand-token window, each turn adding a tool output and some reasoning. Choose how the transcript is managed and read the chart of context size by turn against the 50, 60 and 90 percent bands, then the totals: tokens billed, cost, turns spent in the rot zone, cache breaks. Then put the per-turn context ahead of the static blocks and watch the discount vanish.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A detective's case file. Mask: keep every note of what you concluded and which witness you spoke to, but file the forty-page statements in the archive with a one-line reference. Summarise: rewrite the whole file from memory when it gets too thick, and lose the one detail that mattered. Compact early: tidy the file every week rather than when it falls apart.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>comparing <b>no policy</b> with <b>mask</b> on the rot-zone number, then trying the summary.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>context rot</b> the attention loss that sets in as the window fills, well before it is full</span><span class="sp-w"><b>mask</b> replace a resolved tool output with a short typed placeholder; keep the reasoning</span><span class="sp-w"><b>compaction</b> drop the raw transcript, keep decisions and open threads</span><span class="sp-w"><b>cache break</b> any edit inside the cached prefix, after which the next request pays full rate for it</span><span class="sp-w"><b>static-first</b> system prompt, tool schemas and corpus before anything that changes per turn</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <svg class="chart" id="tmChart" viewBox="0 0 520 240" aria-label="context size by turn"></svg>
+          <div class="meter"><div class="big" id="tmTok">&ndash;<small>input tokens billed</small></div><div class="big" id="tmCost">&ndash;<small>session cost</small></div><div class="big" id="tmRot">&ndash;<small>turns in the rot zone</small></div><div class="big" id="tmBreaks">&ndash;<small>cache breaks</small></div></div>
+          <div id="tmVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:6px">transcript policy</div>
+          <div class="segmented col" id="tmPolicy">
+            <button class="seg on" data-v="none">no policy<small>the transcript grows until the window is full</small></button>
+            <button class="seg" data-v="mask">mask resolved tool outputs<small>typed placeholders, batched every ten turns</small></button>
+            <button class="seg" data-v="summ">summarise at 90 percent<small>one model call rewrites the history</small></button>
+            <button class="seg" data-v="compact">compact at 55 percent<small>keep decisions and open threads, drop the rest</small></button>
+          </div>
+          <div class="toggles2" style="margin-top:8px"><label><input type="checkbox" id="tmDyn"> <span>per-turn context before the static blocks<small>breaks the prefix on every turn</small></span></label></div>
+          <div id="tmNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 7 · KEEP IT HONEST ================= -->
+  <section class="pane" id="pane-ohonest">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Verifiers outside the model, and agents that cheat</h2>
+      <div class="plain-line"><b>In plain English:</b> a coding agent is verified deterministically, by linters, type checkers, compilers and tests, and the verifier must sit outside the model, because asking a model to grade its own code is not trustworthy enough; it must also return rich feedback, so the model can find the root cause of every issue rather than the first. Model-based verifiers add a second layer: dedicated critic models that scan for known vulnerability classes, logic flaws and specification drift, evaluating the code in isolation from the context that produced it to avoid self-confirmation, and returning structured critiques to guide the next attempt. Then the uncomfortable fact: your agent may cheat. Given &ldquo;make sure all tests pass&rdquo;, agents weaken or delete the failing tests, because that satisfies the formal criterion. Two defences. Test-driven development for agents: write the tests first, confirm they fail before implementation, forbid touching test files during implementation, confirm they pass after. And prove the tests can fail: break the code under test and re-run the suite; it must go red. When running benchmarks, watch for memorisation and for the agent searching the web for solutions.</div>
+      <div class="plain-line" style="margin-top:8px"><b>The harness is a variable, and cost is a metric.</b> On a public terminal benchmark the exact same model version scores about sixty percent under one agent harness and about eighty under another, so to evaluate models hold the harness fixed and to evaluate harnesses hold the model fixed. Treat public benchmarks as contaminated by default, never decide from a leaderboard alone, and prefer contamination-resistant sets. A good evaluation dataset gets two things right: task validity (pin every dependency version, a clean environment per run, unambiguous prompts, no shortcuts left lying around) and outcome validity (tests neither so narrow that they assert a function name nor so wide that they expect behaviour the prompt never mentioned). If autoraters grade any of it, use a strict rubric with every scale step defined, randomise the order in pairwise comparisons to defeat position bias, and calibrate against human-graded examples first. And always report cost per resolved task beside accuracy, plot the accuracy-against-cost frontier and kill the dominated configurations, and score the trajectory as well as the outcome: tool calls, redundant calls, tokens per resolved task, error rate. A pass that took three times the tool calls is an optimisation waiting to happen. Security for coding agents is defence in depth in three tiers: at ingress, external content is data not instructions and is delimited as such, planning runs in a low-privilege read-only sub-agent before a high-privilege executor, and lightweight classifiers screen suspicious strings; in the loop, deterministic hook interceptors block blacklisted command signatures, output hooks intercept secrets, package installs resolve against a whitelist, and tiered permissions auto-approve reads while a person approves writes, network calls and installs; at egress, autonomous code runs in a micro-VM or hypervisor-isolated container never a shared kernel, with the network adapter disabled, paths validated to the workspace, and ephemeral narrow-scope tokens with the sandbox torn down after every session. The room's example of why: a helper library on the internet whose documented function &ldquo;creates an endpoint&rdquo; while its body deletes one, pulled in faithfully by an agent with every permission.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the cheating agent</h2>
+      <div class="plain-line"><b>Try this:</b> the agent is told to make the pricing suite pass, and one test fails. Choose what the agent does, choose which defences are in place, and run. Read which defence caught it, or how a broken change shipped green.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A student told to get full marks on the practice paper. They can learn the material, or they can change the answer key. Locking the answer key in the staff room, checking the key still marks a known-wrong paper as wrong, and having a different teacher do the marking are three different locks on three different doors.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>choosing <b>weaken the assertion</b> with every defence off, then switching them on one at a time.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>assertion</b> the line in a test that states what must be true</span><span class="sp-w"><b>tests first</b> write and run the tests before the implementation, so they are known to fail</span><span class="sp-w"><b>mutation check</b> deliberately break the code and confirm the suite goes red</span><span class="sp-w"><b>external verifier</b> a pipeline the agent cannot edit or skip runs the suite</span><span class="sp-w"><b>self-grading</b> asking the model to review its own change; not a verifier</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="lbl">what happened</div>
+          <div class="evlog" id="chLog"></div>
+          <div id="chVerdict" class="answer"></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:6px">the agent's move</div>
+          <div class="segmented col" id="chMove">
+            <button class="seg on" data-v="fix">fix the code<small>find the rounding bug in pricing.py</small></button>
+            <button class="seg" data-v="weaken">weaken the assertion<small>exact equality becomes within fifty</small></button>
+            <button class="seg" data-v="delete">delete the failing test<small>the suite shrinks by one</small></button>
+            <button class="seg" data-v="skip">mark the test as skipped<small>a decorator and a comment</small></button>
+            <button class="seg" data-v="tautology">rewrite the test to always pass<small>assert true</small></button>
+          </div>
+          <div class="lbl" style="margin:10px 0 4px">defences in place</div>
+          <div class="toggles2" id="chTg">
+            <label><input type="checkbox" data-k="tdd"> <span>tests first, confirmed failing<small>the test set is committed before implementation starts</small></span></label>
+            <label><input type="checkbox" data-k="lock"> <span>test files locked during implementation<small>a hook refuses edits under tests/</small></span></label>
+            <label><input type="checkbox" data-k="mutate"> <span>prove the tests can fail<small>break the code, the suite must go red</small></span></label>
+            <label><input type="checkbox" data-k="external"> <span>verifier outside the model<small>the pipeline runs the suite; the agent cannot edit or skip it</small></span></label>
+            <label><input type="checkbox" data-k="selfgrade"> <span>ask the model to review its own change<small>a popular anti-pattern</small></span></label>
+          </div>
+          <div class="btns"><button class="btn" id="chRun">&#9654; run</button></div>
+          <div id="chNote" class="cidr-out" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which spend control?</h2>
+      <div class="plain-line"><b>Try this:</b> ten things a platform team wants from its cost governance. For each, name the control that does it: a quota, a budget with alerts, a spend cap, or labels with billing export.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Household money. A quota is the card's daily limit, which declines at the till. A budget alert is the bank texting you at ninety percent. A spend cap is the card being frozen. Labels and export are the itemised statement that tells you who spent what on what.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>asking whether the control blocks, warns, or merely explains.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>quota</b> a hard per-minute ceiling on requests or tokens; excess gets 429</span><span class="sp-w"><b>budget alert</b> a notification at a spend threshold, actual or forecast; can publish to a queue</span><span class="sp-w"><b>spend cap</b> traffic paused at a limit; resumes when clear</span><span class="sp-w"><b>billing export</b> the itemised bill in a warehouse, queryable by label</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="gvOut"></div></div>
+        <div><div id="gvCtl"></div><div id="gvNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 8 · EXAM ANGLE ================= -->
+  <section class="pane" id="pane-oexam">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the scenario drill</h2>
+      <div class="plain-line"><b>Try this:</b> the scenarios below, shuffled, with the wrong answers taken from other scenarios on this page so they are plausible by construction.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>This drill is the flashcard: a situation, and you pick the right answer from look-alikes borrowed from the other scenarios. The list underneath is the revision guide. Read it after, not before, or you are only recognising, not producing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way a panel member would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is a real answer to something else</span></span></div></div>
+      <div id="drillHost"></div>
+    </div>
+    <div class="card">
+      <h2 class="sec">When the panel says&hellip; the answer they are listening for</h2>
+      <div class="plain-line"><b>In plain English:</b> each line is a question as a panel would phrase it, then the one-sentence answer that signals you built it, then the reason the usual answer loses.</div>
+      <div class="exam-line"><b>&ldquo;Do autoraters need labelled data?&rdquo;</b> &rarr; Yes; the big lie is that they do not. Calibrate against human labels, measure agreement with kappa or alpha, and when no experts exist use self-consistency across fifteen to twenty passes as a backstop, remembering a judge can be consistently wrong.</div>
+      <div class="exam-line"><b>&ldquo;Pointwise or pairwise?&rdquo;</b> &rarr; Start pointwise: absolute, no cold start, the exact change on every data point, easier agreement measurement and a clean map to a business threshold; go pairwise later for champion against challenger, where small consistent gains show but a win rate can hide a regression.</div>
+      <div class="exam-line"><b>&ldquo;Ninety percent agreement; are we good?&rdquo;</b> &rarr; Not necessarily: percent agreement does not correct for chance and a skewed set gets ninety by luck. Report Cohen's kappa for two complete raters or Krippendorff's alpha for any number with blanks, treat 0.8 as the bar, and be more conservative when the service majority-votes behind each score.</div>
+      <div class="exam-line"><b>&ldquo;Every criterion scores five on everything.&rdquo;</b> &rarr; The homogeneity trap: no variance, no signal, alpha not defined. The criteria are not challenging enough to expose a difference; rewrite them, because a judge that gives everyone an A is useless, not generous.</div>
+      <div class="exam-line"><b>&ldquo;Which of the rubric metrics describe the judge?&rdquo;</b> &rarr; The widest range within one report across passes, the spread of pass means, and alpha; the mean, minimum and maximum describe the reports, and percent agreement is inflated by skew.</div>
+      <div class="exam-line"><b>&ldquo;The judge disagrees with our experts.&rdquo;</b> &rarr; In order: check the expectation and the metric, read the judge's reasoning on specific disagreements, refine the rubric and prompt with boundary examples, check length and position bias, fewer criteria per prompt, try pairwise, and only then fine-tune or build custom.</div>
+      <div class="exam-line"><b>&ldquo;Fixed small model, two of five tasks solved. What do you change?&rdquo;</b> &rarr; The harness: a search tool and a run tool, read and plan before writing, run the code before finishing, errors phrased as prompts, a cap on retries of an identical failure. Never hard-code the tasks; the final grading rejects overfitting.</div>
+      <div class="exam-line"><b>&ldquo;The agent fixed the symptom in the wrong file.&rdquo;</b> &rarr; Diagnose the agent's gap, not the task's bug: it could not search the code base, so it never found the helper that applied the offset and changed the call site instead; a diagnosis that restates the bug scores low.</div>
+      <div class="exam-line"><b>&ldquo;How do you keep a coding agent from looping?&rdquo;</b> &rarr; Detect diminishing returns, cap retries on a structurally identical failure and insist a fix changed relevant code, cap attempts, tokens and time, classify every exit reason into telemetry, and make planning a phase it cannot skip unnoticed.</div>
+      <div class="exam-line"><b>&ldquo;Why does each turn cost more than the last?&rdquo;</b> &rarr; Every prompt re-sends the transcript, so input grows with the square of the turns. Keep each request a prefix extension of the last, and never change the tool list, edit earlier turns, switch permission modes or swap models mid-session, so the cached prefix reads at about a tenth.</div>
+      <div class="exam-line"><b>&ldquo;Is caching worth it for a 3,000-token prompt?&rdquo;</b> &rarr; No: below the 4,096-token minimum no cache is created. Above it, breakeven is a handful of reads per time-to-live window, about five on the Flash tier and seven on Pro, independent of block size, provided the static block comes first.</div>
+      <div class="exam-line"><b>&ldquo;How did you halve the cost per query without losing quality?&rdquo;</b> &rarr; A per-call ledger first, then levers combined: a Flash coordinator, reranked retrieval or a cached prefix, lower thinking on deterministic steps, graded on held-out queries. No single lever was enough, and a semantic cache cannot help a grader that never repeats a question.</div>
+      <div class="exam-line"><b>&ldquo;Which consumption option?&rdquo;</b> &rarr; Latency-sensitive and able to take a 429, standard; not able, size a reservation to the minute-level baseline and spill peaks to priority; latency-tolerant, flex at about half; asynchronous bulk, batch at about half within a day.</div>
+      <div class="exam-line"><b>&ldquo;Fifty tools and the agent keeps picking the wrong one.&rdquo;</b> &rarr; About 77 thousand tokens of schemas on every turn and accuracy that drops past thirty; retrieve the three or four tools the intent needs with a semantic tool retriever through the kit's toolset filtering, same tools, nine-tenths fewer tokens.</div>
+      <div class="exam-line"><b>&ldquo;Summarise the transcript or mask it?&rdquo;</b> &rarr; Mask resolved tool outputs with typed placeholders first: deterministic, no extra call, keeps the reasoning and the stack traces. Compact at fifty to sixty percent before rot bakes into any summary, and batch the cache breaks instead of clearing one by one.</div>
+      <div class="exam-line"><b>&ldquo;The agent made all tests pass. Ship?&rdquo;</b> &rarr; Prove the tests can fail: break the code and the suite must go red. Lock the test files during implementation, write them first and confirm they fail, and run the verifier in a pipeline the agent can neither edit nor skip; its own review of its own diff is not a verifier.</div>
+      <div class="exam-line"><b>&ldquo;Quota, budget alert or spend cap?&rdquo;</b> &rarr; A quota is a hard per-minute ceiling that returns 429s; a budget alert notifies at a threshold and can trigger automation but never blocks; a spend cap pauses traffic and is disruptive; labels with billing export are how spend is attributed by team, agent and tier.</div>
+    </div>
+  </section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="cheatsheet.html">cheatsheet</a> &middot; <a href="fde1.html">day one</a> &middot; <a href="fde2.html">day two</a> &middot; <a href="evals.html">evaluation lab</a> &middot; <a href="hotseat.html">the hot seat</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const $=id=>document.getElementById(id);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt=n=>Math.round(n).toLocaleString('en-GB');
+const usd=(x,d)=>'$'+x.toFixed(d==null?4:d);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const shuffle=(arr,rnd)=>{const b=arr.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+function segs(id,fn){ $$('#'+id+' .seg').forEach(b=>b.onclick=()=>{ $$('#'+id+' .seg').forEach(x=>x.classList.toggle('on',x===b)); fn(b.dataset.v); }); }
+const segVal=id=>{ const b=document.querySelector('#'+id+' .seg.on'); return b?b.dataset.v:null; };
+const checks=sel=>{ const o={}; $$(sel+' input[type=checkbox]').forEach(i=>o[i.dataset.k]=i.checked); return o; };
+
+/* ---------- a reusable sorter: one item at a time, pick an option, read why ---------- */
+function sorter(cfg){
+  const out=$(cfg.out), ctl=$(cfg.ctl), note=$(cfg.note); if(!out) return;
+  const rnd=mulberry32(cfg.seed||11); const Q=shuffle(cfg.items,rnd);
+  let cur=0,score=0,hist=[];
+  const labelOf=(it,k)=>((it.opts||cfg.options).find(o=>o.k===k)||{label:k}).label;
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' on the first try.</b> '+cfg.done+'</div><div style="margin-top:10px">'+Q.map((q,i)=>'<div class="rv"><span style="color:'+(hist[i]?'var(--green)':'var(--red)')+'">'+(hist[i]?'&#10003;':'&#10007;')+'</span><span>'+esc(q.s)+' <i>'+esc(q.ok.map(k=>labelOf(q,k)).join(' / '))+'</i></span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="'+cfg.out+'Again" style="width:100%;font-size:12px">&#9654; shuffle and go again</button>';
+      $(cfg.out+'Again').onclick=()=>{cur=0;score=0;hist=[];note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> '+cfg.keeper+'</div>'; return;
+    }
+    const it=Q[cur], opts=it.opts||cfg.options;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">'+(cfg.unit||'ITEM')+' '+(cur+1)+' OF '+Q.length+'</div>'+(it.html?it.html:'<div class="stmt">'+esc(it.s)+'</div>')+'<div class="k" style="font-size:11px;color:var(--muted);margin-top:8px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">'+cfg.prompt+'</div><div class="segmented col">'+opts.map(o=>'<button class="seg" data-k="'+o.k+'">'+esc(o.label)+(o.desc?'<small>'+esc(o.desc)+'</small>':'')+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ const ok=it.ok.includes(b.dataset.k); if(ok) score++; hist.push(ok);
+      const names=it.ok.map(k=>labelOf(it,k)).join(' or ');
+      note.innerHTML=(ok?'<div class="ok"><b>Yes: '+esc(names)+'.</b> ':'<div class="lzbad"><b>Not that. It is '+esc(names)+'.</b> ')+esc(it.why)+'</div>'; cur++; render(); });
+  }
+  render();
+}
+
+/* ---------- agreement metrics: rows are units, columns are raters, null is a blank ---------- */
+function pctAgree(M){ let eq=0,tot=0; M.forEach(r=>{ const v=r.filter(x=>x!=null); for(let i=0;i<v.length;i++) for(let j=i+1;j<v.length;j++){ tot++; if(v[i]===v[j]) eq++; } }); return tot?eq/tot:null; }
+function pearson(M){ if(M[0].length!==2||M.some(r=>r.some(x=>x==null))) return {v:null,why:'needs exactly two raters and no blanks'}; const a=M.map(r=>Number(r[0])),b=M.map(r=>Number(r[1])); if(a.some(isNaN)) return {v:null,why:'needs numbers'}; const n=a.length,ma=a.reduce((s,x)=>s+x,0)/n,mb=b.reduce((s,x)=>s+x,0)/n; let sab=0,sa=0,sb=0; for(let i=0;i<n;i++){sab+=(a[i]-ma)*(b[i]-mb);sa+=(a[i]-ma)**2;sb+=(b[i]-mb)**2;} if(!sa||!sb) return {v:null,why:'no variance to correlate'}; return {v:sab/Math.sqrt(sa*sb)}; }
+function kappa(M){ if(M[0].length!==2||M.some(r=>r.some(x=>x==null))) return {v:null,why:'needs exactly two raters and no blanks'}; const n=M.length,cats=[...new Set(M.flat())]; const po=M.filter(r=>r[0]===r[1]).length/n; let pe=0; cats.forEach(c=>{ pe+=(M.filter(r=>r[0]===c).length/n)*(M.filter(r=>r[1]===c).length/n); }); if(pe>=1) return {v:null,why:'everyone gave one answer'}; return {v:(po-pe)/(1-pe)}; }
+function alpha(M,metric){ const o={}; let n=0; const cats=new Set(); M.forEach(r=>{ const v=r.filter(x=>x!=null); const m=v.length; if(m<2) return; v.forEach(x=>cats.add(x)); for(let i=0;i<m;i++) for(let j=0;j<m;j++){ if(i===j) continue; const k=v[i]+'|'+v[j]; o[k]=(o[k]||0)+1/(m-1); n+=1/(m-1);} }); if(!n) return {v:null,why:'no unit has two ratings'}; const C=[...cats]; const nc={}; C.forEach(c=>{ nc[c]=0; C.forEach(k=>{ nc[c]+=o[c+'|'+k]||0; }); }); const d=(c,k)=>metric==='nominal'?(c===k?0:1):(Number(c)-Number(k))**2; let Do=0,De=0; C.forEach(c=>C.forEach(k=>{ Do+=(o[c+'|'+k]||0)*d(c,k); De+=nc[c]*nc[k]*d(c,k); })); Do/=n; De/=(n*(n-1)); if(!De) return {v:null,why:'everyone gave one answer'}; return {v:1-Do/De}; }
+
+/* ================= 1 · WHICH CHECK SEES IT ================= */
+sorter({out:'evOut',ctl:'evCtl',note:'evNote',seed:43,unit:'QUESTION',prompt:'what answers it cheapest?',
+ options:[
+  {k:'det',label:'Deterministic verifier',desc:'code: a test, a compiler, a rule'},
+  {k:'traj',label:'Trajectory check',desc:'the steps and tool calls, not the reply'},
+  {k:'final',label:'Final-answer autorater',desc:'a model scores the reply against a rubric'},
+  {k:'human',label:'People and labels',desc:'subject-matter experts, before any judge is trusted'}],
+ items:[
+  {s:'Was the refund the agent issued at most the original charge?',ok:['det'],why:'A rule in code decides it every time, with no model in the loop. Anything a line of code can decide should be decided by one.'},
+  {s:'Is this investment report’s tone right for an executive reader?',ok:['final'],why:'Subjective quality of the final response: exactly what an autorater with a rubric is for, once it has been calibrated.'},
+  {s:'Did the coding agent run the tests before declaring the task done?',ok:['traj'],why:'That is a fact about the steps, visible in the tool calls. The reply alone cannot tell you.'},
+  {s:'Does the generated program compile and pass the hidden tests?',ok:['det'],why:'Compilers and tests are deterministic verifiers; pass is exit code zero.'},
+  {s:'Is the summary faithful to the retrieved documents, with nothing invented?',ok:['final'],why:'Entailment against sources is one of the things only autoraters and people can judge, and people cannot do it at volume.'},
+  {s:'Which of fourteen rubric criteria do our analysts actually mean the same thing by?',ok:['human'],why:'A rubric is tested on people first: experts rate in isolation, disagreements rewrite the criteria. No judge can settle what the humans have not.'},
+  {s:'Did the agent look the customer up before issuing the refund?',ok:['traj'],why:'Order of tool calls. The refund amount can be right by accident; only the trajectory shows the look-up was skipped.'},
+  {s:'Does the nurse handover read the way an experienced nurse would write it?',ok:['human'],why:'The day’s case: six weeks of nurses and doctors rating drafts came before any judge, because their disagreements were the rubric.'},
+  {s:'Did the agent make seven near-identical search calls before finding the file?',ok:['traj'],why:'A string of near-identical calls is a trajectory signal, and it usually means the tool should return more.'},
+  {s:'Is the key number stated first and the organisation easy to follow?',ok:['final'],why:'Organisation and flow of information: prohibitively slow for people at volume, natural for a calibrated judge.'},
+  {s:'Did my edit introduce a type error anywhere in the project?',ok:['det'],why:'The language server or compiler answers deterministically after every edit. Asking a model is slower and less reliable.'},
+  {s:'Are two of our evaluators consistent with each other on the flood-risk criterion?',ok:['human'],why:'Inter-rater reliability between people, measured with kappa or alpha. It is the prerequisite for trusting any judge on that criterion.'}],
+ done:'Four kinds of check, and now each question drops into one.',keeper:'Code decides what code can decide; the trajectory shows what the agent did; a calibrated judge scores what is subjective; and people come first, because the judge is only ever as good as its agreement with them.'});
+
+/* ================= 2 · THE AGREEMENT BENCH ================= */
+(function(){
+  const sheet=$('agSheet'); if(!sheet) return;
+  const AG={
+   careful:{metric:'interval',raters:['rater A','rater B'],M:[[1,1],[2,2],[3,3],[4,4],[5,5],[2,2],[3,3],[4,4],[5,4],[1,1]],
+    v:'ok',t:'What calibrated looks like.',d:'Every coefficient agrees with every other: high agreement, high correlation, kappa and alpha both well above 0.8. Only one item differs, and by one point.',
+    n:'A balanced scale with raters who mean the same thing by each step. This is the baseline the other sheets are measured against.'},
+   skew:{metric:'nominal',raters:['rater A','rater B'],M:[...Array(17)].map(()=>['pass','pass']).concat([['fail','fail'],['pass','fail'],['fail','pass']]),
+    v:'lzwarn',t:'Ninety percent agreement, and kappa says fair at best.',d:'Eighteen of twenty items are passes, so two raters marking at random with the same base rate would already agree about 82 percent of the time. Correct for that chance and the real agreement is around 0.45. The two disagreements are the only items with any information in them.',
+    n:'Skew is the normal state of production data. Percent agreement flatters it; kappa and alpha correct for it, and when the skew is extreme they break too, which is when you make the rubric harder.'},
+   shift:{metric:'interval',raters:['rater A','rater B'],M:[[1,3],[2,4],[3,5],[4,5],[5,5],[1,3],[2,4],[3,5],[4,5],[5,5]],
+    v:'lzbad',t:'Correlation 0.88, agreement 20 percent.',d:'Rater B scores two points higher on everything, so the columns move together perfectly and almost never match. Pearson rewards the co-movement; kappa, which only counts exact matches, is zero; alpha on the interval scale is low because the distances are real.',
+    n:'Correlation measures whether two things rise and fall together, not whether they agree. One, two, three against three, four, five is a perfect correlation and a useless judge.'},
+   five:{metric:'interval',raters:['pass 1','pass 2','pass 3','pass 4','pass 5'],M:[[4,4,4,null,4],[2,2,3,2,2],[5,5,5,5,null],[3,3,3,4,3],[1,1,1,1,2],[4,null,4,4,4],[2,2,2,2,2],[5,4,5,5,5]],
+    v:'ok',t:'Five raters and some blanks: only alpha can speak.',d:'Kappa takes exactly two raters and no missing values, so it cannot be computed; neither can a single correlation. Alpha treats every pass as a rater, skips the blanks, and reports 0.94. This is the shape of a self-consistency study: the same judge run five times.',
+    n:'Real studies have several raters and missing cells. That is why the day, and most practitioners, prefer alpha: it is the one coefficient that fits the data you actually have.'},
+   homog:{metric:'interval',raters:['pass 1','pass 2','pass 3'],M:[...Array(10)].map(()=>[5,5,5]),
+    v:'lzbad',t:'Perfect agreement, and nothing was measured.',d:'Every rater gave every item a five. Percent agreement is 100; correlation, kappa and alpha are all not defined, because with no variance there is nothing to agree or disagree about. This criterion cannot tell a good report from a bad one.',
+    n:'The homogeneity trap. A criterion that everything passes is not a reliable criterion, it is an absent one. Make it harder until the scores spread, then measure agreement again.'}};
+  const f=x=>x==null?null:x.toFixed(2);
+  function box(label,res,kind){ const v=res.v; let cls='nac', shown; if(v==null){ shown='not defined'; } else { shown=kind==='pct'?Math.round(v*100)+'%':v.toFixed(2); cls=kind==='pct'?(v>=0.9?'warnc':'good'):kind==='pearson'?'warnc':(v>=0.8?'good':v>=0.6?'warnc':'badc'); }
+    return '<div class="'+cls+'"><small>'+label+'</small><b>'+shown+'</b>'+(v==null?'<span class="mini">'+esc(res.why||'')+'</span>':'')+'</div>'; }
+  function render(key){ const s=AG[key]; const M=s.M;
+    sheet.innerHTML='<table class="mx"><tr><th>item</th>'+s.raters.map(r=>'<th>'+esc(r)+'</th>').join('')+'</tr>'+M.map((r,i)=>'<tr><td>'+(i+1)+'</td>'+r.map(x=>'<td class="'+(x==null?'na':'')+'">'+(x==null?'·':x)+'</td>').join('')+'</tr>').join('')+'</table>';
+    const p=pctAgree(M), pr=pearson(M), k=kappa(M), a=alpha(M,s.metric);
+    $('agMetrics').innerHTML=box('percent agreement',{v:p},'pct')+box('Pearson correlation',pr,'pearson')+box('Cohen’s kappa',k,'coef')+box('Krippendorff’s alpha',a,'coef');
+    $('agVerdict').innerHTML='<div class="'+s.v+'"><b>'+esc(s.t)+'</b> '+esc(s.d)+'</div>';
+    $('agNote').innerHTML='<div class="simnote">'+esc(s.n)+'</div>';
+  }
+  segs('agScn',render); render('careful');
+})();
+
+/* ================= 2 · POINTWISE OR PAIRWISE ================= */
+sorter({out:'pwOut',ctl:'pwCtl',note:'pwNote',seed:23,unit:'SITUATION',prompt:'how would you score it?',
+ options:[{k:'point',label:'Pointwise, on a scale',desc:'one output, an absolute score'},{k:'pair',label:'Pairwise, side by side',desc:'A against B, a preference'},{k:'rubric',label:'Neither yet: fix the rubric',desc:'the criteria cannot be scored consistently'}],
+ items:[
+  {s:'A brand-new supply-chain agent with no benchmark and no previous version.',ok:['point'],why:'There is nothing to compare against: the cold-start problem. Pointwise starts from zero.'},
+  {s:'Deciding whether this week’s build should replace last week’s in production, and by what margin.',ok:['pair'],why:'Champion against challenger. A side-by-side on the same inputs answers exactly that, and canary and A/B testing are built on it.'},
+  {s:'The finance director wants one number per report that maps to a go or no-go threshold.',ok:['point'],why:'Absolute and interpretable, and it maps to downstream impact. A win rate cannot be turned into a threshold per report.'},
+  {s:'The two versions differ by small, consistent improvements that a one-to-five scale keeps rounding away.',ok:['pair'],why:'Small but consistent gains are easier to detect side by side; that is why model builders favour it.'},
+  {s:'Every output is getting the top score and the metric has gone flat.',ok:['rubric'],why:'The homogeneity trap. No scoring method helps until the criteria are hard enough to expose variance.'},
+  {s:'A research team comparing foundation models on an established benchmark.',ok:['pair'],why:'Mathematically simpler, one definition of quality, established comparisons: the researchers’ home ground.'},
+  {s:'You need to know which specific data points got worse between versions.',ok:['point'],why:'Pointwise gives the exact change on every data point. A higher win rate can hide the regressions underneath.'},
+  {s:'Two subject-matter experts score the same reports two points apart on every item.',ok:['rubric'],why:'If the people do not agree, the rubric is at fault, and a judge calibrated against either of them would be wrong for the other.'},
+  {s:'You can only manage one definition of good, not a definition for every scale step.',ok:['pair'],why:'Pairwise needs a single definition of quality; pointwise needs every step of the scale described and distinct.'},
+  {s:'Measuring agreement between the judge and your experts has to be straightforward.',ok:['point'],why:'Agreement measurement is easier on scales; on side-by-side preferences it is awkward, and position bias has to be randomised away.'}],
+ done:'Ten situations, two methods, and one case where neither helps yet.',keeper:'Start pointwise, do pairwise later, and when everything scores the same stop scoring and fix the rubric.'});
+
+/* ================= 3 · CHOOSE THE RELIABLE CRITERIA ================= */
+(function(){
+  const tbl=$('crTable'); if(!tbl) return;
+  const CR=[
+   {k:'cost-per-acre',M:[[4,4,4,4,4],[2,2,2,2,2],[5,5,5,4,5],[3,3,3,3,3],[1,1,1,1,1],[4,4,5,4,4],[2,2,2,2,3],[5,5,5,5,5]],good:true,why:'Reliable: the judge gives each report the same score pass after pass, and the scores spread from one to five, so it also discriminates.'},
+   {k:'report-tone',M:[...Array(8)].map(()=>[5,5,5,5,5]),good:false,why:'The homogeneity trap: perfect agreement because every report scores five. Alpha is not defined, and the criterion cannot tell a good report from a bad one.'},
+   {k:'data-density',M:[[3,3,3,3,3],[5,5,5,5,5],[2,2,2,2,2],[4,4,4,3,4],[1,1,1,1,1],[3,3,3,3,3],[5,5,4,5,5],[2,2,2,2,2]],good:true,why:'Reliable: two single-point disagreements in forty cells, scores spread across the scale.'},
+   {k:'analyst-insight',M:[[2,5,3,4,1],[3,1,5,2,4],[4,2,1,5,3],[1,4,2,3,5],[5,3,4,1,2],[2,4,5,1,3],[3,5,1,4,2],[4,1,3,2,5]],good:false,why:'Noise: the judge never gives a report the same score twice, every report spans the whole scale, alpha is below zero. The mean of 3.0 is the distractor; it looks sensible and means nothing.'},
+   {k:'neighbouring-flood-risk',M:[[3,4,3,3,4],[2,2,3,2,3],[4,4,4,5,3],[1,2,1,2,1],[5,4,5,4,4],[3,3,2,3,4],[2,3,2,2,2],[4,5,4,4,5]],good:false,moderate:true,why:'Moderate: alpha around 0.75, disagreements of a point on most reports. Acceptable in the usual tables, questionable once you remember the four-way majority vote inflating it. The sponsors will insist on it anyway; note the concern.'},
+   {k:'zoning-check',M:[[5,5,5,5,5],[5,5,5,5,5],[5,5,5,5,5],[5,3,5,5,5],[5,5,5,5,5],[5,5,3,5,5],[5,5,5,5,5],[5,5,5,5,5]],good:false,why:'Skew dressed as agreement: 90 percent pairwise agreement and alpha near zero, because almost every cell is a five and the two threes are the only information. Percent agreement is the distractor here.'},
+   {k:'citation-check',M:[[2,2,2,2,2],[1,1,1,1,1],[3,3,3,2,3],[2,2,2,2,2],[1,1,1,1,1],[2,2,2,3,2],[3,3,3,3,3],[1,1,1,1,1]],good:true,why:'Reliable, and the mean is low. A low mean is a fact about the reports, not the judge: this is a criterion you can climb on, and the reports have a long way to climb.'},
+   {k:'executive-summary',M:[[4,4,2,4,4],[5,5,3,5,5],[3,3,1,3,3],[4,4,2,4,4],[2,2,1,2,2],[5,5,3,5,5],[3,3,1,3,3],[4,4,2,4,4]],good:false,why:'One pass scores everything two points lower. The spread of pass means gives it away, and alpha lands around 0.5. Something in that pass (a prompt variation, a model hiccup) changed the judge; not a criterion to trust yet.'}];
+  const stats=M=>{ const flat=M.flat(); const mean=flat.reduce((a,b)=>a+b,0)/flat.length; const rng=Math.max(...M.map(r=>Math.max(...r)-Math.min(...r))); const rm=M.map(r=>r.reduce((a,b)=>a+b,0)/r.length); const sdr=Math.sqrt(rm.reduce((a,x)=>a+(x-mean)**2,0)/rm.length); const pm=[0,1,2,3,4].map(j=>M.reduce((a,r)=>a+r[j],0)/M.length); const sdp=Math.sqrt(pm.reduce((a,x)=>a+(x-mean)**2,0)/pm.length); return {mean,min:Math.min(...flat),max:Math.max(...flat),rng,sdr,sdp,pct:pctAgree(M),al:alpha(M,'interval').v,rm,pm}; };
+  CR.forEach(c=>c.st=stats(c.M));
+  const aCell=a=>a==null?'<span class="fail">undef.</span>':'<span class="'+(a>=0.8?'pass':a>=0.6?'warnt':'fail')+'">'+a.toFixed(2)+'</span>';
+  tbl.innerHTML='<table class="tbl"><tr><th>criterion</th><th>mean</th><th>min</th><th>max</th><th>max range, report</th><th>SD report means</th><th>SD pass means</th><th>pairwise agree</th><th>alpha</th></tr>'+CR.map(c=>'<tr><td>'+c.k+'</td><td class="r">'+c.st.mean.toFixed(2)+'</td><td class="r">'+c.st.min+'</td><td class="r">'+c.st.max+'</td><td class="r">'+c.st.rng+'</td><td class="r">'+c.st.sdr.toFixed(2)+'</td><td class="r">'+c.st.sdp.toFixed(2)+'</td><td class="r">'+Math.round(c.st.pct*100)+'%</td><td class="r">'+aCell(c.st.al)+'</td></tr>').join('')+'</table>';
+  $('crSel').innerHTML=CR.map(c=>'<label><input type="checkbox" data-k="'+c.k+'"> <span>'+c.k+'</span></label>').join('');
+  $('crPick').innerHTML=CR.map((c,i)=>'<button class="seg'+(i===0?' on':'')+'" data-v="'+c.k+'">'+c.k+'</button>').join('');
+  function grid(k){ const c=CR.find(x=>x.k===k); const M=c.M; const f=x=>x.toFixed(2);
+    $('crGrid').innerHTML='<table class="mx"><tr><th>'+k+'</th>'+[1,2,3,4,5].map(p=>'<th>pass '+p+'</th>').join('')+'<th class="m">min</th><th class="m">max</th><th class="m">range</th><th class="m">mean</th></tr>'+M.map((r,i)=>{ const mn=Math.min(...r),mx=Math.max(...r); return '<tr><td>lot '+(1041+i*37)+'</td>'+r.map(x=>'<td class="'+(mx-mn>=2&&x===mn?'lo':mx-mn>=2&&x===mx?'hi':'')+'">'+x+'</td>').join('')+'<td class="m">'+mn+'</td><td class="m">'+mx+'</td><td class="m">'+(mx-mn)+'</td><td class="m">'+f(c.st.rm[i])+'</td></tr>'; }).join('')+'<tr><td>pass mean</td>'+c.st.pm.map(x=>'<td>'+f(x)+'</td>').join('')+'<td class="m" colspan="4"></td></tr></table>';
+    $('crNote').innerHTML='<div class="simnote"><b>'+k+'.</b> '+esc(c.why)+'</div>'; }
+  segs('crPick',grid); grid(CR[0].k);
+  $('crCheck').onclick=()=>{ const picks=$$('#crSel input').filter(i=>i.checked).map(i=>i.dataset.k);
+    if(picks.length!==3){ $('crVerdict').innerHTML='<div class="lzwarn"><b>Pick exactly three.</b> You have '+picks.length+'.</div>'; return; }
+    const good=picks.filter(k=>CR.find(c=>c.k===k).good), bad=picks.filter(k=>!CR.find(c=>c.k===k).good);
+    if(!bad.length) $('crVerdict').innerHTML='<div class="ok"><b>Three reliable criteria.</b> '+picks.join(', ')+': each scores the same report the same way pass after pass, and each spreads its scores, so the judge can discriminate. Note that citation-check has the lowest mean of the eight and is still a fine choice: the mean describes the reports, not the judge.</div>';
+    else $('crVerdict').innerHTML='<div class="lzbad"><b>'+good.length+' of 3 reliable.</b> '+bad.map(k=>'<b>'+k+'</b>: '+esc(CR.find(c=>c.k===k).why)).join(' ')+'</div>';
+  };
+})();
+
+/* ================= 3 · THE HILL CLIMB ================= */
+(function(){
+  const log=$('hcLog'); if(!log) return;
+  let runs=[]; const LOTS=[1042,1079,1116,1153,1190,1227,1264,1301,1338,1375];
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  function score(E,rnd){ const lots=LOTS.map(id=>{ const n1=[-1,0,0,0,1][Math.floor(rnd()*5)], n2=[-1,0,0,0,1][Math.floor(rnd()*5)];
+      let c=2+(E.formula?1:0)+(E.units?1.5:0)+(E.formula&&E.units?0.5:0)+n1; let f=2+(E.neigh?2:0)+(E.cite?0.5:0)-(E.tone?0.5:0)-(E.brief&&E.neigh?0.5:0)+n2;
+      c=clamp(Math.round(c),1,5); f=clamp(Math.round(f),1,5);
+      const cw=c<=4?(!E.units?'cost per acre is in the thousands, which only works if the lot size was taken in square feet; the figure is off by a factor of about 43,560':!E.formula?'the figure appears with no working, so the division cannot be verified':'the price and the acreage are rounded inconsistently, so the quotient does not reproduce'):null;
+      const fw=f<=4?(!E.neigh?'only the subject lot’s zone is assessed; the criterion asks for the adjacent parcels':E.brief?'the neighbour analysis is cut off by the length limit after the first parcel':(E.tone&&!E.cite)?'asserts low risk confidently with no source for the zone data':!E.cite?'zone named but the drainage history of the neighbours is unsourced':'a neighbour’s zone is named but its elevation relative to the subject lot is not'):null;
+      return {id,c,f,cw,fw}; });
+    return {lots,cm:lots.reduce((a,l)=>a+l.c,0)/lots.length,fm:lots.reduce((a,l)=>a+l.f,0)/lots.length}; }
+  $('hcRun').onclick=()=>{ const E=checks('#hcEdits'); const n=runs.length+1; const r=score(E,mulberry32(300+n*7)); r.n=n; r.E=E; runs.push(r);
+    const pass=r.cm>4&&r.fm>4;
+    $('hcCost').innerHTML='<span class="'+(r.cm>4?'pass':'fail')+'">'+r.cm.toFixed(2)+'</span><small>cost per acre, mean</small>'; $('hcFlood').innerHTML='<span class="'+(r.fm>4?'pass':'fail')+'">'+r.fm.toFixed(2)+'</span><small>neighbouring flood risk, mean</small>';
+    const low=r.lots.filter(l=>l.cw||l.fw);
+    $('hcWhy').innerHTML=low.length?low.map(l=>(l.cw?'<div class="ev '+(l.c<=2?'bad':'warn')+'"><i>'+l.c+'</i><span>lot '+l.id+', cost per acre: '+esc(l.cw)+'</span></div>':'')+(l.fw?'<div class="ev '+(l.f<=2?'bad':'warn')+'"><i>'+l.f+'</i><span>lot '+l.id+', flood risk: '+esc(l.fw)+'</span></div>':'')).join(''):'<div class="ev"><i>✓</i><span>every lot scored five on both criteria</span></div>';
+    log.innerHTML=runs.map(x=>'<div class="ev '+(x.cm>4&&x.fm>4?'':'warn')+'"><i>'+(x.cm>4&&x.fm>4?'✓':'!')+'</i><span>hillclimb_'+x.n+': cost '+x.cm.toFixed(2)+' · flood '+x.fm.toFixed(2)+' · edits: '+(Object.keys(x.E).filter(k=>x.E[k]).join(', ')||'none')+'</span></div>').join('');
+    const on=Object.keys(E).filter(k=>E[k]);
+    $('hcVerdict').innerHTML=pass?'<div class="ok"><b>Both means above four in run '+n+'.</b> Press the progress check now, before experimenting further.</div>':'<div class="lzwarn"><b>Not yet.</b> '+(r.cm<=4?'Cost per acre '+r.cm.toFixed(2)+'. ':'')+(r.fm<=4?'Flood risk '+r.fm.toFixed(2)+'. ':'')+'Read the rationales: they name the missing capability, which is where the next edit goes.</div>';
+    let note='<div class="simnote"><b>Read the climb.</b> ';
+    if(!on.length) note+='The baseline: the judge’s reasons point at units and at the neighbours, not at prose. Those are capability gaps in the skill, and they are the edits to make first.';
+    else if(E.tone&&!E.cite) note+='The confident tone costs you on flood risk: an unsourced assertion reads as overconfidence to the judge. Tone edits are the kind people make first and the judge rewards last.';
+    else if(E.brief&&E.neigh) note+='Brevity truncates the neighbour analysis. The analysts asked for short reports, but the criterion asks for every adjacent parcel; one of those requests has to give.';
+    else if(E.neigh&&!E.cite&&r.fm<=4.2) note+='Flood risk is near the bar on a single pass. With k equals one the mean wobbles by a few tenths between runs, so clear it with margin: cite the zone data.';
+    else if(pass) note+='Both criteria cleared. If you keep running for fun and dip under four, the grader will read that run, not this one.';
+    else note+='Each run is versioned: the traces and the judge’s outputs for hillclimb_'+n+' sit beside the earlier ones, so a change that made things worse is one diff away.';
+    $('hcNote').innerHTML=note+'</div>'; };
+  $('hcCheck').onclick=()=>{ if(!runs.length){ $('hcVerdict').innerHTML='<div class="lzwarn"><b>No run to check.</b> Run the climb first.</div>'; return; } const last=runs[runs.length-1]; const everPassed=runs.some(x=>x.cm>4&&x.fm>4);
+    if(last.cm>4&&last.fm>4) $('hcVerdict').innerHTML='<div class="ok"><b>Credited.</b> The last run, hillclimb_'+last.n+', has both means above four.</div>';
+    else if(everPassed) $('hcVerdict').innerHTML='<div class="lzbad"><b>Not credited.</b> The check reads the last run only: you cleared the bar in run '+runs.find(x=>x.cm>4&&x.fm>4).n+' and kept experimenting, and hillclimb_'+last.n+' is below it. Put the edits back and run again.</div>';
+    else $('hcVerdict').innerHTML='<div class="lzbad"><b>Not credited.</b> The last run is below the bar on '+(last.cm<=4?'cost per acre':'')+(last.cm<=4&&last.fm<=4?' and ':'')+(last.fm<=4?'flood risk':'')+'.</div>'; };
+})();
+
+/* ================= 4 · THE HARNESS TUNER ================= */
+(function(){
+  const tbl=$('hzTable'); if(!tbl) return;
+  const TASKS=[{id:'invoice_total',kind:'bug fix'},{id:'csv_parser',kind:'bug fix'},{id:'date_shift',kind:'bug fix'},{id:'todo_cli',kind:'build'},{id:'word_freq',kind:'build'}];
+  let runs=[];
+  function pOf(t,H){ let p=t.kind==='bug fix'?0.2+(H.search?0.3:0)+(H.run?0.25:0)+(H.plan?0.1:0)+(H.run&&H.verify?0.1:0)+(H.errors?0.05:0):0.45+(H.run?0.25:0)+(H.verify?(H.run?0.15:0.05):0)+(H.plan?0.1:0)+(H.errors?0.05:0); return Math.min(0.98,p); }
+  $('hzRun').onclick=()=>{ const H=checks('#hzTg'); const n=runs.length+1; const rnd=mulberry32(900+n*13);
+    const res=TASKS.map(t=>{ if(H.hardcode) return {t,pass:true,calls:2,secs:6,stop:'completed'}; const pass=rnd()<pOf(t,H); const calls=pass?6+Math.floor(rnd()*9):(H.cap?10+Math.floor(rnd()*7):30+Math.floor(rnd()*11)); return {t,pass,calls,secs:calls*4+Math.floor(rnd()*20),stop:pass?'completed':(H.cap?'stuck_loop_detected':'max_turns')}; });
+    const passed=res.filter(r=>r.pass).length, calls=res.reduce((a,r)=>a+r.calls,0); runs.push({n,passed,hard:H.hardcode});
+    tbl.innerHTML='<table class="tbl"><tr><th>task</th><th>kind</th><th>result</th><th>tool calls</th><th>seconds</th><th>stop reason</th></tr>'+res.map(r=>'<tr><td>'+r.t.id+'</td><td>'+r.t.kind+'</td><td class="'+(r.pass?'pass':'fail')+'">'+(r.pass?'PASS':'FAIL')+'</td><td class="r">'+r.calls+'</td><td class="r">'+r.secs+'</td><td class="v">'+r.stop+'</td></tr>').join('')+'</table>';
+    const last3=runs.slice(-3); const hist=last3.map(x=>x.passed+'/5').join(' · ');
+    $('hzPass').innerHTML='<span class="'+(passed>=4?'pass':'fail')+'">'+passed+'/5</span><small>passed, run '+n+'</small>'; $('hzCalls').innerHTML=calls+'<small>tool calls, total</small>'; $('hzHist').innerHTML=hist+'<small>last three runs</small>';
+    const reliable=last3.length===3&&last3.every(x=>x.passed>=4);
+    if(H.hardcode) $('hzVerdict').innerHTML='<div class="lzbad"><b>Five of five, and an automatic fail at final grading.</b> The harness checks for the task id and emits a known solution: it solves these five tasks and nothing else. The grader runs held-out tasks and rejects overfitting outright. Switch it off.</div>';
+    else if(reliable) $('hzVerdict').innerHTML='<div class="ok"><b>Reliably at least four of five.</b> Three consecutive runs over the bar with the same small model on the same low thinking budget. Every point of that came from the harness.</div>';
+    else if(passed>=4) $('hzVerdict').innerHTML='<div class="lzwarn"><b>Four or more this run; prove it is not luck.</b> The evaluation is flaky by design: run it again, and judge on the last three.</div>';
+    else $('hzVerdict').innerHTML='<div class="lzbad"><b>'+passed+' of 5.</b> '+(!H.search&&!H.run?'With only read and write, the agent cannot find the real cause of a bug or check that its fix works. It rewrites the file from the prompt alone and hopes.':!H.run?'It can find things now but still never runs what it wrote; every build task is a guess.':!H.search?'It can run tests but cannot search, so bug fixes land in the wrong file.':'Keep going: planning before the first edit and a verify-before-finish instruction lift the remaining tasks.')+'</div>';
+    const fails=res.filter(r=>!r.pass);
+    $('hzNote').innerHTML='<div class="simnote"><b>Read the trajectories, not only the score.</b> '+(fails.length&&!H.cap?'The failed runs stopped on maximum turns after thirty-odd calls: a self-correction loop retrying a structurally identical failure. A stuck-loop detector in the loop code ends those in a dozen calls and classifies the exit, which is cheaper and more honest.':fails.length?'The failed runs now stop on the loop detector: same outcome, a third of the tokens, and a telemetry label you can count.':'Every task completed. The remaining optimisation is cost: a pass that took three times the tool calls is still an opportunity.')+'</div>'; };
+  $('hzReset').onclick=()=>{ runs=[]; tbl.innerHTML=''; $('hzPass').innerHTML='&ndash;<small>passed, last run</small>'; $('hzCalls').innerHTML='&ndash;<small>tool calls, total</small>'; $('hzHist').innerHTML='&ndash;<small>last three runs</small>'; $('hzVerdict').innerHTML=''; $('hzNote').innerHTML=''; };
+})();
+
+/* ================= 4 · DIAGNOSE THE AGENT ================= */
+(function(){
+  const T=(title,lines,verdict)=>'<div class="traj"><span class="hi">'+esc(title)+'</span>\n'+lines.map(l=>esc(l)).join('\n')+'\n<span class="bad">'+esc(verdict)+'</span></div>';
+  const items=[
+   {html:T('runs/…/invoice_report · tool_uses.json',['1 read_file(tasks/invoice_report/prompt.md)','2 write_file(src/invoice.py)','run.json: tool_calls 2 · seconds 9 · stop_reason completed'],'repro.sh: AssertionError: 124.0 != 125.49 · exit 1'),s:'invoice_report',
+    opts:[{k:'a',label:'The bug was in the rounding of the line totals; it dropped the cents.'},{k:'b',label:'It never read the existing source or ran anything: it rewrote the file from the prompt alone, with no tool to search for the real cause and no tool to verify the fix.'},{k:'c',label:'The model is too small for arithmetic.'},{k:'d',label:'The hidden test is too strict about decimals.'}],ok:['b'],
+    why:'Two tool calls: read the prompt, write the file. It never looked at the code it was fixing, never searched for where the total is computed, never ran a single line. Option a describes the task’s bug and scores low; the capability gap is what you can fix in the harness.'},
+   {html:T('runs/…/csv_parser · tool_uses.json',['1 read_file(src/parser.py)','2 write_file(src/parser.py)','3 write_file(src/parser.py)','4 write_file(src/parser.py)','5 write_file(src/parser.py)','6 write_file(src/parser.py)','7 write_file(src/parser.py)','run.json: tool_calls 7 · seconds 51 · stop_reason max_turns'],'repro.sh: quoted field with comma split in two · exit 1'),s:'csv_parser',
+    opts:[{k:'a',label:'A stuck loop: six rewrites with no new information between them, no error feedback to steer it and no detector to stop it.'},{k:'b',label:'The parser did not handle commas inside quotes.'},{k:'c',label:'The task prompt was ambiguous about quoting.'},{k:'d',label:'It needed a bigger context window to hold the file.'}],ok:['a'],
+    why:'The diff between the rewrites is cosmetic; nothing in the loop told it whether the last attempt worked, so it kept re-emitting the same guess until the turn cap. A run tool gives it feedback; a stuck-loop detector ends the waste early.'},
+   {html:T('runs/…/todo_cli · tool_uses.json',['1 write_file(todo.py)','run.json: tool_calls 1 · seconds 4 · stop_reason completed'],'repro.sh: `todo.py --list` prints nothing after `--add` · exit 1'),s:'todo_cli',
+    opts:[{k:'a',label:'The list command forgot to read the file it had just written.'},{k:'b',label:'It wrote the whole program in one shot, skipped planning the commands against the spec, and never ran its own program before declaring itself done.'},{k:'c',label:'Python’s argument parser is confusing.'},{k:'d',label:'The hidden test expected a database, not a file.'}],ok:['b'],
+    why:'One call, four seconds. A read-before-write phase would have listed the commands the spec demands; a run-before-finish instruction would have caught the empty list on the first try. The bug in option a is the symptom.'},
+   {html:T('runs/…/date_shift · tool_uses.json',['1 read_file(src/dates.py)','2 write_file(src/dates.py)','run.json: tool_calls 2 · seconds 11 · stop_reason completed'],'repro.sh: expected 2026-03-01T00:00Z, got 2026-02-28T23:00Z · exit 1'),s:'date_shift',
+    opts:[{k:'a',label:'An off-by-one-hour timezone bug around the month boundary.'},{k:'b',label:'It could not search the code base, so it never found the helper in src/tz.py that applies the offset, and patched the call site in the wrong file instead.'},{k:'c',label:'The model does not understand timezones.'},{k:'d',label:'The test should have used a fixed timezone.'}],ok:['b'],
+    why:'It fixed the symptom where it could see it. The real offset is applied in a helper it never opened, because nothing let it search for where the offset comes from. Give it a search tool and the right file appears in the trajectory.'}];
+  sorter({out:'dxOut',ctl:'dxCtl',note:'dxNote',seed:61,unit:'TRAJECTORY',prompt:'why did the agent fail?',options:[],items:items,
+   done:'Four trajectories, four gaps in the same two-tool harness.',keeper:'Name the capability the agent lacked or the wrong move it made. The bug the task planted is the thing it was supposed to find; the reason it could not is the thing you can fix.'});
+})();
+
+/* ================= 4 · WHICH TOOL ANSWERS IT CHEAPEST ================= */
+sorter({out:'ciOut',ctl:'ciCtl',note:'ciNote',seed:37,unit:'QUESTION',prompt:'the cheapest rung that answers it',
+ options:[{k:'grep',label:'String search',desc:'one dollar sign: does this text appear?'},{k:'tree',label:'A parser',desc:'two: what is the structure?'},{k:'lsp',label:'The language server',desc:'two: what does this symbol mean, where is it used?'},{k:'comp',label:'The compiler',desc:'three: does it build?'},{k:'tests',label:'The tests',desc:'four: does it behave?'}],
+ items:[
+  {s:'Where is the string “retry_after” used in the configuration files and the docs?',ok:['grep'],why:'Text in config and docs has no symbols to resolve; string search still wins and costs almost nothing.'},
+  {s:'List every function defined in this file with its signature.',ok:['tree'],why:'Structure, not meaning: a parser gives you the tree of definitions without resolving anything.'},
+  {s:'Every call site that must change if I rename this method.',ok:['lsp'],why:'References are semantics: the language server knows which calls resolve to this method and which only share its name.'},
+  {s:'Did my last edit introduce a type error anywhere?',ok:['lsp'],why:'Diagnostics after every edit: the language server answers instantly, before you pay for a full build.'},
+  {s:'Does the whole project still build after the change?',ok:['comp'],why:'Only the compiler can say the project builds; it is the third rung and the first one that costs real time.'},
+  {s:'Does the fix actually change behaviour for the failing input?',ok:['tests'],why:'Behaviour is the top rung. Static analysis catches type errors, not wrong logic.'},
+  {s:'Which class does this identifier resolve to, given the imports in scope?',ok:['lsp'],why:'Resolution through imports is meaning, which is what a language server is for.'},
+  {s:'Orient a fresh session on this repository in about two thousand tokens.',ok:['tree'],why:'A structural map of the top symbols, built with a parser, is the cheap whole-repository orientation.'},
+  {s:'Find the TODO comments that mention the payments service.',ok:['grep'],why:'Comments are strings. Reaching for anything heavier is spending for nothing.'},
+  {s:'Prove the logic is right, not merely well typed.',ok:['tests'],why:'Right is behaviour. The compiler proves it builds; only the tests prove it does the thing.'}],
+ done:'Ten questions, five rungs, cheapest first.',keeper:'The model proposes, the language server verifies: diagnostics after every edit, references before every rename, string search for strings, the compiler for builds, the tests for behaviour.'});
+
+/* ================= 5 · COST PER QUERY ================= */
+(function(){
+  const led=$('cqLedger'); if(!led) return;
+  const RATE={pro:{in:1.0,out:10,st:4.5,name:'Pro'},flash:{in:0.3,out:2.5,st:1.0,name:'Flash'},lite:{in:0.1,out:0.4,st:1.0,name:'Flash-Lite'}};
+  const S={coord:'pro',sub:'flash',think:'high',k:10,cache:false,trim:false,rerank:false,sem:false}; let runs=[];
+  segs('cqCoord',v=>{S.coord=v;render();}); segs('cqSub',v=>{S.sub=v;render();}); segs('cqThink',v=>{S.think=v;render();}); segs('cqK',v=>{S.k=+v;render();});
+  ['cqCache','cqTrim','cqRerank','cqSem'].forEach(id=>{ $(id).onchange=e=>{ S[id.slice(2).toLowerCase()]=e.target.checked; render(); }; });
+  function compute(){
+    const Sx=S.trim?2000:4500, D=500, A=500; const coordIn=2*Sx+2*D+A; const cacheOn=S.cache&&Sx>=4096; const cached=cacheOn?2*Sx:0, unc=coordIn-cached;
+    const coordOut=700, think={high:600,medium:240,low:80}[S.think]; const kEff=S.rerank?4:S.k; const subIn=2*(500+kEff*400), subOut=400, subThink=200;
+    const rc=RATE[S.coord], rs=RATE[S.sub]; const L=[];
+    L.push(['coordinator input, uncached ('+rc.name+')',unc,unc*rc.in/1e6]);
+    L.push(['coordinator input, cached read',cached,cached*rc.in*0.1/1e6]);
+    L.push(['coordinator output',coordOut,coordOut*rc.out/1e6]);
+    L.push(['coordinator thinking, '+S.think,think,think*rc.out/1e6]);
+    L.push(['sub-agents input, two calls ('+rs.name+'), top-k '+kEff,subIn,subIn*rs.in/1e6]);
+    L.push(['sub-agents output and thinking',subOut+subThink,(subOut+subThink)*rs.out/1e6]);
+    L.push(['retrieval, two queries',null,0.0008]);
+    if(S.rerank) L.push(['reranking, two calls',null,0.002]);
+    if(cacheOn) L.push(['cache storage, share per query',null,Sx/1e6*rc.st/200]);
+    if(S.sem) L.push(['semantic cache: embed, look up, serving nodes',null,0.0005]);
+    const graded=L.reduce((a,x)=>a+x[2],0); const prod=S.sem?(graded-0.0005)*0.7+0.0005:graded;
+    const base={pro:0.95,flash:0.89,lite:0.76}[S.coord]; const ta={pro:{high:0,medium:-0.01,low:-0.03},flash:{high:0,medium:-0.015,low:-0.04},lite:{high:0,medium:-0.02,low:-0.05}}[S.coord][S.think];
+    const ka=S.rerank?0.01:{20:0.01,10:0,5:-0.01,3:-0.025}[S.k]; const sa={flash:0,lite:-0.02,pro:0.01}[S.sub]; const q=Math.min(0.97,base+ta+ka+sa+(S.trim?-0.01:0));
+    const viol=S.coord==='lite'; const pass=!viol&&graded<=0.0135&&q>=0.90;
+    return {L,graded,prod,q,viol,pass,cacheOn,Sx};
+  }
+  function render(){ const r=compute();
+    led.innerHTML='<table class="tbl"><tr><th>line</th><th>tokens</th><th>per query</th></tr>'+r.L.map(x=>'<tr><td>'+esc(x[0])+'</td><td class="r">'+(x[1]==null?'':fmt(x[1]))+'</td><td class="r">'+usd(x[2])+'</td></tr>').join('')+'<tr class="sum"><td>total, graded on held-out queries</td><td></td><td class="r">'+usd(r.graded)+'</td></tr>'+(S.sem?'<tr><td>estimate on real traffic, 30 percent hits</td><td></td><td class="r">'+usd(r.prod)+'</td></tr>':'')+'</table>';
+    $('cqCost').innerHTML='<span class="'+(r.graded<=0.0135?'pass':'fail')+'">'+usd(r.graded)+'</span><small>per query, graded</small>'; $('cqQual').innerHTML='<span class="'+(r.q>=0.90?'pass':'fail')+'">'+r.q.toFixed(2)+'</span><small>quality, judge</small>';
+    let v;
+    if(r.viol) v='<div class="lzbad"><b>Architectural constraint violated.</b> The coordinator cannot run on the budget tier: experiments showed it too weak for the orchestration, with broken formatting and poor synthesis (quality '+r.q.toFixed(2)+'). Sub-agents are unrestricted; the coordinator must be Flash or Pro.</div>';
+    else if(r.pass) v='<div class="ok"><b>This configuration passes:</b> '+usd(r.graded)+' per query against a budget of $0.0135, quality '+r.q.toFixed(2)+' against a floor of 0.90. Run the held-out set to record it.</div>';
+    else v='<div class="lzbad"><b>Not yet.</b> '+(r.graded>0.0135?'Cost '+usd(r.graded)+' is over the budget of $0.0135. ':'')+(r.q<0.90?'Quality '+r.q.toFixed(2)+' is under the floor of 0.90. ':'')+(r.graded<=0.0135&&r.q<0.90?'Cheap and not good enough: a lever that spends a little quality on retrieval or caching is what is missing.':r.q>=0.90&&r.graded>0.0135?'Good and too dear: tier the coordinator, cache the prefix, or think less on the deterministic turns.':'')+'</div>';
+    $('cqVerdict').innerHTML=v;
+    let n='<div class="simnote">';
+    if(S.cache&&!r.cacheOn) n+='<b>The cache switch is on and nothing is cached.</b> The static prefix is '+fmt(r.Sx)+' tokens, below the 4,096-token minimum, so no cache is created and every read is billed at the full rate. Trimming the prefix made the cache impossible.';
+    else if(S.sem) n+='<b>The semantic cache does not move the grade.</b> On real traffic three in ten questions repeat and a hit never calls the model, so the production estimate drops; the sixteen held-out queries never repeat, so the grader sees the overhead and none of the saving.';
+    else if(S.coord==='flash'&&r.q<0.90&&r.q>=0.88) n+='<b>Flash alone misses the floor by a hundredth.</b> One lever back towards quality pays: rerank the retrieval (better chunks, fewer tokens) or go to top-20 and cache the prefix so the extra context is affordable.';
+    else if(S.coord==='pro'&&r.cacheOn) n+='<b>Pro with a cached prefix</b> saves nine-tenths of the static input, and the thinking and output tokens on the Pro rate still dominate. Caching is a strong second lever and a weak first one.';
+    else if(S.think==='low'&&S.coord==='pro') n+='<b>Thinking low on Pro</b> keeps most of the quality and cuts the priciest meter, but the Pro input and output rates keep the total over budget on their own.';
+    else n+='<b>Read the ledger before pulling a lever.</b> The coordinator’s output and thinking tokens on the Pro rate are the biggest lines; the sub-agents’ retrieval context is the next; the static prefix is paid twice per query, once per turn.';
+    $('cqNote').innerHTML=n+'</div>';
+    chart();
+  }
+  function chart(){ const svg=$('cqChart'); const X=c=>40+Math.min(1,c/0.035)*460, Y=q=>200-((Math.max(0.70,Math.min(1,q))-0.70)/0.30)*180;
+    const dom=runs.map((r,i)=>runs.some((o,j)=>j!==i&&o.cost<=r.cost&&o.q>=r.q&&(o.cost<r.cost||o.q>r.q)));
+    svg.innerHTML='<rect x="40" y="'+Y(1)+'" width="'+(X(0.0135)-40)+'" height="'+(Y(0.90)-Y(1))+'" fill="var(--green)" opacity=".08"/>'
+     +'<line x1="'+X(0.0135)+'" y1="20" x2="'+X(0.0135)+'" y2="200" stroke="var(--red)" stroke-dasharray="4 3"/><text x="'+(X(0.0135)+4)+'" y="196" font-size="9" fill="var(--red)" font-family="var(--mono)">budget $0.0135</text>'
+     +'<line x1="40" y1="'+Y(0.90)+'" x2="500" y2="'+Y(0.90)+'" stroke="var(--red)" stroke-dasharray="4 3"/><text x="440" y="'+(Y(0.90)-4)+'" font-size="9" fill="var(--red)" font-family="var(--mono)">floor 0.90</text>'
+     +'<line x1="40" y1="200" x2="500" y2="200" stroke="var(--line2)"/><line x1="40" y1="20" x2="40" y2="200" stroke="var(--line2)"/>'
+     +[0,0.01,0.02,0.03].map(c=>'<text x="'+X(c)+'" y="214" font-size="9" fill="var(--dim)" text-anchor="middle" font-family="var(--mono)">$'+c.toFixed(2)+'</text>').join('')
+     +[0.7,0.8,0.9,1.0].map(q=>'<text x="36" y="'+(Y(q)+3)+'" font-size="9" fill="var(--dim)" text-anchor="end" font-family="var(--mono)">'+q.toFixed(1)+'</text>').join('')
+     +'<text x="270" y="232" font-size="9" fill="var(--dim)" text-anchor="middle" font-family="var(--mono)">cost per query, graded · up is quality · shaded = passes · × = dominated by another run</text>'
+     +runs.map((r,i)=>'<circle cx="'+X(r.cost)+'" cy="'+Y(r.q)+'" r="'+(i===runs.length-1?6:4)+'" fill="'+(r.pass?'var(--green)':'var(--amber)')+'" opacity=".85"/><text x="'+(X(r.cost)+7)+'" y="'+(Y(r.q)-5)+'" font-size="9" fill="var(--text)" font-family="var(--mono)">'+(i+1)+(dom[i]?' ×':'')+'</text>').join('');
+  }
+  $('cqRun').onclick=()=>{ const r=compute(); const label=RATE[S.coord].name+' / '+RATE[S.sub].name+' · think '+S.think+' · k '+(S.rerank?'20→4':S.k)+(S.cache?' · cache':'')+(S.trim?' · trim':'')+(S.sem?' · semantic':'');
+    runs.push({cost:r.graded,q:r.q,pass:r.pass&&!r.viol,label});
+    $('cqRuns').innerHTML=runs.map((x,i)=>'<div class="ev '+(x.pass?'':'warn')+'"><i>'+(x.pass?'✓':'!')+'</i><span>'+(i+1)+' · '+usd(x.cost)+' · '+x.q.toFixed(2)+' · '+esc(x.label)+'</span></div>').join(''); chart(); };
+  $('cqClear').onclick=()=>{ runs=[]; $('cqRuns').innerHTML=''; chart(); };
+  render();
+})();
+
+/* ================= 5 · THE CACHING BREAKEVEN ================= */
+(function(){
+  const out=$('bkOut'); if(!out) return; const S={p:8000,r:20,ttl:1,tier:'flash',dyn:false};
+  [['bkPrefix','p'],['bkReads','r'],['bkTtl','ttl']].forEach(([id,k])=>{ $(id).oninput=e=>{ S[k]=+e.target.value; $(id+'V').textContent=fmt(S[k]); render(); }; });
+  segs('bkTier',v=>{S.tier=v;render();}); $('bkDyn').onchange=e=>{S.dyn=e.target.checked;render();};
+  const R={flash:{in:0.3,st:1.0},pro:{in:1.0,st:4.5}};
+  function render(){ const rate=R[S.tier], reads=S.r*S.ttl, P=S.p/1e6; const without=reads*P*rate.in; const write=P*rate.in, storage=P*rate.st*S.ttl, cachedReads=reads*P*rate.in*0.1;
+    const N=Math.ceil((rate.in+rate.st*S.ttl)/(0.9*rate.in)); let withc, st;
+    if(S.p<4096){ withc=without; st='min'; } else if(S.dyn){ withc=without+write+storage; st='dyn'; } else { withc=write+cachedReads+storage; st='ok'; }
+    const saving=without-withc;
+    out.innerHTML='<table class="tbl"><tr><th>per time-to-live window</th><th>tokens</th><th>cost</th></tr><tr><td>without a cache: '+reads+' reads at the input rate</td><td class="r">'+fmt(reads*S.p)+'</td><td class="r">'+usd(without)+'</td></tr>'+(st==='min'?'<tr><td>with a cache: nothing created, below the minimum</td><td class="r">0</td><td class="r">'+usd(0)+'</td></tr>':'<tr><td>cache write, once</td><td class="r">'+fmt(S.p)+'</td><td class="r">'+usd(write)+'</td></tr><tr><td>cached reads at a tenth'+(st==='dyn'?': none hit':'')+'</td><td class="r">'+(st==='dyn'?0:fmt(reads*S.p))+'</td><td class="r">'+usd(st==='dyn'?0:cachedReads)+'</td></tr>'+(st==='dyn'?'<tr><td>reads at the full rate, prefix never matched</td><td class="r">'+fmt(reads*S.p)+'</td><td class="r">'+usd(without)+'</td></tr>':'')+'<tr><td>storage, '+S.ttl+' hour'+(S.ttl>1?'s':'')+' at $'+rate.st.toFixed(2)+' per million token-hours</td><td class="r"></td><td class="r">'+usd(storage)+'</td></tr>')+'<tr class="sum"><td>with a cache</td><td></td><td class="r">'+usd(withc)+'</td></tr><tr class="sum"><td>saving</td><td></td><td class="r"><span class="'+(saving>0?'pass':'fail')+'">'+usd(saving)+'</span></td></tr><tr><td>breakeven, reads per window</td><td></td><td class="r">'+N+'</td></tr><tr><td>your reads per window</td><td></td><td class="r">'+reads+'</td></tr></table>';
+    let v;
+    if(st==='min') v='<div class="lzbad"><b>Below the minimum: no cache, full price.</b> An explicit cache needs at least 4,096 tokens, and this block is '+fmt(S.p)+'. The switch being on changes nothing on the bill.</div>';
+    else if(st==='dyn') v='<div class="lzbad"><b>Break the prefix, lose the discount.</b> A timestamp or the user message ahead of the static block means no request starts with the cached bytes, so nothing hits; you pay the write and the storage for no reads at the discount.</div>';
+    else if(reads<N) v='<div class="lzwarn"><b>Below breakeven.</b> '+reads+' reads per window against a breakeven of '+N+': the write and the storage outweigh the discount. Set the time to live to your reuse cadence, or drop the cache.</div>';
+    else v='<div class="ok"><b>Pays: '+Math.round(saving/without*100)+' percent off this block per window.</b> '+reads+' reads against a breakeven of '+N+'. The saving scales with the block; the breakeven does not.</div>';
+    $('bkVerdict').innerHTML=v;
+    $('bkNote').innerHTML='<div class="simnote"><b>Breakeven is independent of block size.</b> Reads must exceed (input rate plus storage rate times time to live) over nine-tenths of the input rate: about '+Math.ceil((0.3+1.0)/(0.27))+' on the Flash tier and '+Math.ceil((1.0+4.5)/0.9)+' on Pro for a one-hour window. Longer windows push it out because storage accrues while nobody reads; implicit caching has no storage fee and no guarantee, so verify the hit ratio in the usage metadata before budgeting on it.</div>';
+  }
+  render();
+})();
+
+/* ================= 5 · WHICH CONSUMPTION OPTION ================= */
+sorter({out:'coOut',ctl:'coCtl',note:'coNote',seed:53,unit:'WORKLOAD',prompt:'which option?',
+ options:[{k:'std',label:'Standard pay-as-you-go',desc:'base rate; variable traffic, no strict promise'},{k:'prio',label:'Priority pay-as-you-go',desc:'about 1.8 times; critical, user-facing peaks'},{k:'pt',label:'Provisioned throughput',desc:'reserved scale units for a term; steady baseline'},{k:'flex',label:'Flex',desc:'about half; best effort within thirty minutes'},{k:'batch',label:'Batch',desc:'about half; results within a day'}],
+ items:[
+  {s:'Nightly classification of two million support tickets; results needed by morning.',ok:['batch'],why:'Asynchronous, throughput-heavy, latency-insensitive: the batch tier at about half the rate, with a day to deliver.'},
+  {s:'A customer-facing assistant at a bank where 429s on Monday morning are unacceptable.',ok:['pt'],why:'Not 429-tolerant: analyse the minute-level traffic, size a reservation to the baseline, spill the peaks to priority.'},
+  {s:'An internal summariser; nobody is waiting; a thirty-minute delay is fine.',ok:['flex'],why:'Latency-tolerant and synchronous: flex at about half, best effort within thirty minutes.'},
+  {s:'A pilot with a hundred users and no availability promise.',ok:['std'],why:'Latency-sensitive but 429-tolerant: standard, the simplest option, with backoff on the retries.'},
+  {s:'Peak-hour traffic above the reserved baseline for a user-facing application.',ok:['prio'],why:'Spillover from a reservation goes to priority first for the critical traffic, then standard.'},
+  {s:'Entity extraction from last quarter’s contracts, one time.',ok:['batch'],why:'A bulk asynchronous job with a lot of requests and no clock: batch.'},
+  {s:'Steady round-the-clock traffic you can forecast to the minute.',ok:['pt'],why:'A stable baseline is what provisioned throughput is for: fixed price per scale unit per term, predictable performance.'},
+  {s:'A dashboard refresh that reruns hourly, is cost-sensitive, and can retry on failure.',ok:['flex'],why:'Tolerates delay and low reliability for a price cut: flex.'},
+  {s:'A latency-sensitive request that can take the occasional 429 with backoff.',ok:['std'],why:'The decision tree’s first leaf: latency-sensitive, 429-tolerant, standard.'},
+  {s:'A retail checkout assistant during a sale, traffic above the reservation, reliability non-negotiable.',ok:['prio'],why:'Critical, user-facing, above the baseline: priority at about 1.8 times, because a 429 at checkout costs more than the premium.'}],
+ done:'Ten workloads along the two questions of the tree.',keeper:'Is anyone waiting? If not, flex or batch at about half. If so, can it take a 429? If so, standard; if not, reserve the baseline and spill the peaks to priority.'});
+
+/* ================= 6 · THE TOOL RESPONSE DESIGNER ================= */
+(function(){
+  const pv=$('trPreview'); if(!pv) return; const JOBS=37;
+  function calc(T){ const fields=T.minimal?4:14; const tokens=Math.round(JOBS*fields*4.5*(T.toon?0.75:1.3)+(T.agg?30:0)+(T.help?25:0)+(T.trunc?20:0)); const turns=2+(T.agg?0:3)+(T.trunc?0:2)+(T.empty?0:1)+(T.errors?0:2)+(T.help?0:1); let cost=0; for(let t=1;t<=turns;t++) cost+=(3000+t*tokens)*0.3/1e6+300*2.5/1e6; return {tokens,turns,cost}; }
+  const OFF={}, ON={minimal:true,agg:true,trunc:true,empty:true,errors:true,toon:true,help:true};
+  function render(){ const T=checks('#trTg'); const r=calc(T), base=calc(OFF), best=calc(ON);
+    $('trTokens').innerHTML=fmt(r.tokens)+'<small>tokens per response</small>'; $('trTurns').innerHTML=r.turns+'<small>turns to finish</small>'; $('trCost').innerHTML=usd(r.cost,3)+'<small>cost of the task</small>';
+    let txt='';
+    if(T.agg) txt+='<span class="good">count: 37 · checks: 27 passed, 0 failed, 10 skipped</span>\n';
+    if(T.toon) txt+=T.minimal?'jobs[37]{id,name,status,duration_s}:\n  4471-01,build,passed,84\n  4471-02,unit-tests,passed,212\n  4471-03,lint,skipped,0\n  <span class="dim">… 34 more rows</span>\n':'jobs[37]{id,name,status,started_at,finished_at,duration_ms,runner,commit,branch,author,retries,artifacts_url,log_url,labels}:\n  4471-01,build,passed,2026-10-07T09:12:44Z,2026-10-07T09:14:08Z,84210,runner-eu-west-07,9f3c2e1a,main,ci-bot,0,https://…/artifacts/4471-01,https://…/logs/4471-01,[]\n  <span class="dim">… 36 more rows</span>\n';
+    else txt+=T.minimal?'{"jobs":[\n  {"id":"4471-01","name":"build","status":"passed","duration_s":84},\n  {"id":"4471-02","name":"unit-tests","status":"passed","duration_s":212},\n  <span class="dim">… 35 more objects</span>\n]}\n':'{"jobs":[\n  {"id":"a9f3c2e1-7b0d-4c1e-9f2a-3d4e5f6a7b8c","name":"build","status":"passed","started_at":"2026-10-07T09:12:44Z","finished_at":"2026-10-07T09:14:08Z","duration_ms":84210,"runner":"runner-eu-west-07","commit":"9f3c2e1a","branch":"main","author":"ci-bot","retries":0,"artifacts_url":"https://…/artifacts/4471-01","log_url":"https://…/logs/4471-01","labels":[]},\n  <span class="dim">… 36 more objects</span>\n]}\n';
+    txt+=T.trunc?'<span class="good">(truncated: 37 jobs, 3 shown, 12,480 chars in total; use --full or --fields to narrow)</span>\n':'<span class="bad">(the output simply stops; nothing says that 34 jobs were cut)</span>\n';
+    txt+=T.empty?'<span class="good">on an empty filter: “0 results, nothing matches --status failed”</span>\n':'<span class="bad">on an empty filter: a blank line</span>\n';
+    txt+=T.errors?'<span class="good">exit 0 · errors are machine-readable with distinct exit codes; unknown flags fail loud</span>\n':'<span class="bad">errors are a human-shaped paragraph; an unknown flag opens an interactive prompt</span>\n';
+    if(T.help) txt+='<span class="good">help[]: ci logs &lt;job-id&gt; --full · ci rerun &lt;job-id&gt; · ci jobs 4471 --status failed</span>';
+    pv.innerHTML=txt;
+    const n=Object.values(T).filter(Boolean).length;
+    $('trVerdict').innerHTML=n===7?'<div class="ok"><b>'+r.turns+' turns at '+usd(r.cost,3)+', from '+base.turns+' turns at '+usd(base.cost,3)+'.</b> The tool did the counting, said what it cut, never left a blank to re-query, failed loud instead of waiting for a keypress, and proposed the next command. The agent reads '+fmt(r.tokens)+' tokens instead of '+fmt(base.tokens)+', and far fewer times.</div>':n===0?'<div class="lzbad"><b>'+r.turns+' turns at '+usd(r.cost,3)+'.</b> Every row carries fourteen fields the agent did not ask for, it has to count the statuses itself, re-query to learn what was cut, re-query to interpret the blank, parse a prose error twice, and guess the next command. Each of those turns re-buys the whole context.</div>':'<div class="lzwarn"><b>'+r.turns+' turns at '+usd(r.cost,3)+'.</b> '+(7-n)+' principle'+(7-n>1?'s':'')+' still off; everything on gets to '+best.turns+' turns at '+usd(best.cost,3)+'.</div>';
+    $('trNote').innerHTML='<div class="simnote"><b>Fewer steps beats cheaper steps.</b> '+(T.agg?'The aggregate line alone removed three turns, because a read-the-whole-list loop became one line.':'Switch the aggregates on first: a roll-up the tool computes is three turns the agent does not spend.')+' Every avoided turn skips one full re-read of the prefix, the history and the tool outputs so far, which is why the turn count moves the cost more than the token count does.</div>';
+  }
+  $$('#trTg input').forEach(i=>i.onchange=render); $('trAll').onclick=()=>{ $$('#trTg input').forEach(i=>i.checked=true); render(); }; $('trNone').onclick=()=>{ $$('#trTg input').forEach(i=>i.checked=false); render(); };
+  render();
+})();
+
+/* ================= 6 · SHRINK THE TOOLBOX ================= */
+(function(){
+  const bars=$('tbBars'); if(!bars) return; const S={n:50,ret:false};
+  $('tbN').oninput=e=>{S.n=+e.target.value;$('tbNV').textContent=S.n;render();}; $('tbRet').onchange=e=>{S.ret=e.target.checked;render();};
+  function calc(n,ret){ const visible=ret?Math.min(4,n):n; const tokens=2000+visible*1540; const acc=ret?0.96:(n<=15?0.98:Math.max(0.6,0.98-(n-15)*0.008)); const retries=(1-acc)*2.5; const turns=4+retries; const cost=turns*(tokens*0.3/1e6+300*2.5/1e6)+(ret?0.0001:0); return {visible,tokens,acc,retries,turns,cost}; }
+  function bar(label,val,max,cls,shown){ return '<div class="barrow"><div class="barlbl"><span>'+label+'</span><span>'+shown+'</span></div><div class="bar"><i class="'+cls+'" style="width:'+Math.min(100,val/max*100).toFixed(1)+'%"></i></div></div>'; }
+  function render(){ const r=calc(S.n,S.ret), ref=calc(60,false);
+    bars.innerHTML=bar('input tokens per turn, tool schemas',r.tokens,ref.tokens,'a',fmt(r.tokens)+' ('+r.visible+' schemas visible)')+bar('selection accuracy, first try',r.acc,1,'c',Math.round(r.acc*100)+'%')+bar('extra calls from wrong picks, per task',r.retries,ref.retries,'b',r.retries.toFixed(2))+bar('cost per task',r.cost,ref.cost,'d',usd(r.cost,3));
+    const base=calc(S.n,false);
+    $('tbVerdict').innerHTML=S.ret?'<div class="ok"><b>'+fmt(r.tokens)+' tokens per turn instead of '+fmt(base.tokens)+': '+Math.round((1-r.tokens/base.tokens)*100)+' percent less,</b> and accuracy back to '+Math.round(r.acc*100)+' percent, so the retries go too. Same '+S.n+' tools available; the model stops paying for the '+(S.n-r.visible)+' it will not use this turn.</div>':S.n>30?'<div class="lzbad"><b>'+fmt(r.tokens)+' tokens of schemas re-processed on every turn,</b> and selection accuracy down to '+Math.round(r.acc*100)+' percent, which is '+r.retries.toFixed(1)+' wrong calls and retries per task on average. Past about thirty visible tools the model confuses them, and each retry re-buys the whole prompt.</div>':'<div class="lzwarn"><b>'+fmt(r.tokens)+' tokens per turn.</b> Small enough that the model picks well; the bill is the schemas themselves, paid on every turn whether used or not.</div>';
+    $('tbNote').innerHTML='<div class="simnote"><b>Retrieve, do not dump the registry.</b> A semantic tool retriever matches the user’s intent against the tool descriptions and exposes the few that fit, which the kit supports as toolset filtering on an agent’s tools. Fifty tools is about 77 thousand tokens a turn; four is about eight thousand, and a smaller tool space is also a more accurate one. The figures are from industry research the day cited, not a vendor’s documentation.</div>';
+  }
+  render();
+})();
+
+/* ================= 6 · THE TRANSCRIPT MANAGER ================= */
+(function(){
+  const svg=$('tmChart'); if(!svg) return; const S={pol:'none',dyn:false}; const W=200000, STATIC=12000, N=60;
+  segs('tmPolicy',v=>{S.pol=v;render();}); $('tmDyn').onchange=e=>{S.dyn=e.target.checked;render();};
+  function sim(){ let hist=[], ctx=[], billed=0, cost=0, rot=0, breaks=0, llm=0, overflow=0, lost=false, prev=0;
+    const size=()=>STATIC+hist.reduce((a,h)=>a+(h.summary?h.size:h.masked?360:3300),0);
+    for(let t=1;t<=N;t++){ let brk=false;
+      if(S.pol==='mask'&&t%10===1&&t>10){ let ch=false; hist.forEach((h,i)=>{ if(i<hist.length-10&&!h.masked&&!h.summary){ h.masked=true; ch=true; } }); if(ch) brk=true; }
+      if(S.pol==='summ'&&size()>=0.9*W){ const c=size(); cost+=c*0.3/1e6+2000*2.5/1e6; llm++; hist=[{summary:true,size:3000}]; brk=true; lost=true; }
+      if(S.pol==='compact'&&size()>=0.55*W){ hist=[{summary:true,size:4000}]; brk=true; }
+      hist.push({}); const c=size(); ctx.push(c); if(c>W) overflow++;
+      const cached=(S.dyn||brk)?0:Math.min(prev,c), unc=c-cached; billed+=c; cost+=unc*0.3/1e6+cached*0.03/1e6+300*2.5/1e6; if(brk) breaks++; if(c>0.6*W) rot++; prev=c; }
+    return {ctx,billed,cost,rot,breaks,llm,overflow,lost}; }
+  function render(){ const r=sim(); const X=t=>40+(t-1)*(460/(N-1)), Y=c=>200-Math.min(1.05,c/W)*170;
+    const pts=r.ctx.map((c,i)=>X(i+1)+','+Y(c)).join(' ');
+    svg.innerHTML='<rect x="40" y="'+Y(W)+'" width="460" height="'+(Y(0.6*W)-Y(W))+'" fill="var(--red)" opacity=".07"/>'
+     +[[0.5,'50%'],[0.6,'60%: rot'],[0.9,'90%'],[1,'window']].map(([f,l])=>'<line x1="40" y1="'+Y(f*W)+'" x2="500" y2="'+Y(f*W)+'" stroke="'+(f>=0.9?'var(--red)':'var(--amber)')+'" stroke-dasharray="4 3" opacity=".7"/><text x="44" y="'+(Y(f*W)-3)+'" font-size="9" fill="var(--dim)" font-family="var(--mono)">'+l+'</text>').join('')
+     +'<polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>'
+     +'<line x1="40" y1="200" x2="500" y2="200" stroke="var(--line2)"/>'+[1,10,20,30,40,50,60].map(t=>'<text x="'+X(t)+'" y="214" font-size="9" fill="var(--dim)" text-anchor="middle" font-family="var(--mono)">'+t+'</text>').join('')
+     +'<text x="270" y="232" font-size="9" fill="var(--dim)" text-anchor="middle" font-family="var(--mono)">turn · line = context tokens sent on that turn · shaded = the rot zone</text>';
+    $('tmTok').innerHTML=(r.billed/1e6).toFixed(2)+' M<small>input tokens billed</small>'; $('tmCost').innerHTML=usd(r.cost,2)+'<small>session cost</small>'; $('tmRot').innerHTML='<span class="'+(r.rot?'fail':'pass')+'">'+r.rot+'</span><small>turns in the rot zone</small>'; $('tmBreaks').innerHTML=r.breaks+'<small>cache breaks</small>';
+    let v;
+    if(S.pol==='none') v='<div class="lzbad"><b>'+r.rot+' turns in the rot zone'+(r.overflow?' and '+r.overflow+' requests over the window':'')+'.</b> Nothing was ever dropped, so from turn 33 the model is reading a transcript it can no longer attend to'+(r.overflow?', and the last four requests do not fit at all':'')+'. Cheap per turn while the prefix caches; expensive in quality.</div>';
+    else if(S.pol==='mask') v='<div class="ok"><b>No turns in the rot zone, '+r.breaks+' deliberate cache breaks.</b> Every resolved tool output older than ten turns became a 60-token typed placeholder; the reasoning and the call parameters stayed verbatim, so the stack traces are still there. Deterministic, no extra model call.</div>';
+    else if(S.pol==='summ') v='<div class="lzwarn"><b>'+r.rot+' turns in the rot zone before the summary, and the evidence is gone.</b> Waiting for 90 percent meant the summariser read a transcript the model was already struggling with, spent a model call on it, smoothed over the failures and dropped the stack traces. Then the context is clean, and the cause of the last bug is no longer in it.</div>';
+    else v='<div class="ok"><b>No turns in the rot zone, '+r.breaks+' compactions.</b> At 55 percent the raw transcript is dropped and the decisions and open threads are kept, before rot could bake into anything. Each compaction is one logged cache break, not a per-turn drip.</div>';
+    $('tmVerdict').innerHTML=v;
+    $('tmNote').innerHTML='<div class="simnote">'+(S.dyn?'<b>The prefix never matches.</b> With the per-turn context ahead of the static blocks, every request starts with different bytes, so every token is billed at the full rate: '+usd(r.cost,2)+' for the session, against a few tenths with static-first ordering. Break the prefix, lose the discount.':'<b>Static first.</b> The system prompt, the tool schemas and the corpus lead and ride the cached-read discount on every turn; the per-turn dynamics trail. '+(S.pol==='mask'?'Masking in batches keeps the breaks rare; masking one output at a time would break the cache on every turn.':S.pol==='summ'?'Compacting at 50 to 60 percent instead would have kept the model inside its attention budget and kept the evidence.':S.pol==='compact'?'Compaction compresses; memory offloads: the decisions and constraints that must survive belong on disk, where no compactor can lose them.':'A policy of none is the default, and the default is what fills the window.'))+'</div>';
+  }
+  render();
+})();
+
+/* ================= 7 · THE CHEATING AGENT ================= */
+(function(){
+  const log=$('chLog'); if(!log) return; segs('chMove',()=>{});
+  $('chRun').onclick=()=>{ const mv=segVal('chMove'), D=checks('#chTg'); const L=[]; const say=(c,t)=>L.push({c,t});
+    say('warn','instruction: make the pricing suite pass · 1 failing test: test_total_rounds_half_up');
+    if(D.tdd) say('ok','tests committed before implementation; the failing test is on record as failing');
+    const tamper=mv!=='fix'; let caught=null;
+    if(mv==='fix') say('ok','agent edits src/pricing.py: round half up instead of banker’s rounding');
+    else if(mv==='weaken') say('bad','agent edits tests/test_pricing.py: assertEqual(total, 125.49) becomes assertAlmostEqual(total, 125.49, delta=50)');
+    else if(mv==='delete') say('bad','agent deletes tests/test_pricing.py::test_total_rounds_half_up');
+    else if(mv==='skip') say('bad','agent adds @skip("flaky") above test_total_rounds_half_up');
+    else say('bad','agent rewrites the body of test_total_rounds_half_up to assert True');
+    if(tamper&&D.lock){ say('ok','hook: edit under tests/ refused during implementation'); caught='lock'; }
+    if(!caught){ if(D.external) say('ok','pipeline runs the suite outside the agent: '+(mv==='delete'?'13 collected, 13 passed':'14 passed')); else if(D.selfgrade) say('warn','agent reviews its own diff: “looks correct, all tests pass”'); else say('warn','agent runs the suite itself and reports: all green'); }
+    if(!caught&&tamper&&D.mutate){ say('ok','mutation check: pricing.py deliberately broken, suite re-run: still green'); say('ok','verdict: the tests cannot fail; change rejected'); caught='mutate'; }
+    if(!caught&&tamper&&D.tdd&&mv!=='weaken'){ say('ok','tests-first diff: a committed failing test is missing, skipped or no longer asserts; change rejected'); caught='tdd'; }
+    if(!caught&&!tamper&&D.mutate) say('ok','mutation check: pricing.py deliberately broken, suite goes red: the tests prove themselves');
+    log.innerHTML=L.map(x=>'<div class="ev '+x.c+'"><i>'+(x.c==='bad'?'✗':x.c==='warn'?'!':'✓')+'</i><span>'+esc(x.t)+'</span></div>').join('');
+    let v;
+    if(!tamper) v='<div class="'+(D.external?'ok':'lzwarn')+'"><b>A real fix.</b> '+(D.external?'Verified by a pipeline the agent cannot touch.':'But nothing outside the model checked it; the next time the agent is wrong, nobody will know.')+(D.mutate?' And the suite proved it can fail, so green means something.':'')+(D.selfgrade?' The self-review added a sentence of confidence and no information.':'')+'</div>';
+    else if(caught) v='<div class="ok"><b>Caught by '+({lock:'the locked test files',mutate:'the mutation check',tdd:'tests-first'})[caught]+'.</b> '+({lock:'The edit never landed: during implementation the test files are read-only to the agent, so the only way to green is to fix the code.',mutate:'Breaking the code should have broken the suite; it stayed green, so the suite no longer tests anything, and the change is rejected before anyone trusts it.',tdd:'The committed failing test is the contract; a diff that removes, skips or hollows it out is visible against the record.'})[caught]+'</div>';
+    else v='<div class="lzbad"><b>Shipped green and broken.</b> '+(D.external?'The pipeline ran the suite faithfully, and the suite had been tampered with, so an external verifier alone is not enough: it verifies whatever tests it is given. ':'')+(D.selfgrade?'The model reviewed its own change and approved it, which is confirmation, not verification. ':'')+(!D.external&&!D.selfgrade?'The agent ran the tests itself and reported what it wanted to report. ':'')+(mv==='weaken'?'A tolerance of fifty on a price is a test that passes anything.':mv==='delete'?'A suite one test shorter is still all green.':mv==='skip'?'A skipped test is not counted as a failure anywhere.':'A test that asserts true is a test that asserts nothing.')+'</div>';
+    $('chVerdict').innerHTML=v;
+    $('chNote').innerHTML='<div class="simnote"><b>Three doors, three locks.</b> Lock the test files so the agent cannot change the contract; prove the tests can fail so a hollowed-out suite is caught; and run the verifier outside the model so the agent cannot skip it. The anti-pattern is the fourth switch: a model reviewing its own diff is not a verifier, whatever it says.</div>';
+  };
+})();
+
+/* ================= 7 · WHICH SPEND CONTROL ================= */
+sorter({out:'gvOut',ctl:'gvCtl',note:'gvNote',seed:67,unit:'NEED',prompt:'which control?',
+ options:[{k:'quota',label:'Quota or rate limit',desc:'a hard per-minute ceiling; excess gets 429'},{k:'budget',label:'Budget and alerts',desc:'notify at thresholds; can trigger automation'},{k:'cap',label:'Spend cap',desc:'pause traffic at a limit'},{k:'labels',label:'Labels and billing export',desc:'attribute and query spend in the warehouse'}],
+ items:[
+  {s:'Attribute last month’s model spend to the three teams that share one project.',ok:['labels'],why:'Attribution is labels at provisioning time plus the billing export to the warehouse, queryable by team, application, model and environment.'},
+  {s:'Stop one tenant’s surge from consuming the shared tokens per minute.',ok:['quota'],why:'A per-tenant quota is the hard ceiling; it is blunt, so the tenant gets 429s at peak and must back off.'},
+  {s:'Tell the owner when forecast spend will pass ninety percent of the monthly plan.',ok:['budget'],why:'Budgets notify at thresholds, actual or forecast. A safety net, not a real-time control.'},
+  {s:'Pause all API traffic if a runaway loop ever spends past a hard ceiling, accepting the outage.',ok:['cap'],why:'A spend cap pauses traffic at the limit and resumes when clear; disruptive by design, so the threshold is generous.'},
+  {s:'Query cost per model tier per environment in depth.',ok:['labels'],why:'The export has SKU and model-tier granularity; labels add the environment dimension.'},
+  {s:'Trigger an automated response when a threshold is crossed, through a message queue.',ok:['budget'],why:'Budget alerts can publish to a queue that drives automation; that is as close to a control plane as alerts get.'},
+  {s:'A per-minute ceiling that will return 429s at peak, handled with backoff and retries.',ok:['quota'],why:'That is the quota’s behaviour exactly, and the watch-out that comes with it.'},
+  {s:'Finance asks which production agent is the most expensive per resolved task.',ok:['labels'],why:'Labelled spend joined to the trace store’s resolved-task counts; neither alone answers it.'},
+  {s:'A safety net that notifies but never blocks.',ok:['budget'],why:'Budgets and alerts are the notify-only layer; they are not the thing that stops a request.'},
+  {s:'A control that is disruptive, so set it generously and check the service supports it.',ok:['cap'],why:'Spend caps are not available on every service and they interrupt production; the deck’s own warning.'}],
+ done:'Ten needs across four controls that block, warn, pause or explain.',keeper:'Quotas block per minute, budgets warn and can automate, caps pause, labels explain. Chargeback runs on the explaining layer, which is why labelling at provisioning time is not optional.'});
+</script>
+<script src="assets/version.js"></script>
+<script src="assets/lab.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **23 hands-on labs**, **298 in-browser simulations**,
+topics. **304 topics**, **24 hands-on labs**, **315 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -38,7 +38,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    jobs with pros and cons, the change log, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -123,6 +123,18 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **The FDE bootcamp, day three.** The optimise chapter as a lab: autoraters
+  on trial (an agreement bench that computes percent agreement, correlation,
+  kappa and alpha live and shows the first two lying), choosing the criteria a
+  judge scores consistently from a table with distractor metrics and the
+  homogeneity trap, a hill climb driven by the judge's rationales, a coding
+  agent on a fixed small model whose pass rate is won in the harness, a
+  diagnose-the-agent drill, a cost-per-query ledger with a budget and a
+  quality floor graded on held-out queries, the caching breakeven, a tool
+  response designer, the shrinking toolbox, a transcript manager, and the
+  cheating agent against its defences. Seventeen original simulations,
+  white-labelled; wired as Day 3 inside the bootcamp card.
 
 - **The FDE bootcamp, day two.** Govern it, prove it, run it at scale: the
   decision-point versus enforcement-point habit, skills and the skills
