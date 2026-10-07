@@ -77,6 +77,7 @@ function init(topics) {
     govern: { name: "Govern & secure agents", hue: 352, cats: ["Security", "AI Governance", "Agentic AI", "AI Agents", "Agent Frameworks & Runtimes", "Model Context Protocol"] },
     design: { name: "Architecture diagrams", hue: 250, cats: ["Software Architecture", "Production Readiness", "Candidate Validation", "Leadership"] },
     fde1: { name: "The FDE bootcamp, day one", hue: 320, cats: ["Agentic AI", "AI Agents", "Agent Frameworks & Runtimes", "Model Context Protocol", "Security", "AI Governance", "Production Readiness", "Multi-Tenancy", "Observability", "GCP"] },
+    fde2: { name: "The FDE bootcamp, day two", hue: 352, cats: ["Security", "AI Governance", "Observability", "Production Readiness", "Production Operations", "Evaluation & Metrics", "LLMOps", "Agentic AI", "AI Agents", "Agent Frameworks & Runtimes", "Model Context Protocol", "FinOps", "GCP"] },
     peakweek: { name: "Peak Week \u2014 one agent end to end", hue: 320, cats: ["Agent Frameworks & Runtimes", "AI Agents", "Agentic AI", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "GCP"] },
     gpu: { name: "The machine underneath", hue: 280, cats: ["Large Language Models", "Deep Learning & Neural Networks", "Performance", "LLMOps", "Math, Probability & Statistics"] },
     train: { name: "Wrong, then less wrong", hue: 280, cats: ["Deep Learning & Neural Networks", "Classical Machine Learning", "Math, Probability & Statistics"] },

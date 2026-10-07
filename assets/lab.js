@@ -317,7 +317,8 @@
       ['govern.html',    'Govern and secure an estate of agents'],
       ['gemini.html',    'Rolling it out to a whole company'],
       ['peakweek.html',  'Peak Week, one agent, all the way through'],
-      ['fde1.html',      'The FDE bootcamp, day one: build an enterprise agent'] ] },
+      ['fde1.html',      'The FDE bootcamp, day one: build an enterprise agent'],
+      ['fde2.html',      'The FDE bootcamp, day two: govern it, prove it, run it at scale'] ] },
     { name:'Cloud and architecture', labs:[
       ['cloud.html',            'How the cloud actually works'],
       ['atlas.html',            'The three-cloud atlas: same jobs, three dictionaries'],

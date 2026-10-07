@@ -163,6 +163,19 @@ fde1.html         FDE bootcamp lab, day one: the anatomy of an enterprise
                   identity (the lethal trifecta, a token inspector, own
                   authority versus on behalf of), and a discovery engine that
                   evolves an order quantity out of a local dip
+fde2.html         FDE bootcamp lab, day two: decision points, enforcement
+                  points, identity and evidence; skills and the skills
+                  registry (a context budget, a front-matter and package
+                  linter, name the practice, immutable revisions you publish,
+                  pin and roll back); the credential vault with a credential
+                  router and a why-is-my-agent-missing-from-the-map
+                  diagnostic; the seven-layer perimeter (a request through the
+                  layers with six attacks and a dry-run switch, a prompt-filter
+                  tuner, which layer); evaluation-driven development (the gate
+                  that shows a green score lying, which check catches it); the
+                  cascade with a circuit breaker and fallback ladder, cost at
+                  three altitudes; and the confused deputy refused with
+                  row-level security and the loop closed
 design.html       Diagram lab, audiences, levels of zoom, anatomy, notation,
                   choosing services, what people leave out, the questions
                   behind the picture, surviving a review, diagram rot, the
@@ -189,7 +202,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 282 simulations across the twenty-two labs. Every one carries a
+There are 298 simulations across the twenty-three labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -272,7 +285,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-two labs are self-contained pages, but the chrome around the content
+The twenty-three labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
