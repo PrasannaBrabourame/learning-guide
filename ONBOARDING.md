@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **22 hands-on labs**, **282 in-browser simulations**,
+topics. **304 topics**, **23 hands-on labs**, **298 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -38,7 +38,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    jobs with pros and cons, the change log, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, hotseat, fde1, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -123,6 +123,19 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **The FDE bootcamp, day two.** Govern it, prove it, run it at scale: the
+  decision-point versus enforcement-point habit, skills and the skills
+  registry, the credential vault that takes every secret out of the agents,
+  the seven-layer zero-trust perimeter, evaluation-driven development, a
+  fleet under a degraded dependency, and the confused deputy refused below
+  the model with row-level security. Sixteen original simulations, including
+  a context budget for a skill catalogue, a front-matter and package linter,
+  a registry you publish to and roll back, a credential router across two
+  runtimes, a request sent through the layers with six attacks and a dry-run
+  switch, a build gate that shows a green score lying, a cascade simulator
+  with a circuit breaker and fallback ladder, and two users sending one
+  prompt against a row-access policy. White-labelled: product names only.
 
 - **The FDE bootcamp, day one.** A four-day forward-deployed-engineer
   bootcamp is being rebuilt as one lab per day; day one covers the anatomy
