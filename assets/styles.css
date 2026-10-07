@@ -328,6 +328,29 @@ h1,h2.dtitle,.dwelcome h1,.btitle h2{font-family:var(--display);font-weight:500;
 .lab .lbrand svg{display:block;height:22px;width:auto}
 .lab .lbrand i{font-style:normal;font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;
   color:var(--muted);white-space:nowrap}
+/* The bootcamp is one card with a card per day inside it, so the track keeps
+   one step for the whole course while each day stays its own lab with its own
+   related-topics strip. The outer shell is not a link (a link cannot hold
+   links); the day cards are. */
+.lgroup{grid-column:1/-1}
+.lgroup:hover{translate:none}
+.lgroup .lghead{border-radius:16px;border-bottom:1px solid var(--line);cursor:default}
+.lgroup .ldays{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px;margin-top:14px}
+.lgroup .lday{position:relative;display:flex;flex-direction:column;border-radius:12px;transition:translate .18s ease}
+.lgroup .lday:hover{translate:0 -2px}
+.lgroup .ldaylink{display:block;flex:1;padding:14px 16px 12px;border:1px solid var(--line);border-radius:12px 12px 0 0;
+  border-bottom:0;background:var(--soft);text-decoration:none;color:inherit;transition:border-color .18s ease}
+.lgroup .ldaylink:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.lgroup .lday .ltopics{border-radius:0 0 12px 12px;background:var(--panel)}
+.lgroup .lday .ltopics:hover{background:var(--accentsoft)}
+.lgroup:hover .ltopics{border-color:var(--line)}
+.lgroup .lday:hover .ldaylink,.lgroup .lday:hover .ltopics{border-color:var(--accent)}
+.lgroup .ldayno{display:inline-block;margin-bottom:8px;padding:2px 9px;border-radius:99px;
+  font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--accentsoft);color:var(--accent)}
+.lgroup .lday b{font-size:16px;margin-bottom:5px}
+.lgroup .lday .lgist{font-size:13.5px;margin-bottom:6px}
+.lgroup .lday .lmeta{margin-top:6px}
 :root{--brand-aws:#ff9900;--brand-awstext:#232f3e;--brand-az:#0078d4;--brand-az2:#3aa0ea;
   --brand-g1:#4285f4;--brand-g2:#ea4335;--brand-g3:#fbbc04;--brand-g4:#34a853}
 [data-theme=dark]{--brand-aws:#ffab2e;--brand-awstext:#e8e4dc;--brand-az:#4fa9e8;--brand-az2:#8ecdf5;
