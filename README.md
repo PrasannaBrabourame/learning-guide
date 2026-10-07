@@ -176,6 +176,20 @@ fde2.html         FDE bootcamp lab, day two: decision points, enforcement
                   cascade with a circuit breaker and fallback ladder, cost at
                   three altitudes; and the confused deputy refused with
                   row-level security and the loop closed
+fde3.html         FDE bootcamp lab, day three: the judge on trial (which check
+                  sees it, an agreement bench that computes percent agreement,
+                  correlation, kappa and alpha live, pointwise or pairwise),
+                  climbing with a judge (choose the reliable criteria from a
+                  table with distractor metrics, the hill climb that reads the
+                  judge's rationales), the coding-agent harness (a fixed small
+                  model whose pass rate is won in the tools and instructions,
+                  diagnose the agent not the task, which code-intelligence rung),
+                  the bill (cost per query against a budget and a quality floor
+                  with a cost-quality scatter, the caching breakeven, which
+                  consumption option), fewer tokens (the tool response designer,
+                  shrink the toolbox, the transcript manager), keeping it honest
+                  (the cheating agent against its defences, which spend control)
+                  and the scenario drill
 design.html       Diagram lab, audiences, levels of zoom, anatomy, notation,
                   choosing services, what people leave out, the questions
                   behind the picture, surviving a review, diagram rot, the
@@ -202,7 +216,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 298 simulations across the twenty-three labs. Every one carries a
+There are 315 simulations across the twenty-four labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -285,7 +299,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-three labs are self-contained pages, but the chrome around the content
+The twenty-four labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
