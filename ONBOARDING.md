@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **24 hands-on labs**, **315 in-browser simulations**,
+topics. **304 topics**, **25 hands-on labs**, **334 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -17,7 +17,7 @@ Two kinds of content, one site:
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered on the dashboard and browse view
   (`index.html` + `assets/app.js`).
-- **The labs** (`*.html`) — 22 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`): 25 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -38,7 +38,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    jobs with pros and cons, the change log, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, fde4, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -123,6 +123,18 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **The FDE bootcamp, day four.** The front-door chapter as a lab: which
+  layer stops it, ingest or federate, the six-step life of a query with a
+  threshold and the fallback the rewriter needs, the three latency clocks,
+  the identity chooser with the day's five scenarios, the sign-in flow and
+  the four ways federation breaks, a Model Armor template tuner against ten
+  kinds of traffic, where the scan sits, the content policy built step by
+  step, the key-management plan, a perimeter tester, the org-policy console,
+  the logbook, the custom-portal authorisation flow, connector or tool server
+  with a registration lint, and reading the trace. Eighteen original
+  simulations plus the drill, white-labelled; wired as Day 4, completing the
+  bootcamp card.
 
 - **The FDE bootcamp, day three.** The optimise chapter as a lab: autoraters
   on trial (an agreement bench that computes percent agreement, correlation,
