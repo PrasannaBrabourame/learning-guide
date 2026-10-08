@@ -18,6 +18,10 @@
   .pill small{display:block;color:var(--muted);font-size:11.5px;margin-top:4px}
   .daymap{display:grid;grid-template-columns:70px 1fr;gap:6px 12px;font-size:12.5px;line-height:1.5;margin-top:8px}
   .daymap b{font-family:var(--mono);font-size:11px;color:var(--accent);padding-top:2px}
+  .cmtag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line2);border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px;white-space:nowrap}
+  .cmap{display:grid;grid-template-columns:28px 1fr;gap:6px 10px;font-size:12.5px;line-height:1.5;margin-top:8px}
+  .cmap b{font-family:var(--display);font-size:18px;color:var(--accent);line-height:1.2}
+  .cmap i{font-style:normal;display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
   .daymap .now{background:var(--accent-soft);border-radius:6px;padding:2px 6px;margin-left:-6px}
   .stmt{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.5;background:var(--panel2)}
   .segmented.col{flex-direction:column;align-items:stretch}
@@ -127,13 +131,24 @@
         <div class="pill"><h4>Govern</h4>Secure, control and audit the fleet: gateway, identity, registry, prompt screening, policy.<small>Day two. Identity foundations start today.</small></div>
         <div class="pill"><h4>Optimise</h4>Keep improving it: evaluation, simulation, observability, cost and tokens.<small>Day three.</small></div>
       </div>
-      <div class="lbl" style="margin-top:12px">the four days, and which organs each one deepens</div>
+      <div class="lbl" style="margin-top:12px">the course map: five chapters across four days, and where today sits</div>
       <div class="daymap">
-        <b><span class="now">Day 1</span></b><span>Anatomy, the runtime, orchestration, agent-to-agent and tool protocols, identity foundations, and a discovery engine. Organs: reasoning core, capabilities, orchestration, identity boundary.</span>
-        <b>Day 2</b><span>Infrastructure, networking, securing and observing the fleet: gateway, prompt screening, the operations suite. Organs: runtime, context plane, control plane.</span>
-        <b>Day 3</b><span>Evaluation pipelines, automatic raters, hill climbing on test cases, trajectory checks, cost and token accounting. Organs: reasoning core (quality), runtime (cost).</span>
-        <b>Day 4</b><span>Bring it together: your own connectors, cryptographic agent identity, enterprise data, and publishing into the company's front door.</span>
+        <b><span class="now">Day 1</span></b><span><span class="cmtag">build (architect)</span>Anatomy of an enterprise agent; the agent-to-agent protocol and multi-agent mechanics; the zero-trust identity foundation; a discovery engine that evolves candidates; then the challenge: build an enterprise agent. Organs: reasoning core, capabilities, orchestration, identity boundary.</span>
+        <b>Day 2</b><span><span class="cmtag">govern (secure)</span>Agent skills and the skills registry; agent governance; managing production agents at scale; then three challenges: agent identity foundations, zero-trust perimeters with inline governance, observe and secure a multi-agent system. Organs: runtime, context plane, control plane.</span>
+        <b>Day 3</b><span><span class="cmtag">optimise (evaluate)</span>More reliable autoraters; design and optimisation of coding agents; cost and token estimation, analysis and optimisation; then three challenges: autorater self-consistency and skills hill climbing, coding-agent hill climbing, cost and token optimisation. Organs: reasoning core (quality), runtime (cost).</span>
+        <b>Day 4</b><span><span class="cmtag">architect, then set up and configure</span>Overall architecture; identity architecture; API integration and the federated-connector authorisation flow; a bring-your-own tool-server demo; network architecture and security; a sensitive-data-protection demo on a drive connector; wrap-up and next steps. Organs: the data boundary, and the front door around all of them.</span>
       </div>
+      <div class="lbl" style="margin-top:12px">the seven things the course promised, and where each lives in this guide</div>
+      <div class="cmap">
+        <b>1</b><span>The enterprise app's and the notebook's architecture, including identity.<i><a href="fde4.html#pane-fquery">Life of a query</a> and <a href="fde4.html#pane-fident">who gets in</a> on day four; the identity foundation in <a href="fde1.html#pane-ftrust">zero trust</a> on day one; the rollout view in <a href="gemini.html#pane-identity">the rollout lab</a>.</i></span>
+        <b>2</b><span>A deep dive on connector implementation, with a lab.<i><a href="fde4.html#pane-fquery">Ingest or federate</a>, the content policy on a drive connector in <a href="fde4.html#pane-fscreen">screen every word</a>, and ready-made connectors against your own tool server in <a href="fde4.html#pane-fplug">plug it in</a>; the connector catalogue in <a href="gemini.html#pane-data">the rollout lab</a>.</i></span>
+        <b>3</b><span>Network and security setup, and governance of the enterprise app.<i><a href="fde4.html#pane-fperim">The perimeter</a> (keys, the service perimeter, org policies, the logbook) and <a href="fde4.html#pane-fscreen">screen every word</a> on day four; the seven-layer perimeter in <a href="fde2.html#pane-gperim">day two</a>.</i></span>
+        <b>4</b><span>The no-code agent builder, with its governance and usage reporting.<i>Touched only in passing: a no-code agent using a tool server as a data store and respecting the admin's allow-lists in <a href="fde4.html#pane-fplug">plug it in</a>, what usage reporting can answer in <a href="fde4.html#pane-fperim">the logbook</a>, and the designer itself in <a href="gemini.html#pane-agents">the rollout lab</a>.</i></span>
+        <b>5</b><span>Agents built with the kit, authenticating through integration connectors.<i>The credential vault and identity without secrets in <a href="fde2.html#pane-gident">day two</a>; integration connectors as the third option in <a href="fde4.html#pane-fplug">plug it in</a>.</i></span>
+        <b>6</b><span>Building custom agents and surfacing them in the enterprise app.<i><a href="fde1.html#pane-fbuild">The build</a> and the agent card that registers in <a href="fde1.html#pane-fproto">two protocols</a> on day one; the API behind the app in <a href="fde4.html#pane-fplug">plug it in</a>.</i></span>
+        <b>7</b><span>Complex agentic workflows with the kit, the managed runtime, agent-to-agent and the tool protocol.<i><a href="fde1.html#pane-forch">The orchestrator</a> and <a href="fde1.html#pane-fproto">two protocols</a> on day one; the fleet <a href="fde2.html#pane-gload">under load</a> on day two; the harness and the bill on <a href="fde3.html#pane-oharness">day three</a>.</i></span>
+      </div>
+      <div class="plain-line" style="margin-top:10px"><b>Who it was for.</b> Cloud architects, AI and machine-learning engineers, and the platform engineers who own an agent's lifecycle and its security; the format was presentations, hands-on challenge labs and a room that was expected to answer back. Three chapters got a day each and the last two shared the fourth, which is why day four reads as a recap that levels up rather than new ground.</div>
     </div>
 
     <div class="card">
