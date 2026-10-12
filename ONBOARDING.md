@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **25 hands-on labs**, **336 in-browser simulations**,
+topics. **304 topics**, **25 hands-on labs**, **339 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -129,8 +129,11 @@ The most recent arc of work, newest first:
   often confused with a neighbour in the same cloud, opening a side-by-side
   comparison: 27 pairs in `data/services.json` (Pub/Sub against Eventarc,
   SQS against SNS, Service Bus against Event Grid and so on), each with the
-  question that decides, pick-when for both, the trap and two situations;
-  a which-one drill built from the situations. Two new simulations.
+  question that decides, pick-when for both, the trap and two situations.
+  Five simulations on the tab: the side-by-side, a decider steered by three
+  situation dials per pair, a sorting office that draws the messaging shape
+  (router, queue, topic, stream) with the service behind it in each cloud,
+  a name-the-question drill and a which-one drill.
 
 - **The FDE bootcamp, day four.** The front-door chapter as a lab: which
   layer stops it, ingest or federate, the six-step life of a query with a
