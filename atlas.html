@@ -100,6 +100,19 @@
   .pcard .pw{font-size:12.5px;line-height:1.6;color:var(--text);margin-top:4px}
   .pcard a.go{display:inline-block;margin-top:8px;font-size:11.5px;color:var(--accent);cursor:pointer;text-decoration:none}
   .scn{font-size:12.5px;line-height:1.6;padding:7px 0;border-bottom:1px solid var(--line)}
+  .dial{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--panel2)}
+  .dial.key{border-color:var(--accent)}
+  .dial .dq{font-size:13.5px;font-weight:600;margin:2px 0 8px;line-height:1.4}
+  .dial .segmented{flex-wrap:wrap} .dial .seg{text-align:left;font-size:12px;white-space:normal;line-height:1.35;flex:1 1 45%}
+  .tug{display:flex;align-items:center;gap:10px;margin:6px 0 4px}
+  .tug .track{flex:1;height:10px;border-radius:99px;background:var(--dot);position:relative;border:1px solid var(--line2)}
+  .tug .mk{position:absolute;top:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);transform:translateX(-50%);transition:left .35s ease;box-shadow:0 0 0 3px var(--panel)}
+  .tug .tn{font-family:var(--mono);font-size:10.5px;max-width:130px;line-height:1.3}
+  .sw{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;margin-right:10px;user-select:none}
+  .sw input{accent-color:var(--accent);margin:0}
+  .sorow{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.55;align-items:start}
+  .sorow b{display:block;font-size:13px}
+  @media (max-width:640px){.sorow{grid-template-columns:1fr}}
   .scn b{font-weight:600}
   @media (prefers-reduced-motion: reduce){.bsbox.flip{animation:none}}
 </style>
@@ -258,6 +271,38 @@
       <div class="ctlrow"><span class="lbl">cloud</span><div class="segmented" id="alkProv" style="margin:0"><button class="seg on" data-p="gcp">Google Cloud</button><button class="seg" data-p="aws">AWS</button><button class="seg" data-p="azure">Azure</button></div><span class="k" id="alkCount" style="font-size:11px;color:var(--muted);white-space:nowrap"></span></div>
       <div class="chips" id="alkPairs"></div>
       <div id="alkOut" data-needs-data style="margin-top:10px"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the decider, push on the question and watch the answer move</h2>
+      <div class="plain-line"><b>Try this:</b> pick a pair and answer three questions about your situation. The bar leans towards one service as you go, and the verdict names it. The question marked <b>decides</b> outweighs the other two: answer it alone and you already have the answer. Answer the others against it and you will see why so many estates end up running both.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>The pharmacist&rsquo;s three questions before handing over a remedy: what is it for, how old is the patient, are they taking anything else. The first one settles most cases on its own. The other two change the dose or add a warning, never the medicine.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>choose <b>Pub/Sub vs Eventarc</b>, answer only <b>Who produces the event?</b>, then flip the other two against it and watch the verdict change its tone.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>dial</b> one question about your situation with two answers, each pulling towards one of the pair</span><span class="sp-w"><b>decides</b> the one dial that outweighs the others; its answer is the answer</span><span class="sp-w"><b>verdict</b> the service the answers point to, and how sure the sim is</span><span class="sp-w"><b>lean</b> the direction the bar tilts as you answer</span><span class="sp-w"><b>stacked</b> using both services together, one in front of or behind the other</span><span class="sp-w"><b>situation</b> a short description of a real need</span><span class="sp-w"><b>pair</b> one look-alike comparison: two services, one question</span><span class="sp-w"><b>look-alike</b> two services in the same cloud that overlap on a job and are easily mistaken for each other</span></span></div></div>
+      <div class="ctlrow"><span class="lbl">cloud</span><div class="segmented" id="dcProv" style="margin:0"><button class="seg on" data-p="gcp">Google Cloud</button><button class="seg" data-p="aws">AWS</button><button class="seg" data-p="azure">Azure</button></div></div>
+      <div class="chips" id="dcPairs"></div>
+      <div class="sim-layout">
+        <div><div id="dcDials" data-needs-data></div></div>
+        <div><div id="dcBar"></div><div id="dcOut" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the sorting office, draw the messaging shape and name it in three clouds</h2>
+      <div class="plain-line"><b>Try this:</b> five switches describe what you need from messaging: who produces the message, how many listeners, whether one of them is down, whether you need to replay last week, and whether order matters. The picture redraws into one of four shapes (router, queue, topic, stream). Under it, each cloud names the service that gives that shape, with the small print. Most look-alike pairs on this tab are two of these shapes wearing similar names.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A post office sorting room with four desks. One desk sends a letter to one address (a queue). One photocopies it to everyone on a list (a topic). One files it in a dated archive that anyone can read back through (a stream). The fourth is the building itself sending a note when something happens, like the fire alarm (a router). Same room, four different desks.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set <b>who produces</b> to <b>the cloud itself</b> and watch Pub/Sub, SQS and Service Bus all leave the picture: none of them watches the cloud for you.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>router</b> a service that watches the cloud&rsquo;s own events, filters them and delivers them to subscribers</span><span class="sp-w"><b>queue</b> a line of messages that workers take from one at a time; each message is handled once</span><span class="sp-w"><b>topic</b> a named channel that copies each message to every subscriber</span><span class="sp-w"><b>stream</b> an ordered log of records that readers move through at their own pace and can rewind</span><span class="sp-w"><b>producer</b> whoever creates the message: your code, or a cloud service reporting that something happened</span><span class="sp-w"><b>listener</b> a program that receives the message; also called a consumer or a subscriber</span><span class="sp-w"><b>replay</b> reading past messages again, for a new listener or after a bug</span><span class="sp-w"><b>order</b> delivering messages in the sequence they were sent, usually per key such as a customer</span><span class="sp-w"><b>dead-letter</b> a side queue where a message that keeps failing is parked for a person to look at</span><span class="sp-w"><b>retention</b> how long a service keeps a message before discarding it</span></span></div></div>
+      <div class="ctlrow"><span class="lbl">who produces</span><div class="segmented" id="soProd" style="margin:0"><button class="seg on" data-v="code">my own code</button><button class="seg" data-v="cloud">the cloud itself</button></div><span class="lbl" style="margin-left:8px">listeners</span><div class="segmented" id="soN" style="margin:0"><button class="seg on" data-v="1">one</button><button class="seg" data-v="3">three</button></div></div>
+      <div class="ctlrow" id="soTg"><label class="sw"><input type="checkbox" data-k="down"> one listener is down for an hour</label><label class="sw"><input type="checkbox" data-k="replay"> replay last week</label><label class="sw"><input type="checkbox" data-k="order"> strict order per customer</label></div>
+      <div id="soDiag"></div>
+      <div id="soOut" data-needs-data style="margin-top:10px"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: name the question</h2>
+      <div class="plain-line"><b>Try this:</b> eight rounds. You are shown a pair and four questions. One of them is the question that decides between those two; the other three decide other pairs. The point is to notice that the question is the thing to memorise, because the names change and the question does not.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Learning a doctor&rsquo;s first question for each complaint. &ldquo;Where does it hurt&rdquo; belongs to one problem and &ldquo;when did you last eat&rdquo; to another. Remember the question and the diagnosis mostly follows.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>cover the names with your hand and read only the four questions: the right one is the one that mentions what the two actually differ on.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>pair</b> one look-alike comparison: two services, one question</span><span class="sp-w"><b>deciding question</b> the single fact about a situation that settles which of the two to use</span><span class="sp-w"><b>distractor</b> a wrong option that is the right answer to something else</span><span class="sp-w"><b>round</b> one pair and its four candidate questions</span><span class="sp-w"><b>first pick</b> the option you chose before any retry; only first picks count towards the score</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="nqOut" data-needs-data></div></div>
+        <div><div id="nqCtl"></div><div id="nqNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
     </div>
 
     <div class="card">
@@ -733,6 +778,156 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     out.querySelectorAll('a[data-row]').forEach(a=>a.onclick=()=>window.atlasOpen(a.dataset.row));
   }
   window.atlasAlike=id=>{ const l=ALK.find(x=>x.id===id); if(!l) return; P=l.provider; cur=l; sync(); chips(); gotoTab('alike'); render(); };
+})();
+
+/* ================= 7 · LOOK-ALIKES: the decider ================= */
+(function(){
+  const dials=document.getElementById('dcDials'), bar=document.getElementById('dcBar'), out=document.getElementById('dcOut'), prov=document.getElementById('dcProv'), pairs=document.getElementById('dcPairs');
+  if(!dials) return;
+  let P='gcp', cur=null, ans={};
+  onData(()=>{
+    prov.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ P=b.dataset.p; cur=null; ans={}; prov.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); chips(); render(); });
+    chips(); render();
+  });
+  function chips(){
+    const ls=ALK.filter(l=>l.provider===P&&l.dials);
+    if(!cur||cur.provider!==P) cur=ls[0]||null;
+    pairs.innerHTML=ls.map(l=>'<button class="chip'+(l===cur?' on':'')+'" data-id="'+l.id+'">'+esc(brandless(l.a.name))+'<span class="n">vs</span> '+esc(brandless(l.b.name))+'</button>').join('');
+    pairs.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ cur=ALK.find(l=>l.id===b.dataset.id)||cur; ans={}; pairs.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+  }
+  function render(){
+    if(!DATA) return; const l=cur;
+    if(!l){ dials.innerHTML='<div class="simnote">No pairs for this cloud yet.</div>'; bar.innerHTML=''; out.innerHTML=''; return; }
+    const col=PROV[l.provider].col, A=brandless(l.a.name), B=brandless(l.b.name);
+    dials.innerHTML=l.dials.map((d,i)=>'<div class="dial'+(d.key?' key':'')+'"><div class="lbl">'+(d.key?'decides &middot; ':'')+'question '+(i+1)+'</div><div class="dq">'+esc(d.q)+'</div><div class="segmented">'
+      +'<button class="seg'+(ans[i]==='a'?' on':'')+'" data-i="'+i+'" data-s="a">'+esc(d.a)+'</button><button class="seg'+(ans[i]==='b'?' on':'')+'" data-i="'+i+'" data-s="b">'+esc(d.b)+'</button></div></div>').join('')
+      +'<button class="btn" id="dcReset" type="button">clear the answers</button>';
+    dials.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; ans[i]=ans[i]===b.dataset.s?undefined:b.dataset.s; render(); });
+    document.getElementById('dcReset').onclick=()=>{ ans={}; render(); };
+    let score=0, n=0; const ki=l.dials.findIndex(d=>d.key);
+    l.dials.forEach((d,i)=>{ if(!ans[i]) return; n++; score+=(d.key?2:1)*(ans[i]==='a'?-1:1); });
+    bar.innerHTML='<div class="lbl">leaning</div><div class="tug"><span class="tn" style="color:'+col+'">'+esc(A)+'</span><div class="track"><i class="mk" style="left:'+(50+score/4*50)+'%"></i></div><span class="tn" style="color:'+col+';text-align:right">'+esc(B)+'</span></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted)">'+n+' of 3 answered</div>';
+    const reasons=l.dials.map((d,i)=>ans[i]?'<div class="scn"><span style="color:'+col+';font-weight:600">'+esc(ans[i]==='a'?A:B)+'</span> because '+esc(ans[i]==='a'?d.a:d.b).toLowerCase().replace(/^./,c=>c.toUpperCase())+(d.key?' <span class="k" style="color:var(--dim);font-size:10.5px">decides</span>':'')+'</div>':'').join('');
+    if(!n){ out.innerHTML='<div class="simnote"><b>Answer the question marked decides first.</b> The other two only change the tone of the verdict: '+esc(l.ask)+'</div>'; return; }
+    const ks=ans[ki];
+    if(!ks){ const lean=score<0?A:score>0?B:null;
+      out.innerHTML='<div class="lzwarn"><b>'+(lean?'Leaning '+esc(lean)+', unsettled.':'Split, unsettled.')+'</b> The question that decides is still open: '+esc(l.ask)+'</div>'+reasons; return; }
+    const win=ks==='a'?l.a.name:l.b.name, lose=ks==='a'?B:A, pick=ks==='a'?l.picka:l.pickb;
+    const against=l.dials.some((d,i)=>!d.key&&ans[i]&&ans[i]!==ks);
+    if(!against) out.innerHTML='<div class="ok"><b>'+esc(win)+'.</b> '+esc(pick)+'</div>'+reasons;
+    else if(l.both) out.innerHTML='<div class="lzwarn"><b>'+esc(win)+', but not alone.</b> The deciding question says '+esc(brandless(win))+'; the other answers pull towards '+esc(lose)+'. That is the shape where teams run both, stacked: '+esc(l.both)+'</div>'+reasons;
+    else out.innerHTML='<div class="ok"><b>'+esc(win)+'. The deciding question wins.</b> The other answers pull towards '+esc(lose)+', but they are preferences, not the decider. The trap if you let them win: '+esc(l.trap)+'</div>'+reasons;
+  }
+})();
+
+/* ================= 7 · LOOK-ALIKES: the sorting office ================= */
+(function(){
+  const diag=document.getElementById('soDiag'), out=document.getElementById('soOut'), prodC=document.getElementById('soProd'), nC=document.getElementById('soN'), tg=document.getElementById('soTg');
+  if(!diag) return;
+  const st={prod:'code',n:1,down:false,replay:false,order:false};
+  const SHAPE={router:['router','the cloud itself produces the event; a router filters it and delivers it to whoever subscribed'],queue:['queue','your code drops messages in a line and one worker takes each one, once'],topic:['topic','your code announces once and every listener gets its own copy'],stream:['stream','your code appends to an ordered log that readers move through at their own pace and can rewind']};
+  function decide(){
+    const shape=st.prod==='cloud'?'router':st.replay?'stream':st.n>1?'topic':'queue', per={}, notes=[];
+    if(shape==='router'){
+      per.gcp={name:'Eventarc',why:'a trigger filtered on the Google service delivers the event to Cloud Run, a function, GKE or a Workflow as a CloudEvent'};
+      per.aws={name:'Amazon EventBridge',why:'a rule on the default bus matches the AWS service event and sends it to Lambda, Step Functions, a queue or an API destination'};
+      per.azure={name:'Azure Event Grid',why:'a system topic on the Azure resource pushes the event to a Function, a Logic App, a webhook or a queue'};
+      if(st.n>1) notes.push('Each listener is its own trigger, rule or subscription with its own filter; the producer never knows how many there are.');
+      if(st.down) notes.push('All three retry delivery for up to a day with backoff, then park the event in a dead-letter destination if you set one.');
+      if(st.replay) notes.push('Replay: EventBridge has archive and replay built in. Eventarc and Event Grid do not, so keep a copy in Pub/Sub with retention or in Event Hubs and replay from there.');
+      if(st.order) notes.push('None of the routers promises order. Route into a queue that does (Pub/Sub ordering keys, an SQS FIFO queue, a Service Bus session) and let one worker read it in order.');
+    } else if(shape==='queue'){
+      per.gcp={name:'Pub/Sub'+(st.order?' with ordering keys':''),why:'one subscription, one group of workers; Cloud Tasks instead when every item needs its own retry schedule and a rate cap'};
+      per.aws=st.order?{name:'Amazon SQS FIFO queue',why:'message groups keep each customer’s messages in order, one consumer at a time per group'}:{name:'Amazon SQS',why:'a standard queue: near-unlimited throughput, each message delivered to one worker and deleted when done'};
+      per.azure=st.order?{name:'Azure Service Bus queue with sessions',why:'sessions keep each customer’s messages together and in order'}:{name:'Azure Queue Storage',why:'the cheap queue inside a storage account; Service Bus instead when you need dead-lettering, duplicate detection or transactions'};
+      if(st.down) notes.push('The queue holds it: Pub/Sub keeps an unacknowledged message for seven days by default, SQS for four (up to fourteen), Service Bus until the message’s time-to-live runs out. The worker catches up when it returns.');
+    } else if(shape==='topic'){
+      per.gcp={name:'Pub/Sub, one subscription per listener'+(st.order?', with ordering keys':''),why:'every subscription gets its own copy and keeps it until that listener acknowledges'};
+      per.aws=st.down?{name:st.order?'Amazon SNS FIFO topic fanning out to SQS FIFO queues':'Amazon SNS fanning out to one SQS queue per listener',why:'SNS pushes and retries, then drops the message unless a dead-letter queue is set; a queue behind each subscriber keeps the copy until the listener is back'}:{name:st.order?'Amazon SNS FIFO topic':'Amazon SNS',why:'one publish, every subscriber hears it: queues, functions, HTTP, email, SMS, mobile push'};
+      per.azure={name:'Azure Service Bus topic with subscriptions'+(st.order?' and sessions':''),why:'each subscription is a durable queue of its own with filters; Event Grid instead when the messages are lightweight notifications'};
+      if(st.down) notes.push('On Google Cloud and Azure each subscription holds its copy until the listener returns. On AWS that is exactly why SNS fans out into SQS queues.');
+    } else {
+      per.gcp={name:'Pub/Sub with message retention and seek'+(st.order?', ordering keys':''),why:'retain messages on the topic or the subscription and seek a subscription back to a time; a new reader gets its own subscription'};
+      per.aws={name:'Amazon Kinesis Data Streams',why:'readers keep their own position in each shard and can start from any point within retention, a day by default and up to a year'+(st.order?'; order holds within a shard, so the partition key is the customer':'')};
+      per.azure={name:'Azure Event Hubs',why:'consumer groups read at their own pace by offset within retention, and Kafka clients simply repoint'+(st.order?'; order holds within a partition, so the partition key is the customer':'')};
+      if(st.n>1) notes.push('Several readers are the point of a stream: each keeps its own position and none consumes a record for the others.');
+      if(st.down) notes.push('A reader that was down resumes from its own position; nothing is lost within the retention window.');
+    }
+    return {shape,per,notes};
+  }
+  function draw(shape){
+    const n=st.n, ys=n>1?[30,94,158]:[94], hub={x:285,y:70,w:150,h:96}, pc=st.prod==='cloud'?'var(--amber)':'var(--accent)';
+    const sub={queue:'one at a time',topic:'a copy for each listener',router:'filter, then deliver',stream:'ordered log, rewindable'}[shape];
+    let b=box(20,90,200,56,pc)+t(120,112,st.prod==='cloud'?'a cloud service':'your code',SANS)+tm(120,130,st.prod==='cloud'?'a file lands, a job finishes':(st.order?'publishes, in order per customer'.replace('publishes, ',''):'publishes'),'var(--dim)');
+    b+=box(hub.x,hub.y,hub.w,hub.h,'var(--accent)')+t(360,104,SHAPE[shape][0],SANS)+tm(360,122,sub,'var(--dim)');
+    if(shape==='stream') b+=tm(360,146,st.replay?'↤ rewind to last week':'','var(--amber)');
+    const p1='M220 118 L285 118'; b+='<path d="'+p1+'" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#ah)"/>';
+    const an=!reduced(); const dot=(path,delay,fill)=>an?'<circle r="4" style="fill:'+fill+'"><animateMotion dur="2.4s" begin="'+delay+'s" repeatCount="indefinite" path="'+path+'"/></circle>':'';
+    [0,0.8,1.6].forEach(d=>b+=dot(p1,d,pc));
+    ys.forEach((y,i)=>{ const down=st.down&&i===ys.length-1, ly=y+24, p='M435 118 C500 118 500 '+ly+' 560 '+ly;
+      b+='<path d="'+p+'" style="fill:none;stroke:var(--wire)'+(down?';stroke-dasharray:4 4':'')+'" stroke-width="1.5" marker-end="url(#ah)"/>';
+      b+=box(560,y,140,48,down?'var(--red)':'var(--green)')+t(630,y+20,(shape==='stream'?'reader ':'listener ')+(n>1?i+1:''),SANS)+tm(630,y+38,down?'down for an hour':shape==='stream'?'at its own position':'',down?'var(--red)':'var(--dim)');
+      if(!down) [0.3,1.1,1.9].forEach(d=>b+=dot(p,d,'var(--green)'));
+      else { b+='<g>'+[0,1,2].map(k=>'<circle cx="'+(342+k*9)+'" cy="186" r="4" style="fill:var(--red)"/>').join('')+tm(360,204,shape==='router'?'retrying, up to a day':shape==='stream'?'waiting at its position':'held in the '+shape,'var(--red)')+'</g>'; }
+    });
+    if(n===1&&shape!=='stream'&&!st.down) b+=tm(630,138,'handled once','var(--dim)');
+    diag.innerHTML=D('0 0 720 240','Messaging shape: producer on the left, the '+shape+' in the middle, listeners on the right.',b,SHAPE[shape][1]);
+  }
+  function render(){
+    const r=decide(); draw(r.shape);
+    out.innerHTML='<div class="lbl" style="margin-bottom:4px">this shape is a '+r.shape+'</div>'
+      +PK.map(k=>'<div class="sorow"><div>'+pch(k)+'</div><div><b style="color:'+PROV[k].col+'">'+esc(r.per[k].name)+'</b> '+esc(r.per[k].why)+'</div></div>').join('')
+      +(r.notes.length?'<div class="lzwarn" style="margin-top:10px"><b>The small print.</b> '+r.notes.map(esc).join(' ')+'</div>':'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> The look-alikes in messaging are mostly two of these shapes with similar names: a router and a topic (Eventarc and Pub/Sub, Event Grid and Service Bus), a topic and a queue (SNS and SQS), a queue and a stream (SQS and Kinesis).</div>')
+      +words(PK.flatMap(k=>[r.per[k].name,r.per[k].why]).concat(r.notes),'words in this shape',40);
+  }
+  prodC.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ st.prod=b.dataset.v; prodC.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+  nC.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ st.n=+b.dataset.v; nC.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+  tg.querySelectorAll('input[data-k]').forEach(i=>i.onchange=()=>{ st[i.dataset.k]=i.checked; render(); });
+  onData(render);
+})();
+
+/* ================= 7 · LOOK-ALIKES: name the question ================= */
+(function(){
+  const out=document.getElementById('nqOut'), ctl=document.getElementById('nqCtl'), note=document.getElementById('nqNote');
+  if(!out) return;
+  let Q=[], cur=0, score=0, answered=false, results=[], seed=41;
+  function build(){
+    const rnd=mulberry32(seed), per={aws:0,gcp:0,azure:0};
+    Q=[];
+    for(const l of shuffle(ALK,rnd)){
+      if(Q.length>=8) break; if(per[l.provider]>=3) continue; per[l.provider]++;
+      const others=shuffle(ALK.filter(x=>x!==l),rnd).slice(0,3);
+      Q.push({l,opts:shuffle([{t:l.ask,ok:true}].concat(others.map(o=>({t:o.ask,ok:false,of:o}))),rnd)});
+    }
+    cur=0; score=0; results=[]; answered=false; note.innerHTML='';
+  }
+  onData(()=>{ build(); render(); });
+  const label=l=>brandless(l.a.name)+' vs '+brandless(l.b.name);
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' first pick.</b> The questions are the revision list; the names are only their answers.</div><div style="margin-top:10px">'
+        +Q.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);align-items:center"><span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'+pch(q.l.provider)+'<span style="flex:1"><b>'+esc(label(q.l))+'</b>: '+esc(q.l.ask)+'</span><span class="alk" data-alk="'+q.l.id+'">&#8776; side by side</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="nqAgain" style="width:100%;font-size:12px">&#9654; eight different pairs</button>';
+      document.getElementById('nqAgain').onclick=()=>{ seed++; build(); render(); };
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Every pair has one question, and it is never &ldquo;which is better&rdquo;. It is a fact about your situation: who produces, how many consume, how long it runs, who owns the key. Learn the question and the name follows.</div>';
+      return;
+    }
+    const q=Q[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">ROUND '+(cur+1)+' OF '+Q.length+'</div>'
+      +'<div class="qcard">'+pch(q.l.provider)+'<div class="lbl" style="margin-top:8px">which question decides between these two?</div><div class="qname">'+esc(label(q.l))+'</div><div style="font-size:12.5px;color:var(--muted)">'+esc(q.l.share)+'</div></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">the deciding question</div><div class="segmented" style="flex-direction:column;align-items:stretch">'+q.opts.map((o,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px;white-space:normal;line-height:1.35">'+esc(o.t)+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const o=q.opts[+b.dataset.i];
+      if(!answered){ answered=true; if(o.ok) score++; results.push(o.ok); }
+      if(o.ok){ b.classList.add('on'); ctl.querySelectorAll('.seg').forEach(x=>{ if(x!==b) x.disabled=true; });
+        note.innerHTML='<div class="ok"><b>Yes.</b> The trap when people skip it: '+esc(q.l.trap)+' <span class="alk" data-alk="'+q.l.id+'">&#8776; side by side</span></div><button class="seg" id="nqNext" style="width:100%;margin-top:10px;font-size:12px">next pair &rarr;</button>';
+        document.getElementById('nqNext').onclick=()=>{ cur++; answered=false; note.innerHTML=''; render(); };
+      } else { b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65'; note.innerHTML='<div class="lzbad"><b>Not that one.</b> That question decides '+esc(label(o.of))+'. Try again.</div>'; }
+    });
+  }
 })();
 
 /* ================= 7 · LOOK-ALIKES: which one? ================= */

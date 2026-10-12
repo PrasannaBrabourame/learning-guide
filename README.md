@@ -61,7 +61,9 @@ atlas.html        Three-cloud atlas: every AWS, Google Cloud and Azure
                   (Pub/Sub against Eventarc, SQS against SNS, Service Bus
                   against Event Grid), each with the question that decides,
                   pick-when for both and the trap, tagged on every name in
-                  the atlas and the catalogue, plus a which-one drill
+                  the atlas and the catalogue, plus a decider steered by
+                  situation dials, a sorting office that draws the messaging
+                  shape across the three clouds, and two drills
 data/services.json The atlas data: families, rows, the three catalogues,
                   the change log, the look-alike pairs and the acronym
                   dictionary, plain JSON
@@ -236,7 +238,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 336 simulations across the twenty-five labs. Every one carries a
+There are 339 simulations across the twenty-five labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
