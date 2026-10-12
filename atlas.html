@@ -267,7 +267,7 @@
     <div class="card" style="margin-bottom:16px">
       <h2 class="sec">Try it: look-alikes, two services in one cloud that are easily confused</h2>
       <div class="plain-line"><b>Try this:</b> every cloud sells pairs that sound like the same thing: Pub/Sub and Eventarc, SQS and SNS, Service Bus and Event Grid, Cloud Run and Cloud Run functions. Pick a cloud, pick a pair, and read the one question that decides between them. Then read when to pick each, and the trap people fall into. The same comparison opens from the dashed <b>&#8776;</b> tag beside any name in the atlas or the catalogue.</div>
-      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Two tins on the same shelf of the same shop, same colour, nearly the same label. One is soup; the other is stock. Both are liquid, both go in a pan, and dinner is ruined if you swap them. The label never settles it. The question that decides is what you are cooking.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>pick <b>Google Cloud</b>, open <b>Pub/Sub vs Eventarc</b>, and read the question before the cards; it is the whole lesson in one line.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>look-alike</b> two services in the same cloud that overlap on a job and are easily mistaken for each other</span><span class="sp-w"><b>pair</b> one look-alike comparison: two services, one question</span><span class="sp-w"><b>the question that decides</b> the single fact about your situation that settles which of the two to use</span><span class="sp-w"><b>pick it when</b> the situations in which that service is the right answer</span><span class="sp-w"><b>the trap</b> the mistake people make when they confuse the two</span><span class="sp-w"><b>situation</b> a short description of a real need, the way a colleague or an exam would put it</span><span class="sp-w"><b>event</b> a small message that says something happened: a file arrived, an order was placed</span><span class="sp-w"><b>message</b> a piece of data sent from one program to another through a queue or a topic</span><span class="sp-w"><b>queue</b> a line of messages that workers take from one at a time</span><span class="sp-w"><b>topic</b> a named channel that many subscribers can listen to at once</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span><span class="sp-w"><b>preview</b> usable now, not yet promised</span></span></div></div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Two tins on the same shelf of the same shop, same colour, nearly the same label. One is soup; the other is stock. Both are liquid, both go in a pan, and dinner is ruined if you swap them. The label never settles it. The question that decides is what you are cooking.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>pick <b>Google Cloud</b>, open <b>Pub/Sub vs Eventarc</b>, and read the question before the cards; it is the whole lesson in one line.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>look-alike</b> two services in the same cloud that overlap on a job and are easily mistaken for each other</span><span class="sp-w"><b>pair</b> one look-alike comparison: two services, one question</span><span class="sp-w"><b>Google Cloud</b> Google&rsquo;s cloud, often written GCP for Google Cloud Platform</span><span class="sp-w"><b>the question that decides</b> the single fact about your situation that settles which of the two to use</span><span class="sp-w"><b>pick it when</b> the situations in which that service is the right answer</span><span class="sp-w"><b>the trap</b> the mistake people make when they confuse the two</span><span class="sp-w"><b>situation</b> a short description of a real need, the way a colleague or an exam would put it</span><span class="sp-w"><b>event</b> a small message that says something happened: a file arrived, an order was placed</span><span class="sp-w"><b>message</b> a piece of data sent from one program to another through a queue or a topic</span><span class="sp-w"><b>queue</b> a line of messages that workers take from one at a time</span><span class="sp-w"><b>topic</b> a named channel that many subscribers can listen to at once</span><span class="sp-w"><b>SQS</b> Amazon Simple Queue Service, AWS&rsquo;s message queue</span><span class="sp-w"><b>SNS</b> Amazon Simple Notification Service, AWS&rsquo;s publish-and-subscribe topics</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span><span class="sp-w"><b>preview</b> usable now, not yet promised</span></span></div></div>
       <div class="ctlrow"><span class="lbl">cloud</span><div class="segmented" id="alkProv" style="margin:0"><button class="seg on" data-p="gcp">Google Cloud</button><button class="seg" data-p="aws">AWS</button><button class="seg" data-p="azure">Azure</button></div><span class="k" id="alkCount" style="font-size:11px;color:var(--muted);white-space:nowrap"></span></div>
       <div class="chips" id="alkPairs"></div>
       <div id="alkOut" data-needs-data style="margin-top:10px"></div>
@@ -288,7 +288,7 @@
     <div class="card" style="margin-bottom:16px">
       <h2 class="sec">Try it: the sorting office, draw the messaging shape and name it in three clouds</h2>
       <div class="plain-line"><b>Try this:</b> five switches describe what you need from messaging: who produces the message, how many listeners, whether one of them is down, whether you need to replay last week, and whether order matters. The picture redraws into one of four shapes (router, queue, topic, stream). Under it, each cloud names the service that gives that shape, with the small print. Most look-alike pairs on this tab are two of these shapes wearing similar names.</div>
-      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A post office sorting room with four desks. One desk sends a letter to one address (a queue). One photocopies it to everyone on a list (a topic). One files it in a dated archive that anyone can read back through (a stream). The fourth is the building itself sending a note when something happens, like the fire alarm (a router). Same room, four different desks.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set <b>who produces</b> to <b>the cloud itself</b> and watch Pub/Sub, SQS and Service Bus all leave the picture: none of them watches the cloud for you.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>router</b> a service that watches the cloud&rsquo;s own events, filters them and delivers them to subscribers</span><span class="sp-w"><b>queue</b> a line of messages that workers take from one at a time; each message is handled once</span><span class="sp-w"><b>topic</b> a named channel that copies each message to every subscriber</span><span class="sp-w"><b>stream</b> an ordered log of records that readers move through at their own pace and can rewind</span><span class="sp-w"><b>producer</b> whoever creates the message: your code, or a cloud service reporting that something happened</span><span class="sp-w"><b>listener</b> a program that receives the message; also called a consumer or a subscriber</span><span class="sp-w"><b>replay</b> reading past messages again, for a new listener or after a bug</span><span class="sp-w"><b>order</b> delivering messages in the sequence they were sent, usually per key such as a customer</span><span class="sp-w"><b>dead-letter</b> a side queue where a message that keeps failing is parked for a person to look at</span><span class="sp-w"><b>retention</b> how long a service keeps a message before discarding it</span></span></div></div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A post office sorting room with four desks. One desk sends a letter to one address (a queue). One photocopies it to everyone on a list (a topic). One files it in a dated archive that anyone can read back through (a stream). The fourth is the building itself sending a note when something happens, like the fire alarm (a router). Same room, four different desks.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>set <b>who produces</b> to <b>the cloud itself</b> and watch Pub/Sub, SQS and Service Bus all leave the picture: none of them watches the cloud for you.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>router</b> a service that watches the cloud&rsquo;s own events, filters them and delivers them to subscribers</span><span class="sp-w"><b>queue</b> a line of messages that workers take from one at a time; each message is handled once</span><span class="sp-w"><b>topic</b> a named channel that copies each message to every subscriber</span><span class="sp-w"><b>stream</b> an ordered log of records that readers move through at their own pace and can rewind</span><span class="sp-w"><b>producer</b> whoever creates the message: your code, or a cloud service reporting that something happened</span><span class="sp-w"><b>listener</b> a program that receives the message; also called a consumer or a subscriber</span><span class="sp-w"><b>replay</b> reading past messages again, for a new listener or after a bug</span><span class="sp-w"><b>order</b> delivering messages in the sequence they were sent, usually per key such as a customer</span><span class="sp-w"><b>dead-letter</b> a side queue where a message that keeps failing is parked for a person to look at</span><span class="sp-w"><b>retention</b> how long a service keeps a message before discarding it</span><span class="sp-w"><b>SQS</b> Amazon Simple Queue Service, AWS&rsquo;s message queue</span></span></div></div>
       <div class="ctlrow"><span class="lbl">who produces</span><div class="segmented" id="soProd" style="margin:0"><button class="seg on" data-v="code">my own code</button><button class="seg" data-v="cloud">the cloud itself</button></div><span class="lbl" style="margin-left:8px">listeners</span><div class="segmented" id="soN" style="margin:0"><button class="seg on" data-v="1">one</button><button class="seg" data-v="3">three</button></div></div>
       <div class="ctlrow" id="soTg"><label class="sw"><input type="checkbox" data-k="down"> one listener is down for an hour</label><label class="sw"><input type="checkbox" data-k="replay"> replay last week</label><label class="sw"><input type="checkbox" data-k="order"> strict order per customer</label></div>
       <div id="soDiag"></div>
@@ -414,7 +414,7 @@ function splitTerms(){
   Object.keys(TERMS).forEach(k=>{
     const caps=(k.match(/[A-Z]/g)||[]).length;
     if(caps>=2&&!k.includes(' ')) ACR.add(k);
-    else PHR.push({k,re:new RegExp('(?<![A-Za-z0-9])'+rx(k)+'(?![A-Za-z0-9])','i'),rg:new RegExp('(?<![A-Za-z0-9])'+rx(k)+'(?![A-Za-z0-9])','gi')});
+    else PHR.push({k,re:new RegExp('(?<![A-Za-z0-9])'+rx(k)+'(?:e?s)?(?![A-Za-z0-9])','i'),rg:new RegExp('(?<![A-Za-z0-9])'+rx(k)+'(?:e?s)?(?![A-Za-z0-9])','gi')});
   });
   PHR.sort((a,b)=>b.k.length-a.k.length);
 }
@@ -436,6 +436,7 @@ function words(texts,label,cap){
   return '<div class="rowwords"><span class="lbl">'+(label||'words on this row')+'</span><br>'+ks.map(k=>'<b>'+esc(k)+'</b> '+esc(TERMS[k])).join(' &nbsp;&middot;&nbsp; ')+'</div>';
 }
 const rowWords=texts=>words(texts,'words on this row');
+const leaves=el=>{ const a=[]; if(!el) return ''; const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT); let n; while((n=w.nextNode())) a.push(n.textContent); return a.join(' '); };
 /* hover definitions for acronyms inside short data-driven strings (already HTML-escaped) */
 function abbrify(escaped){
   splitTerms();
@@ -773,8 +774,8 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
       +'<div class="plain-line" style="margin-top:12px"><b>Why they get confused:</b> '+esc(l.share)+'</div>'
       +'<div class="lzwarn" style="margin-top:8px"><b>The trap.</b> '+esc(l.trap)+'</div>'
       +'<div class="lbl" style="margin-top:14px">two situations, settled by the question</div>'
-      +l.scenarios.map(s=>'<div class="scn"><b>'+esc(s.s)+'</b><br><span style="color:'+PROV[l.provider].col+';font-weight:600">'+esc(s.ok==='a'?l.a.name:l.b.name)+'.</span> '+esc(s.why)+'</div>').join('')
-      +words([l.a.name,l.b.name,l.share,l.ask,l.picka,l.pickb,l.trap].concat(l.scenarios.flatMap(s=>[s.s,s.why])),'words on this comparison');
+      +l.scenarios.map(s=>'<div class="scn"><b>'+esc(s.s)+'</b><br><span style="color:'+PROV[l.provider].col+';font-weight:600">'+esc(s.ok==='a'?l.a.name:l.b.name)+'.</span> '+esc(s.why)+'</div>').join('');
+    out.insertAdjacentHTML('beforeend',words([leaves(prov),leaves(pairs),leaves(out)],'words on this comparison'));
     out.querySelectorAll('a[data-row]').forEach(a=>a.onclick=()=>window.atlasOpen(a.dataset.row));
   }
   window.atlasAlike=id=>{ const l=ALK.find(x=>x.id===id); if(!l) return; P=l.provider; cur=l; sync(); chips(); gotoTab('alike'); render(); };
@@ -809,15 +810,17 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     bar.innerHTML='<div class="lbl">leaning</div><div class="tug"><span class="tn" style="color:'+col+'">'+esc(A)+'</span><div class="track"><i class="mk" style="left:'+(50+score/4*50)+'%"></i></div><span class="tn" style="color:'+col+';text-align:right">'+esc(B)+'</span></div>'
       +'<div class="k" style="font-size:11px;color:var(--muted)">'+n+' of 3 answered</div>';
     const reasons=l.dials.map((d,i)=>ans[i]?'<div class="scn"><span style="color:'+col+';font-weight:600">'+esc(ans[i]==='a'?A:B)+'</span> because '+esc(ans[i]==='a'?d.a:d.b).toLowerCase().replace(/^./,c=>c.toUpperCase())+(d.key?' <span class="k" style="color:var(--dim);font-size:10.5px">decides</span>':'')+'</div>':'').join('');
-    if(!n){ out.innerHTML='<div class="simnote"><b>Answer the question marked decides first.</b> The other two only change the tone of the verdict: '+esc(l.ask)+'</div>'; return; }
+    const glo=()=>out.insertAdjacentHTML('beforeend',words([leaves(prov),leaves(pairs),leaves(dials),leaves(bar),leaves(out)],'words on these dials'));
+    if(!n){ out.innerHTML='<div class="simnote"><b>Answer the question marked decides first.</b> The other two only change the tone of the verdict: '+esc(l.ask)+'</div>'; glo(); return; }
     const ks=ans[ki];
     if(!ks){ const lean=score<0?A:score>0?B:null;
-      out.innerHTML='<div class="lzwarn"><b>'+(lean?'Leaning '+esc(lean)+', unsettled.':'Split, unsettled.')+'</b> The question that decides is still open: '+esc(l.ask)+'</div>'+reasons; return; }
+      out.innerHTML='<div class="lzwarn"><b>'+(lean?'Leaning '+esc(lean)+', unsettled.':'Split, unsettled.')+'</b> The question that decides is still open: '+esc(l.ask)+'</div>'+reasons; glo(); return; }
     const win=ks==='a'?l.a.name:l.b.name, lose=ks==='a'?B:A, pick=ks==='a'?l.picka:l.pickb;
     const against=l.dials.some((d,i)=>!d.key&&ans[i]&&ans[i]!==ks);
     if(!against) out.innerHTML='<div class="ok"><b>'+esc(win)+'.</b> '+esc(pick)+'</div>'+reasons;
     else if(l.both) out.innerHTML='<div class="lzwarn"><b>'+esc(win)+', but not alone.</b> The deciding question says '+esc(brandless(win))+'; the other answers pull towards '+esc(lose)+'. That is the shape where teams run both, stacked: '+esc(l.both)+'</div>'+reasons;
     else out.innerHTML='<div class="ok"><b>'+esc(win)+'. The deciding question wins.</b> The other answers pull towards '+esc(lose)+', but they are preferences, not the decider. The trap if you let them win: '+esc(l.trap)+'</div>'+reasons;
+    out.insertAdjacentHTML('beforeend',words([leaves(prov),leaves(pairs),leaves(dials),leaves(bar),leaves(out)],'words on these dials'));
   }
 })();
 
@@ -879,7 +882,8 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     out.innerHTML='<div class="lbl" style="margin-bottom:4px">this shape is a '+r.shape+'</div>'
       +PK.map(k=>'<div class="sorow"><div>'+pch(k)+'</div><div><b style="color:'+PROV[k].col+'">'+esc(r.per[k].name)+'</b> '+esc(r.per[k].why)+'</div></div>').join('')
       +(r.notes.length?'<div class="lzwarn" style="margin-top:10px"><b>The small print.</b> '+r.notes.map(esc).join(' ')+'</div>':'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> The look-alikes in messaging are mostly two of these shapes with similar names: a router and a topic (Eventarc and Pub/Sub, Event Grid and Service Bus), a topic and a queue (SNS and SQS), a queue and a stream (SQS and Kinesis).</div>')
-      +words(PK.flatMap(k=>[r.per[k].name,r.per[k].why]).concat(r.notes),'words in this shape',40);
+;
+    out.insertAdjacentHTML('beforeend',words([leaves(diag),leaves(out)],'words in this shape',80));
   }
   prodC.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ st.prod=b.dataset.v; prodC.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); render(); });
   nC.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ st.n=+b.dataset.v; nC.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); render(); });
@@ -908,6 +912,7 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     if(cur>=Q.length){
       out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' first pick.</b> The questions are the revision list; the names are only their answers.</div><div style="margin-top:10px">'
         +Q.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);align-items:center"><span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'+pch(q.l.provider)+'<span style="flex:1"><b>'+esc(label(q.l))+'</b>: '+esc(q.l.ask)+'</span><span class="alk" data-alk="'+q.l.id+'">&#8776; side by side</span></div>').join('')+'</div>';
+      out.insertAdjacentHTML('beforeend',words([leaves(out)],'words in this list',40));
       ctl.innerHTML='<button class="seg" id="nqAgain" style="width:100%;font-size:12px">&#9654; eight different pairs</button>';
       document.getElementById('nqAgain').onclick=()=>{ seed++; build(); render(); };
       note.innerHTML='<div class="simnote"><b>The keeper.</b> Every pair has one question, and it is never &ldquo;which is better&rdquo;. It is a fact about your situation: who produces, how many consume, how long it runs, who owns the key. Learn the question and the name follows.</div>';
@@ -917,13 +922,14 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">ROUND '+(cur+1)+' OF '+Q.length+'</div>'
       +'<div class="qcard">'+pch(q.l.provider)+'<div class="lbl" style="margin-top:8px">which question decides between these two?</div><div class="qname">'+esc(label(q.l))+'</div><div style="font-size:12.5px;color:var(--muted)">'+esc(q.l.share)+'</div></div>'
       +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    out.insertAdjacentHTML('beforeend',words([leaves(out)].concat(q.opts.map(o=>o.t)),'words in this round',40));
     ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">the deciding question</div><div class="segmented" style="flex-direction:column;align-items:stretch">'+q.opts.map((o,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px;white-space:normal;line-height:1.35">'+esc(o.t)+'</button>').join('')+'</div>';
     ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
       if(b.classList.contains('on')||b.classList.contains('no')) return;
       const o=q.opts[+b.dataset.i];
       if(!answered){ answered=true; if(o.ok) score++; results.push(o.ok); }
       if(o.ok){ b.classList.add('on'); ctl.querySelectorAll('.seg').forEach(x=>{ if(x!==b) x.disabled=true; });
-        note.innerHTML='<div class="ok"><b>Yes.</b> The trap when people skip it: '+esc(q.l.trap)+' <span class="alk" data-alk="'+q.l.id+'">&#8776; side by side</span></div><button class="seg" id="nqNext" style="width:100%;margin-top:10px;font-size:12px">next pair &rarr;</button>';
+        note.innerHTML='<div class="ok"><b>Yes.</b> The trap when people skip it: '+esc(q.l.trap)+' <span class="alk" data-alk="'+q.l.id+'">&#8776; side by side</span></div>'+words([q.l.trap],'words in this answer',30)+'<button class="seg" id="nqNext" style="width:100%;margin-top:10px;font-size:12px">next pair &rarr;</button>';
         document.getElementById('nqNext').onclick=()=>{ cur++; answered=false; note.innerHTML=''; render(); };
       } else { b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65'; note.innerHTML='<div class="lzbad"><b>Not that one.</b> That question decides '+esc(label(o.of))+'. Try again.</div>'; }
     });
@@ -951,6 +957,7 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     if(cur>=Q.length){
       out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' first pick.</b> Every wrong one is a pair worth opening side by side.</div><div style="margin-top:10px">'
         +Q.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);align-items:center"><span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'+pch(q.k)+'<span style="flex:1">'+esc(q.s)+'</span><span class="alk" data-alk="'+q.id+'">&#8776; side by side</span></div>').join('')+'</div>';
+      out.insertAdjacentHTML('beforeend',words([leaves(out)],'words in this list',40));
       ctl.innerHTML='<button class="seg" id="alkDrAgain" style="width:100%;font-size:12px">&#9654; twelve different situations</button>';
       document.getElementById('alkDrAgain').onclick=()=>{ seed++; build(); render(); };
       note.innerHTML='<div class="simnote"><b>The keeper.</b> Look-alikes are never settled by the names. Each pair has one question: who produces the event, one consumer or many, code or a container, a key or a secret. The situation answers it before you reach for a product.</div>';
@@ -960,6 +967,7 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">ROUND '+(cur+1)+' OF '+Q.length+'</div>'
       +'<div class="qcard">'+pch(q.k)+'<div class="lbl" style="margin-top:8px">the situation</div><div class="qname" style="font-size:18px">'+esc(q.s)+'</div></div>'
       +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    out.insertAdjacentHTML('beforeend',words([leaves(out)].concat(q.opts.map(o=>o.t)),'words in this round',30));
     ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">which one?</div><div class="segmented" style="flex-direction:column;align-items:stretch">'+q.opts.map((o,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+esc(o.t)+'</button>').join('')+'</div>';
     ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
       if(b.classList.contains('on')||b.classList.contains('no')) return;
@@ -967,7 +975,7 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
       if(!answered){ answered=true; if(right) score++; results.push(right); }
       if(right){
         b.classList.add('on'); ctl.querySelectorAll('.seg').forEach(x=>{ if(x!==b) x.disabled=true; });
-        note.innerHTML='<div class="ok"><b>Yes: '+esc(o.t)+'.</b> '+esc(q.why)+' <span class="alk" data-alk="'+q.id+'">&#8776; side by side</span></div><button class="seg" id="alkDrNext" style="width:100%;margin-top:10px;font-size:12px">next situation &rarr;</button>';
+        note.innerHTML='<div class="ok"><b>Yes: '+esc(o.t)+'.</b> '+esc(q.why)+' <span class="alk" data-alk="'+q.id+'">&#8776; side by side</span></div>'+words([o.t,q.why],'words in this answer',30)+'<button class="seg" id="alkDrNext" style="width:100%;margin-top:10px;font-size:12px">next situation &rarr;</button>';
         document.getElementById('alkDrNext').onclick=()=>{ cur++; answered=false; note.innerHTML=''; render(); };
       } else { b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65'; note.innerHTML='<div class="lzbad"><b>Not '+esc(o.t)+'.</b> Ask the deciding question again and try the other one.</div>'; }
     });
