@@ -363,6 +363,8 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.getElementById('pane-'+t.dataset.pane).classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
 }));
+/* text of an element, node by node with spaces between, so adjacent labels never glue into one token */
+const leaves=el=>{ const a=[]; if(!el) return ''; const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT); let n; while((n=w.nextNode())) a.push(n.textContent); return a.join(' '); };
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:500 12px Inter,Helvetica,Arial,sans-serif";
 const D=(vb,label,body,cap)=>`<div class="diagram"><svg viewBox="${vb}" role="img" aria-label="${label}">${body}</svg><div class="diagcap"><b>How to read it:</b> ${cap}</div></div>`;
@@ -398,7 +400,7 @@ fetch('data/services.json').then(r=>{ if(!r.ok) throw new Error('http '+r.status
   const st=document.getElementById('atStamp'); if(st&&d.generated) st.textContent='Catalogue as of '+d.generated+'.';
   waiting.splice(0).forEach(f=>f(d));
   const ew=document.getElementById('atExamWords');
-  if(ew) ew.innerHTML=words([...document.querySelectorAll('#pane-aexam .exam-line')].map(e=>e.textContent),'words on this tab');
+  if(ew) ew.innerHTML=words([...document.querySelectorAll('#pane-aexam .exam-line')].map(leaves),'words on this tab');
 }).catch(failData);
 
 /* glossary engine: every defined term that appears in a piece of text, acronym or phrase,
@@ -436,7 +438,6 @@ function words(texts,label,cap){
   return '<div class="rowwords"><span class="lbl">'+(label||'words on this row')+'</span><br>'+ks.map(k=>'<b>'+esc(k)+'</b> '+esc(TERMS[k])).join(' &nbsp;&middot;&nbsp; ')+'</div>';
 }
 const rowWords=texts=>words(texts,'words on this row');
-const leaves=el=>{ const a=[]; if(!el) return ''; const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT); let n; while((n=w.nextNode())) a.push(n.textContent); return a.join(' '); };
 /* hover definitions for acronyms inside short data-driven strings (already HTML-escaped) */
 function abbrify(escaped){
   splitTerms();
