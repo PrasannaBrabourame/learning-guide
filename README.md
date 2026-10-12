@@ -55,10 +55,16 @@ atlas.html        Three-cloud atlas: every AWS, Google Cloud and Azure
                   the cross-cloud trap; a home-cloud translator, the full
                   per-provider catalogue with status and former names, a
                   depth map counted live from the catalogue, a build-a-stack
-                  composer that swaps clouds in place, and a change log of
-                  308 launches, renames and retirements since 2024
+                  composer that swaps clouds in place, a change log of
+                  308 launches, renames and retirements since 2024, and a
+                  look-alikes tab: 27 within-cloud pairs that overlap on a job
+                  (Pub/Sub against Eventarc, SQS against SNS, Service Bus
+                  against Event Grid), each with the question that decides,
+                  pick-when for both and the trap, tagged on every name in
+                  the atlas and the catalogue, plus a which-one drill
 data/services.json The atlas data: families, rows, the three catalogues,
-                  the change log and the acronym dictionary, plain JSON
+                  the change log, the look-alike pairs and the acronym
+                  dictionary, plain JSON
 agentcore.html    AgentCore lab: running agents in production, covering
                   runtime, identity, gateway, memory, observability
                   (traces, the three signals and OpenTelemetry plumbing),
@@ -230,7 +236,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 334 simulations across the twenty-five labs. Every one carries a
+There are 336 simulations across the twenty-five labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in

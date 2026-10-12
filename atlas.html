@@ -90,6 +90,17 @@
   .qcard{border:1px solid var(--line2);border-radius:10px;padding:14px 16px;background:var(--panel2)}
   .qname{font-family:var(--display);font-size:24px;line-height:1.2;letter-spacing:-.01em;margin:6px 0 10px}
   .stamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em}
+  .alk{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;border:1px dashed var(--accent);color:var(--accent);background:transparent;cursor:pointer;white-space:nowrap;font-weight:400;line-height:1.5;text-decoration:none}
+  .alk:hover{background:var(--accent-soft)}
+  .vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
+  .vs .mid{align-self:center;font-family:var(--display);font-size:22px;color:var(--dim);padding:0 2px}
+  @media (max-width:760px){.vs{grid-template-columns:1fr}.vs .mid{text-align:center}}
+  .ask{border:1px solid var(--accent);border-radius:10px;padding:12px 14px;background:var(--accent-soft);font-size:14px;line-height:1.55;margin:0 0 12px}
+  .ask .lbl{display:block;margin-bottom:4px}
+  .pcard .pw{font-size:12.5px;line-height:1.6;color:var(--text);margin-top:4px}
+  .pcard a.go{display:inline-block;margin-top:8px;font-size:11.5px;color:var(--accent);cursor:pointer;text-decoration:none}
+  .scn{font-size:12.5px;line-height:1.6;padding:7px 0;border-bottom:1px solid var(--line)}
+  .scn b{font-weight:600}
   @media (prefers-reduced-motion: reduce){.bsbox.flip{animation:none}}
 </style>
 </head>
@@ -114,7 +125,7 @@
     <div class="eyebrow">aws &middot; google cloud &middot; azure &middot; one job, three names</div>
     <h1>The three-cloud atlas: <span class="thin">same jobs, three dictionaries</span></h1>
     <p class="track" id="trackLine"></p>
-    <p class="sub">Three companies sell roughly the same shop, and each wrote its own dictionary. A bottomless bucket for files is S3 in one, Cloud Storage in the next and Blob Storage in the third. This lab is the whole dictionary: every service each provider lists today, mapped onto the jobs those services actually do, with the small print that makes &ldquo;the same thing&rdquo; not quite the same. Type any name you know and read across. Then let the atlas tell you what has been renamed or retired since you last looked, because a cloud vocabulary from two years ago is already wrong in places.</p>
+    <p class="sub">Three companies sell roughly the same shop, and each wrote its own dictionary. A bottomless bucket for files is S3 in one, Cloud Storage in the next and Blob Storage in the third. This lab is the whole dictionary: every service each provider lists today, mapped onto the jobs those services actually do, with the small print that makes &ldquo;the same thing&rdquo; not quite the same. Type any name you know and read across. Then let the atlas tell you what has been renamed or retired since you last looked, because a cloud vocabulary from two years ago is already wrong in places. And where a name carries a dashed <b>&#8776;</b> tag, the same cloud sells a look-alike: click it for the one question that decides between them.</p>
     <div class="note" style="margin-top:14px"><b>Two neighbours.</b> The <a href="cloud.html">Cloud lab</a> explains how the machinery works: requests, networks, identity. Its <a href="cloud.html#pane-diffs">Cloud differences</a> tab holds the handful of structural differences that change an architecture. This atlas is the names: what each provider sells, what it calls it, and what it costs you to choose it. <span class="stamp" id="atStamp"></span></div>
   </header>
 
@@ -125,6 +136,7 @@
     <button class="tab" data-pane="adepth" role="tab">Depth map</button>
     <button class="tab" data-pane="astack" role="tab">Build a stack</button>
     <button class="tab" data-pane="anew" role="tab">Renamed lately</button>
+    <button class="tab" data-pane="alike" role="tab">Look-alikes</button>
     <button class="tab" data-pane="aexam" role="tab">Exam angle</button>
   </div>
 
@@ -138,7 +150,7 @@
 
     <div class="card" style="margin-bottom:16px">
       <h2 class="sec">How to read a row</h2>
-      <div class="plain-line"><b>Try this:</b> every job in the atlas is one row with the same seven parts. Read them in this order and a row takes twenty seconds.</div>
+      <div class="plain-line"><b>Try this:</b> every job in the atlas is one row with the same seven parts, plus one tag that only some names carry. Read them in this order and a row takes twenty seconds.</div>
       <div class="kv" style="margin-top:10px">
         <div class="row"><span class="k">the job</span><span class="v">what you are trying to do, in words that do not belong to any cloud: <b>&ldquo;object storage&rdquo;</b> (keeping files by name, any size, for as long as you like), not S3.</span></div>
         <div class="row"><span class="k">three names</span><span class="v">what each provider calls its answer. A chip beside the name says whether it is <b>GA</b> (generally available, meaning sold and supported), in <b>preview</b> (usable, not promised), <b>retiring</b> (closed to new customers or given an end date) or <b>retired</b>.</span></div>
@@ -147,6 +159,7 @@
         <div class="row"><span class="k">pick when</span><span class="v">the situation in which one of the three is the obvious choice, if there is one.</span></div>
         <div class="row"><span class="k">not the same thing</span><span class="v">the cross-cloud trap: where &ldquo;equivalent&rdquo; services behave differently in a way that changes a design.</span></div>
         <div class="row"><span class="k">words on this row</span><span class="v">every acronym the row uses, defined right there, so you never leave the row to look one up.</span></div>
+        <div class="row"><span class="k">&#8776; look-alike</span><span class="v">a dashed tag after a name means the same cloud sells a neighbour it is easily confused with: Pub/Sub and Eventarc, SQS and SNS, Service Bus and Event Grid. Click it and the <b>Look-alikes</b> tab opens the pair side by side: the one question that decides, when to pick each, and the trap.</span></div>
       </div>
     </div>
 
@@ -236,7 +249,29 @@
     </div>
   </section>
 
-  <!-- ================= 7 · EXAM ANGLE ================= -->
+  <!-- ================= 7 · LOOK-ALIKES ================= -->
+  <section class="pane" id="pane-alike">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: look-alikes, two services in one cloud that are easily confused</h2>
+      <div class="plain-line"><b>Try this:</b> every cloud sells pairs that sound like the same thing: Pub/Sub and Eventarc, SQS and SNS, Service Bus and Event Grid, Cloud Run and Cloud Run functions. Pick a cloud, pick a pair, and read the one question that decides between them. Then read when to pick each, and the trap people fall into. The same comparison opens from the dashed <b>&#8776;</b> tag beside any name in the atlas or the catalogue.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Two tins on the same shelf of the same shop, same colour, nearly the same label. One is soup; the other is stock. Both are liquid, both go in a pan, and dinner is ruined if you swap them. The label never settles it. The question that decides is what you are cooking.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>pick <b>Google Cloud</b>, open <b>Pub/Sub vs Eventarc</b>, and read the question before the cards; it is the whole lesson in one line.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>look-alike</b> two services in the same cloud that overlap on a job and are easily mistaken for each other</span><span class="sp-w"><b>pair</b> one look-alike comparison: two services, one question</span><span class="sp-w"><b>the question that decides</b> the single fact about your situation that settles which of the two to use</span><span class="sp-w"><b>pick it when</b> the situations in which that service is the right answer</span><span class="sp-w"><b>the trap</b> the mistake people make when they confuse the two</span><span class="sp-w"><b>situation</b> a short description of a real need, the way a colleague or an exam would put it</span><span class="sp-w"><b>event</b> a small message that says something happened: a file arrived, an order was placed</span><span class="sp-w"><b>message</b> a piece of data sent from one program to another through a queue or a topic</span><span class="sp-w"><b>queue</b> a line of messages that workers take from one at a time</span><span class="sp-w"><b>topic</b> a named channel that many subscribers can listen to at once</span><span class="sp-w"><b>GA</b> generally available: sold and supported</span><span class="sp-w"><b>preview</b> usable now, not yet promised</span></span></div></div>
+      <div class="ctlrow"><span class="lbl">cloud</span><div class="segmented" id="alkProv" style="margin:0"><button class="seg on" data-p="gcp">Google Cloud</button><button class="seg" data-p="aws">AWS</button><button class="seg" data-p="azure">Azure</button></div><span class="k" id="alkCount" style="font-size:11px;color:var(--muted);white-space:nowrap"></span></div>
+      <div class="chips" id="alkPairs"></div>
+      <div id="alkOut" data-needs-data style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which one? the look-alike drill</h2>
+      <div class="plain-line"><b>Try this:</b> twelve situations drawn from the pairs above, shuffled across the three clouds. Each round shows the two look-alikes and asks which one fits. The reason under the answer is the deciding question applied to that situation. Memorise the question, not the names.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>The shop assistant&rsquo;s quiz: &ldquo;I am making risotto&rdquo; and you hand over the stock, not the soup. Nobody is testing whether you can read the tins. They are testing whether you know what the dish needs.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>answer every round from the situation alone, then open <b>&#8776; side by side</b> for any you got wrong.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>situation</b> a short description of a real need, the way a colleague or an exam would put it</span><span class="sp-w"><b>round</b> one situation and its two options</span><span class="sp-w"><b>first pick</b> the option you chose before any retry; only first picks count towards the score</span><span class="sp-w"><b>look-alike</b> two services in the same cloud that overlap on a job and are easily mistaken for each other</span><span class="sp-w"><b>deciding question</b> the single fact about the situation that settles which of the two to use</span><span class="sp-w"><b>side by side</b> the full comparison of the pair on the card above</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="alkDrOut" data-needs-data></div></div>
+        <div><div id="alkDrCtl"></div><div id="alkDrNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 8 · EXAM ANGLE ================= -->
   <section class="pane" id="pane-aexam">
     <div class="card" style="margin-bottom:16px">
       <h2 class="sec">Try it: the scenario drill</h2>
@@ -262,6 +297,9 @@
       <div class="exam-line"><b>&ldquo;Archive petabytes cheaply, but a restore must return a file in milliseconds.&rdquo;</b> &rarr; Google Cloud Storage Archive class keeps millisecond access at archive prices, and S3 Glacier Instant Retrieval does the same on AWS. Azure&rsquo;s Blob Archive tier and S3 Glacier Deep Archive need rehydration measured in hours, which changes a disaster-recovery design.</div>
       <div class="exam-line"><b>&ldquo;Redis changed its licence. What do the clouds sell now?&rdquo;</b> &rarr; ElastiCache and Memorystore both added Valkey, the open-source fork, and steer new work to it; Azure Managed Redis is built on Redis Enterprise under a partnership. The old &ldquo;managed Redis&rdquo; row is now three different answers.</div>
       <div class="exam-line"><b>&ldquo;A container orchestrator that is not Kubernetes.&rdquo;</b> &rarr; Amazon ECS, in practice. Azure Service Fabric exists but is legacy-leaning, with Microsoft steering new work to AKS and Container Apps, and Google Cloud has none: container work there goes to GKE or Cloud Run.</div>
+      <div class="exam-line"><b>&ldquo;Something happened inside the cloud, a file landed or a resource changed, and a function should run with no plumbing code.&rdquo;</b> &rarr; Eventarc on Google Cloud, EventBridge on AWS, Event Grid on Azure: the services that watch the cloud&rsquo;s own events and route them. Pub/Sub, SNS and Service Bus are the buses your own code publishes to; they do not watch the cloud for you, and Eventarc rides on Pub/Sub underneath.</div>
+      <div class="exam-line"><b>&ldquo;One message, many independent listeners, and each must get its own durable copy.&rdquo;</b> &rarr; SNS fanning out to one SQS queue per listener on AWS, Pub/Sub with one subscription per consumer on Google Cloud, a Service Bus topic with subscriptions on Azure. A plain queue (SQS alone, Cloud Tasks, Queue Storage) hands each message to one consumer and it is gone.</div>
+      <div class="exam-line"><b>&ldquo;A new consumer needs to replay the stream from Tuesday.&rdquo;</b> &rarr; Kinesis Data Streams on AWS, Pub/Sub with message retention and seek on Google Cloud, Event Hubs by offset on Azure. Queues delete on consumption, so SQS, Cloud Tasks and Queue Storage have nothing to replay. The look-alike pairs on the Look-alikes tab turn on exactly this kind of question.</div>
       <div id="atExamWords"></div>
     </div>
   </section>
@@ -294,6 +332,10 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 const shuffle=(arr,rnd)=>{const b=arr.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
 const stch=s=>s?`<span class="stch ${s}">${s==='ga'?'GA':s}</span>`:'';
 const pch=k=>`<span class="pch ${PROV[k].cls}">${PROV[k].name}</span>`;
+/* look-alike tags: a name that has a close neighbour in the same cloud carries one dashed tag per pair */
+const brandless=n=>{ const m=String(n).match(/\(([A-Za-z0-9]+)\)\s*$/); if(m) return m[1]; return String(n).replace(/^(Amazon|AWS|Azure|Microsoft|Google Cloud|Google)\s+/,'').trim(); };
+const alk=(k,name,skip)=>(ALKBY[k+'|'+name]||[]).filter(l=>l.id!==skip).map(l=>{ const o=l.a.name===name?l.b:l.a; return '<span class="alk" data-alk="'+l.id+'" title="easily confused with '+esc(o.name).replace(/"/g,'&quot;')+': click for the side-by-side">&#8776; '+esc(brandless(o.name))+'</span>'; }).join('');
+document.addEventListener('click',e=>{ const t=e.target&&e.target.closest?e.target.closest('.alk'):null; if(!t||!t.dataset.alk) return; e.stopPropagation(); e.preventDefault(); if(window.atlasAlike) window.atlasAlike(t.dataset.alk); },true);
 const first=s=>{ const m=String(s||'').match(/^.*?[.!?](?=\s|$)/); return m?m[0]:String(s||''); };
 const gotoTab=pane=>{ const b=document.querySelector('.tab[data-pane="'+pane+'"]'); if(b) b.click(); };
 let HOME=null; try{ const h=JSON.parse(localStorage.getItem('study-atlas-home')); if(PK.includes(h)) HOME=h; }catch{}
@@ -301,11 +343,13 @@ const colOrder=()=>HOME?[HOME,...PK.filter(k=>k!==HOME)]:PK.slice();
 const reduced=()=>{ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch{ return false; } };
 
 /* ---- data: one same-origin read, then every simulation fills in ---- */
-let DATA=null, FAM={}, ROW={}, TERMS={};
+let DATA=null, FAM={}, ROW={}, TERMS={}, ALK=[], ALKBY={}, CAT={};
 const waiting=[]; const onData=f=>DATA?f(DATA):waiting.push(f);
 function failData(){ document.querySelectorAll('[data-needs-data]').forEach(el=>{ el.innerHTML='<div class="lzwarn"><b>The atlas data did not load.</b> This page reads <span class="k">data/services.json</span> from the same folder, so it must be served over HTTP: run <span class="k">python3 -m http.server 8000</span> in the guide folder and open <span class="k">localhost:8000/atlas.html</span>. Opening the file directly from disk blocks that read.</div>'; }); }
 fetch('data/services.json').then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.json(); }).then(d=>{
   DATA=d; d.families.forEach(f=>FAM[f.id]=f); d.rows.forEach(r=>ROW[r.id]=r); TERMS=d.terms||{};
+  ALK=d.lookalikes||[]; ALK.forEach(l=>[l.a,l.b].forEach(x=>(ALKBY[l.provider+'|'+x.name]=ALKBY[l.provider+'|'+x.name]||[]).push(l)));
+  PK.forEach(k=>(d.catalogue[k]||[]).forEach(s=>CAT[k+'|'+s.name]=s));
   const st=document.getElementById('atStamp'); if(st&&d.generated) st.textContent='Catalogue as of '+d.generated+'.';
   waiting.splice(0).forEach(f=>f(d));
   const ew=document.getElementById('atExamWords');
@@ -358,7 +402,7 @@ function abbrify(escaped){
 function pcard(r,k){
   const p=r[k]||{}, P=PROV[k];
   if(!p.name) return `<div class="pcard"><h4 style="color:var(--dim)">${P.name}: no twin ${stch('none')}</h4><div class="nt">${esc(p.none||'Nothing sold under this heading; teams use a partner product or assemble the job from other services.')}</div></div>`;
-  return `<div class="pcard"><h4 style="color:${P.col}">${esc(p.name)}${stch(p.status)}</h4>${p.formerName?`<div class="was">was ${esc(p.formerName)}</div>`:''}<div class="nt">${esc(p.note)}</div><div class="lbl">buys you</div><ul>${(p.pros||[]).map(x=>'<li class="p">'+esc(x)+'</li>').join('')}</ul><div class="lbl">bills you</div><ul>${(p.cons||[]).map(x=>'<li class="c">'+esc(x)+'</li>').join('')}</ul></div>`;
+  return `<div class="pcard"><h4 style="color:${P.col}">${esc(p.name)}${stch(p.status)}${alk(k,p.name)}</h4>${p.formerName?`<div class="was">was ${esc(p.formerName)}</div>`:''}<div class="nt">${esc(p.note)}</div><div class="lbl">buys you</div><ul>${(p.pros||[]).map(x=>'<li class="p">'+esc(x)+'</li>').join('')}</ul><div class="lbl">bills you</div><ul>${(p.cons||[]).map(x=>'<li class="c">'+esc(x)+'</li>').join('')}</ul></div>`;
 }
 function rowTexts(r){ return [r.job,r.plain,r.pick||'',r.gotcha||''].concat(PK.flatMap(k=>{const p=r[k]||{};return [p.name||'',p.note||''].concat(p.pros||[],p.cons||[]);})); }
 function detail(r){
@@ -467,7 +511,7 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
     if(rows.length===1&&term) open=rows[0].id;
     const head='<tr><th>job</th>'+order.map((k,i)=>'<th style="color:'+PROV[k].col+'">'+(HOME&&i===0?'you know: ':'')+PROV[k].name+'</th>').join('')+'<th>the small print</th></tr>';
     out.innerHTML='<div style="overflow-x:auto"><table class="atlas"><thead>'+head+'</thead><tbody>'+(rows.map(r=>{
-      const cells=order.map(k=>{ const p=r[k]||{}; return '<td class="'+PROV[k].cls+'">'+(p.name?esc(p.name)+stch(p.status):'<span style="color:var(--dim);font-weight:400">no twin</span>')+'</td>'; }).join('');
+      const cells=order.map(k=>{ const p=r[k]||{}; return '<td class="'+PROV[k].cls+'">'+(p.name?esc(p.name)+stch(p.status)+alk(k,p.name):'<span style="color:var(--dim);font-weight:400">no twin</span>')+'</td>'; }).join('');
       return '<tr class="job'+(open===r.id?' open':'')+'" data-id="'+r.id+'"><td class="jb"><span class="fam">'+esc(FAM[r.family].name)+'</span><b>'+abbrify(esc(r.job))+'</b><small>'+abbrify(esc(r.plain))+'</small></td>'+cells
         +'<td class="sp">'+abbrify(esc(first(r.gotcha||r.pick||'')))+'</td></tr>'
         +(open===r.id?'<tr class="det"><td colspan="'+(order.length+2)+'">'+detail(r)+'</td></tr>':'');
@@ -520,7 +564,7 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
         const r=s.row&&ROW[s.row]; let tw='<span style="color:var(--dim)">this cloud&rsquo;s own; no twin row</span>';
         if(r){ const others=PK.filter(k=>k!==P).map(k=>{ const p=r[k]||{}; return p.name?'<span style="color:'+PROV[k].col+'">'+esc(p.name)+'</span>':'<span style="color:var(--dim)">no twin</span>'; }).join(' &middot; ');
           tw=others+' &nbsp;<a data-row="'+r.id+'">open in the atlas &rarr;</a>'; }
-        return '<div class="evrow"><div class="nm">'+esc(s.name)+stch(s.status)+(s.formerName?'<small>was '+esc(s.formerName)+'</small>':'')+'</div><div class="jb">'+abbrify(esc(s.job))+'</div><div class="tw">'+tw+'</div></div>';
+        return '<div class="evrow"><div class="nm">'+esc(s.name)+stch(s.status)+alk(P,s.name)+(s.formerName?'<small>was '+esc(s.formerName)+'</small>':'')+'</div><div class="jb">'+abbrify(esc(s.job))+'</div><div class="tw">'+tw+'</div></div>';
       }).join('');
     }).join('');
     out.insertAdjacentHTML('beforeend',words(rows.map(s=>s.job),'words in this list',60));
@@ -649,6 +693,88 @@ document.getElementById('atStartDiag').innerHTML=D('0 0 720 200','One job in the
         note.innerHTML='<div class="ok"><b>Yes.</b> '+esc(q.why)+'</div><button class="seg" id="atwnNext" style="width:100%;margin-top:10px;font-size:12px">next round &rarr;</button>';
         document.getElementById('atwnNext').onclick=()=>{cur++;answered=false;note.innerHTML='';render();};
       } else { b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65'; note.innerHTML='<div class="lzbad"><b>Not that one.</b> Try again.</div>'; }
+    });
+  }
+})();
+
+/* ================= 7 · LOOK-ALIKES: side by side ================= */
+(function(){
+  const out=document.getElementById('alkOut'), prov=document.getElementById('alkProv'), pairs=document.getElementById('alkPairs'), cnt=document.getElementById('alkCount');
+  if(!out) return;
+  let P='gcp', cur=null;
+  onData(()=>{
+    prov.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ P=b.dataset.p; cur=null; sync(); chips(); render(); });
+    chips(); render();
+  });
+  function sync(){ prov.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x.dataset.p===P)); }
+  function chips(){
+    const ls=ALK.filter(l=>l.provider===P);
+    if(!cur||cur.provider!==P) cur=ls[0]||null;
+    cnt.textContent=ls.length+' pairs in '+PROV[P].name+' · '+ALK.length+' in all';
+    pairs.innerHTML=ls.map(l=>'<button class="chip'+(l===cur?' on':'')+'" data-id="'+l.id+'">'+esc(brandless(l.a.name))+'<span class="n">vs</span> '+esc(brandless(l.b.name))+'</button>').join('');
+    pairs.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ cur=ALK.find(l=>l.id===b.dataset.id)||cur; pairs.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+  }
+  function card(l,side){
+    const x=l[side], c=CAT[l.provider+'|'+x.name]||{}, pick=side==='a'?l.picka:l.pickb, r=ROW[x.row];
+    return '<div class="pcard"><h4 style="color:'+PROV[l.provider].col+'">'+esc(x.name)+stch(c.status)+alk(l.provider,x.name,l.id)+'</h4>'+(c.formerName?'<div class="was">was '+esc(c.formerName)+'</div>':'')
+      +'<div class="nt">'+abbrify(esc(c.job||''))+'</div><div class="lbl">pick it when</div><div class="pw">'+esc(pick)+'</div>'
+      +(r?'<a class="go" data-row="'+esc(x.row)+'">its atlas row: '+esc(r.job)+' &rarr;</a>':'')+'</div>';
+  }
+  function render(){
+    if(!DATA) return; const l=cur;
+    if(!l){ out.innerHTML='<div class="simnote">No pairs for this cloud yet.</div>'; return; }
+    out.innerHTML='<div class="ask"><span class="lbl">the question that decides</span><b>'+esc(l.ask)+'</b></div>'
+      +'<div class="vs">'+card(l,'a')+'<div class="mid">vs</div>'+card(l,'b')+'</div>'
+      +'<div class="plain-line" style="margin-top:12px"><b>Why they get confused:</b> '+esc(l.share)+'</div>'
+      +'<div class="lzwarn" style="margin-top:8px"><b>The trap.</b> '+esc(l.trap)+'</div>'
+      +'<div class="lbl" style="margin-top:14px">two situations, settled by the question</div>'
+      +l.scenarios.map(s=>'<div class="scn"><b>'+esc(s.s)+'</b><br><span style="color:'+PROV[l.provider].col+';font-weight:600">'+esc(s.ok==='a'?l.a.name:l.b.name)+'.</span> '+esc(s.why)+'</div>').join('')
+      +words([l.a.name,l.b.name,l.share,l.ask,l.picka,l.pickb,l.trap].concat(l.scenarios.flatMap(s=>[s.s,s.why])),'words on this comparison');
+    out.querySelectorAll('a[data-row]').forEach(a=>a.onclick=()=>window.atlasOpen(a.dataset.row));
+  }
+  window.atlasAlike=id=>{ const l=ALK.find(x=>x.id===id); if(!l) return; P=l.provider; cur=l; sync(); chips(); gotoTab('alike'); render(); };
+})();
+
+/* ================= 7 · LOOK-ALIKES: which one? ================= */
+(function(){
+  const out=document.getElementById('alkDrOut'), ctl=document.getElementById('alkDrCtl'), note=document.getElementById('alkDrNote');
+  if(!out) return;
+  let Q=[], cur=0, score=0, answered=false, results=[], seed=20261012;
+  function build(){
+    const rnd=mulberry32(seed), per={aws:0,gcp:0,azure:0}, used=new Set();
+    Q=[];
+    for(const x of shuffle(ALK.flatMap(l=>l.scenarios.map(s=>({l,s}))),rnd)){
+      if(Q.length>=12) break;
+      if(per[x.l.provider]>=4||used.has(x.l.id)) continue;
+      per[x.l.provider]++; used.add(x.l.id);
+      Q.push({k:x.l.provider,id:x.l.id,s:x.s.s,why:x.s.why,ok:x.s.ok,opts:shuffle([{t:x.l.a.name,side:'a'},{t:x.l.b.name,side:'b'}],rnd)});
+    }
+    cur=0; score=0; results=[]; answered=false; note.innerHTML='';
+  }
+  onData(()=>{ build(); render(); });
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' first pick.</b> Every wrong one is a pair worth opening side by side.</div><div style="margin-top:10px">'
+        +Q.map((q,i)=>'<div style="display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);align-items:center"><span style="color:'+(results[i]?'var(--green)':'var(--red)')+'">'+(results[i]?'&#10003;':'&#10007;')+'</span>'+pch(q.k)+'<span style="flex:1">'+esc(q.s)+'</span><span class="alk" data-alk="'+q.id+'">&#8776; side by side</span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="alkDrAgain" style="width:100%;font-size:12px">&#9654; twelve different situations</button>';
+      document.getElementById('alkDrAgain').onclick=()=>{ seed++; build(); render(); };
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> Look-alikes are never settled by the names. Each pair has one question: who produces the event, one consumer or many, code or a container, a key or a secret. The situation answers it before you reach for a product.</div>';
+      return;
+    }
+    const q=Q[cur];
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">ROUND '+(cur+1)+' OF '+Q.length+'</div>'
+      +'<div class="qcard">'+pch(q.k)+'<div class="lbl" style="margin-top:8px">the situation</div><div class="qname" style="font-size:18px">'+esc(q.s)+'</div></div>'
+      +'<div class="k" style="font-size:11px;color:var(--muted);margin-top:10px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">which one?</div><div class="segmented" style="flex-direction:column;align-items:stretch">'+q.opts.map((o,i)=>'<button class="seg" data-i="'+i+'" style="text-align:left;font-size:12px">'+esc(o.t)+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('on')||b.classList.contains('no')) return;
+      const o=q.opts[+b.dataset.i], right=o.side===q.ok;
+      if(!answered){ answered=true; if(right) score++; results.push(right); }
+      if(right){
+        b.classList.add('on'); ctl.querySelectorAll('.seg').forEach(x=>{ if(x!==b) x.disabled=true; });
+        note.innerHTML='<div class="ok"><b>Yes: '+esc(o.t)+'.</b> '+esc(q.why)+' <span class="alk" data-alk="'+q.id+'">&#8776; side by side</span></div><button class="seg" id="alkDrNext" style="width:100%;margin-top:10px;font-size:12px">next situation &rarr;</button>';
+        document.getElementById('alkDrNext').onclick=()=>{ cur++; answered=false; note.innerHTML=''; render(); };
+      } else { b.classList.add('no'); b.style.borderColor='var(--red)'; b.style.opacity='.65'; note.innerHTML='<div class="lzbad"><b>Not '+esc(o.t)+'.</b> Ask the deciding question again and try the other one.</div>'; }
     });
   }
 })();

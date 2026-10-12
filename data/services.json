@@ -18381,6 +18381,830 @@
   "failover": "switching to a standby copy when the primary fails",
   "replication": "keeping a live copy of data in another place",
   "snapshot": "a point-in-time copy of a disk or database",
-  "snapshots": "point-in-time copies of a disk or database"
- }
+  "snapshots": "point-in-time copies of a disk or database",
+  "CloudEvents": "an open standard shape for describing an event, so any service can read it",
+  "CloudEvent": "one event written in the CloudEvents standard shape",
+  "Dapr": "an open-source toolkit of building blocks (state, pub/sub, secrets) that containers call over a local sidecar",
+  "HTAP": "hybrid transactional and analytical processing: running reports on the same live rows that take the writes",
+  "dead-letter queue": "a side queue where messages that keep failing are parked for a person to look at",
+  "dead-lettering": "parking a message that keeps failing in a side queue instead of retrying forever",
+  "Gbps": "gigabits per second, a measure of bandwidth",
+  "cron": "a timetable notation for recurring jobs: every night at two, every ten minutes",
+  "idempotent": "safe to run twice; the second run changes nothing",
+  "fan-out": "one message copied to many receivers at once",
+  "at-least-once": "delivery that may repeat a message but never loses one, so receivers must cope with duplicates",
+  "exactly-once": "delivery that neither loses nor repeats a message, usually at some cost in throughput",
+  "replay": "reading past messages again from a retained stream, for a new consumer or after a bug",
+  "shard": "one of the ordered lanes a stream is split into, each with its own throughput",
+  "consumer groups": "a set of readers that share a stream and each keep their own position in it",
+  "webhook": "an HTTP address that gets called when something happens",
+  "duplicate detection": "the broker dropping a message it has already seen, by its id",
+  "columnar": "storing a table column by column, so analytical queries read only the columns they need",
+  "Hive": "an older open-source SQL layer over big-data files",
+  "vCore": "a virtual processor core, the unit Azure SQL and others sell compute in",
+  "request unit": "Cosmos DB's unit of throughput: a normalised cost per read or write",
+  "BlobFuse": "a driver that mounts Blob Storage as if it were a file system",
+  "anycast": "one address announced from many places, so each user reaches the nearest",
+  "SQL injection": "an attack that smuggles database commands into a web form field",
+  "cross-site scripting": "an attack that smuggles script into a web page other users will load",
+  "visibility timeout": "how long a queue hides a message from other workers while one is processing it",
+  "materialised view": "a saved, pre-computed query result that is refreshed rather than recomputed",
+  "kubectl": "the command-line tool for talking to a Kubernetes cluster",
+  "service mesh": "a layer of sidecar proxies that handle traffic, security and telemetry between services",
+  "p99": "the latency that 99 in 100 requests beat; the slow tail",
+  "HA VPN": "Google Cloud's high-availability VPN, two tunnels with a 99.99 percent availability target",
+  "Cloud Audit Logs": "Google Cloud's record of who did what to which resource, written by every service",
+  "hub VNet": "the central virtual network that spoke networks connect through for shared services like a firewall",
+  "spoke": "a virtual network that connects to the hub for shared services rather than directly to others",
+  "lifecycle rule": "a storage setting that moves or deletes objects automatically as they age",
+  "storage class": "a tier of object storage priced for how often you read it, from hot to archive",
+  "poison message": "a message that fails every time it is processed and would block a queue if not parked",
+  "look-alike": "two services in the same cloud that overlap on a job and are easily mistaken for each other",
+  "GoogleSQL": "Spanner’s own SQL dialect, offered alongside its PostgreSQL interface"
+ },
+ "lookalikes": [
+  {
+   "id": "gcp-pubsub-eventarc",
+   "provider": "gcp",
+   "a": {
+    "name": "Pub/Sub",
+    "row": "pubsub"
+   },
+   "b": {
+    "name": "Eventarc",
+    "row": "eventbus"
+   },
+   "share": "Both move events between services without the sender knowing who listens, and Eventarc actually rides on Pub/Sub underneath.",
+   "ask": "Who produces the event: your own code publishing messages, or a Google Cloud service doing something?",
+   "picka": "Your services publish messages themselves and other services consume them: fan-out to many subscribers, ordering keys, replay from retained messages, pull or push delivery, millions of messages a second.",
+   "pickb": "You want to react to something that happened in a Google Cloud service (a file landing in a bucket, a BigQuery job finishing, an audit-logged API call) and have it delivered as a standard CloudEvent to Cloud Run, Cloud Run functions, GKE, Workflows or an internal HTTP endpoint, with filters instead of plumbing code.",
+   "trap": "Eventarc is routing, not a message bus you publish to: it uses Pub/Sub as its transport, so the Pub/Sub bill and limits still apply, and most service triggers only fire when the matching Cloud Audit Logs are switched on.",
+   "scenarios": [
+    {
+     "s": "An order service must tell inventory, billing and analytics about every new order, and analytics wants to replay last week.",
+     "ok": "a",
+     "why": "Your own producers, several consumers and replay: that is messaging, and Pub/Sub keeps messages for replay. Eventarc has no publish API for your code."
+    },
+    {
+     "s": "Resize every image the moment it is uploaded to a Cloud Storage bucket, with no code to wire the bucket to the service.",
+     "ok": "b",
+     "why": "A Google service produced the event. An Eventarc trigger filtered on that bucket delivers it to your Cloud Run service as a CloudEvent."
+    }
+   ]
+  },
+  {
+   "id": "gcp-run-functions",
+   "provider": "gcp",
+   "a": {
+    "name": "Cloud Run",
+    "row": "srvcontainers"
+   },
+   "b": {
+    "name": "Cloud Run functions",
+    "row": "functions"
+   },
+   "share": "Both run your code only when requests or events arrive and scale to zero, and since the 2024 rename functions are deployed onto Cloud Run itself.",
+   "ask": "Do you have a container with its own web server, or just a function body that handles one kind of request or event?",
+   "picka": "A full service: any language or runtime in a container you build, several routes, background threads, websockets or long requests, or a job that runs to completion rather than answering requests.",
+   "pickb": "A single-purpose handler written as source code in a supported language, deployed without a Dockerfile and wired to an HTTP route or an Eventarc trigger; the platform builds the container for you.",
+   "trap": "The old split between Cloud Functions 1st and 2nd generation still exists under the names Cloud Run functions (1st gen) and Cloud Run functions. Only the latter gets Cloud Run's features, so check which generation an existing function is before assuming it can be customised like a service.",
+   "scenarios": [
+    {
+     "s": "A Go API with twelve routes, a health check and a background cache warmer.",
+     "ok": "a",
+     "why": "Several routes and a background thread want a real service in a container, not a function body."
+    },
+    {
+     "s": "Thirty lines of Python that run whenever a message lands on a topic.",
+     "ok": "b",
+     "why": "One handler, one trigger, no Dockerfile: the function shape, with Eventarc delivering the message."
+    }
+   ]
+  },
+  {
+   "id": "gcp-cloudsql-spanner",
+   "provider": "gcp",
+   "a": {
+    "name": "Cloud SQL",
+    "row": "rdbms"
+   },
+   "b": {
+    "name": "Spanner",
+    "row": "globalsql"
+   },
+   "share": "Both are managed relational databases that speak SQL and hold transactions; the question is how far the writes have to scale.",
+   "ask": "Does one primary genuinely fail to hold the write volume, or do you need writes in several regions with strong consistency?",
+   "picka": "A familiar engine (MySQL, PostgreSQL or SQL Server) for one region and moderate scale, with the tools and extensions your team already knows, read replicas and a standby for availability.",
+   "pickb": "Horizontal write scale across regions with external consistency and a five-nines multi-region availability target, and you accept a different cost model and a dialect (GoogleSQL or its PostgreSQL interface) that is not a drop-in for an existing application.",
+   "trap": "Spanner is not a faster Cloud SQL; it is a different database. A relational schema alone is no reason to pick it, and its PostgreSQL interface does not make an existing PostgreSQL application portable without changes.",
+   "scenarios": [
+    {
+     "s": "A regional ticketing app on PostgreSQL that tops out at a few thousand writes a second.",
+     "ok": "a",
+     "why": "One region and a write rate a single primary can hold: Cloud SQL, at a fraction of the cost."
+    },
+    {
+     "s": "A ledger written to from three continents where every read must see the latest committed balance.",
+     "ok": "b",
+     "why": "Multi-region writes with strong consistency is exactly the job Spanner was built for."
+    }
+   ]
+  },
+  {
+   "id": "gcp-cloudsql-alloydb",
+   "provider": "gcp",
+   "a": {
+    "name": "Cloud SQL",
+    "row": "rdbms"
+   },
+   "b": {
+    "name": "AlloyDB for PostgreSQL",
+    "row": "cloudrdbms"
+   },
+   "share": "Both run PostgreSQL for you; AlloyDB is Google's own PostgreSQL-compatible engine rather than the community build.",
+   "ask": "Has a PostgreSQL workload outgrown what a managed community PostgreSQL can give you, in transaction throughput or in analytics on live data?",
+   "picka": "Standard PostgreSQL (or MySQL or SQL Server) at ordinary scale, the lowest entry price, and the broadest extension and version compatibility.",
+   "pickb": "Demanding PostgreSQL: a storage layer built for higher transaction throughput and a columnar engine that speeds up analytical queries on the same rows, while staying PostgreSQL-compatible so drivers and most code carry over.",
+   "trap": "AlloyDB only speaks PostgreSQL, so it is no answer for a MySQL or SQL Server estate, and its gains are real on heavy workloads but invisible on small ones, where Cloud SQL costs less.",
+   "scenarios": [
+    {
+     "s": "A PostgreSQL reporting dashboard where analytical queries fight the transactional load on the same tables.",
+     "ok": "b",
+     "why": "Analytics on live transactional rows is the case the columnar engine exists for."
+    },
+    {
+     "s": "A small internal MySQL application with a hundred users.",
+     "ok": "a",
+     "why": "MySQL rules AlloyDB out, and the scale would not use it anyway."
+    }
+   ]
+  },
+  {
+   "id": "gcp-bigquery-bigtable",
+   "provider": "gcp",
+   "a": {
+    "name": "BigQuery",
+    "row": "warehouse"
+   },
+   "b": {
+    "name": "Bigtable",
+    "row": "widecolumn"
+   },
+   "share": "The names look alike and both hold enormous tables; they answer opposite questions.",
+   "ask": "Are you analysing across billions of rows with SQL, or reading and writing individual rows by key at very high speed?",
+   "picka": "A warehouse: SQL over huge history, joins and aggregations, priced by what each query scans or by reserved capacity, with nobody tuning servers.",
+   "pickb": "A wide-column store built around row keys: millions of writes a second, single-digit-millisecond lookups of a row or a key range, time series and sensor data, with you choosing the row-key design.",
+   "trap": "Bigtable is not a cheap BigQuery and BigQuery is not a fast Bigtable: scanning Bigtable for analytics is slow and dear, and using BigQuery for per-row lookups is slow and dear the other way round. Pipelines often use both.",
+   "scenarios": [
+    {
+     "s": "Weekly revenue by product across five years of orders.",
+     "ok": "a",
+     "why": "An aggregation across years of history is a warehouse question."
+    },
+    {
+     "s": "Store ten million device readings a minute and fetch the last hour for one device instantly.",
+     "ok": "b",
+     "why": "Heavy writes and a key-range read for one device is the wide-column shape."
+    }
+   ]
+  },
+  {
+   "id": "gcp-tasks-scheduler",
+   "provider": "gcp",
+   "a": {
+    "name": "Cloud Tasks",
+    "row": "queue"
+   },
+   "b": {
+    "name": "Cloud Scheduler",
+    "row": "scheduler"
+   },
+   "share": "Both make something happen later without a server waiting around, and both can call an HTTP endpoint.",
+   "ask": "Is it a fixed timetable, or one task per piece of work that your code creates as it goes?",
+   "picka": "Your code enqueues individual tasks, each delivered to an endpoint you name, with retries until it succeeds, a rate limit on the queue, optional delays per task and task names that stop duplicates.",
+   "pickb": "A cron timetable: every night at two, every ten minutes, once next Tuesday, hitting an HTTP endpoint, a Pub/Sub topic or an App Engine service.",
+   "trap": "Scheduler fires on the clock whether or not there is work; Tasks fires once per task you created. A nightly job that must then process ten thousand items is Scheduler kicking off a producer that enqueues ten thousand Tasks.",
+   "scenarios": [
+    {
+     "s": "Send each new customer a welcome email, retrying if the mail API is down, at no more than fifty a second.",
+     "ok": "a",
+     "why": "One task per customer, retries and a rate limit: a task queue."
+    },
+    {
+     "s": "Rebuild the sitemap every morning at six.",
+     "ok": "b",
+     "why": "A fixed timetable with no per-item work: cron."
+    }
+   ]
+  },
+  {
+   "id": "gcp-secret-kms",
+   "provider": "gcp",
+   "a": {
+    "name": "Secret Manager",
+    "row": "secrets"
+   },
+   "b": {
+    "name": "Cloud Key Management Service",
+    "row": "kms"
+   },
+   "share": "Both guard things that must never sit in code, and Secret Manager encrypts what it holds with keys that Cloud KMS can manage.",
+   "ask": "Do you need to store and fetch a secret value, or to own a key and have the cloud encrypt, decrypt and sign with it?",
+   "picka": "Passwords, API keys, certificates and tokens as versioned payloads that programs fetch at run time, with IAM on each secret and rotation reminders.",
+   "pickb": "Encryption keys themselves: create and rotate them, keep them in software or a hardware module, and call the service to encrypt, decrypt and sign without the key ever leaving it; also the keys behind customer-managed encryption of other services.",
+   "trap": "Cloud KMS does not store your database password, and Secret Manager does not sign anything. Teams that put a password in KMS by encrypting it are rebuilding Secret Manager by hand.",
+   "scenarios": [
+    {
+     "s": "A service needs a third-party API key at start-up without it being in the container image.",
+     "ok": "a",
+     "why": "A secret value fetched at run time: Secret Manager."
+    },
+    {
+     "s": "A regulator wants the storage bucket encrypted with a key the company controls and rotates.",
+     "ok": "b",
+     "why": "Owning and rotating the key is Cloud KMS, used as a customer-managed key on the bucket."
+    }
+   ]
+  },
+  {
+   "id": "gcp-storage-filestore",
+   "provider": "gcp",
+   "a": {
+    "name": "Cloud Storage",
+    "row": "object"
+   },
+   "b": {
+    "name": "Filestore",
+    "row": "nfs"
+   },
+   "share": "Both keep files durably; one is a bottomless bucket reached over HTTP, the other a network drive you mount.",
+   "ask": "Will the files be read as objects by name over an API, or does a program need a POSIX file system it can open, seek and lock?",
+   "picka": "Any amount of data, any size of object, reached by name over HTTP from anywhere, with storage classes from hot to archive and lifecycle rules; the default for data lakes, backups, media and static sites.",
+   "pickb": "A managed NFS share mounted by many machines at once, for software that expects a real file system: shared home directories, content management, render farms, lift-and-shift applications.",
+   "trap": "You can mount a bucket with Cloud Storage FUSE, but it is an object store in a file-system costume: no file locking, slow small writes and listing costs. Filestore is priced per provisioned capacity whether you fill it or not.",
+   "scenarios": [
+    {
+     "s": "A video platform keeping petabytes of uploads, served to the world.",
+     "ok": "a",
+     "why": "Objects by name at any scale, served over HTTP: the bucket."
+    },
+    {
+     "s": "Twenty rendering machines that all read and write the same project directory.",
+     "ok": "b",
+     "why": "Many machines mounting one real file system is the NFS share."
+    }
+   ]
+  },
+  {
+   "id": "gcp-interconnect-vpn",
+   "provider": "gcp",
+   "a": {
+    "name": "Cloud Interconnect",
+    "row": "interconnect"
+   },
+   "b": {
+    "name": "Cloud VPN",
+    "row": "vpn"
+   },
+   "share": "Both join your own network to your Google Cloud network privately; one is a physical link, the other encrypted tunnels over the internet.",
+   "ask": "How much bandwidth, how steady a latency, and how soon?",
+   "picka": "A dedicated or partner physical connection with tens of gigabits, predictable latency and no internet in the path; weeks to provision and a monthly port fee.",
+   "pickb": "Encrypted IPsec tunnels over the public internet, up in an afternoon, a few gigabits per tunnel, with HA VPN giving a high-availability pair; the right start, and often the right end, for modest traffic.",
+   "trap": "Interconnect traffic is not encrypted by the link itself, so sensitive data still wants encryption on top; and many estates run VPN as the backup path to an Interconnect rather than choosing one.",
+   "scenarios": [
+    {
+     "s": "Nightly replication of a few hundred gigabytes to the cloud from one office.",
+     "ok": "b",
+     "why": "Modest traffic that tolerates internet latency: tunnels, up today."
+    },
+    {
+     "s": "A data centre pushing a steady ten gigabits of production traffic with strict latency.",
+     "ok": "a",
+     "why": "Sustained tens of gigabits with predictable latency is the physical link."
+    }
+   ]
+  },
+  {
+   "id": "aws-sqs-sns",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon SQS",
+    "row": "queue"
+   },
+   "b": {
+    "name": "Amazon SNS",
+    "row": "pubsub"
+   },
+   "share": "Both decouple senders from receivers; one is a queue a worker pulls from, the other a topic that pushes to everyone subscribed.",
+   "ask": "Should each message be worked on by exactly one consumer, or announced to everyone who cares?",
+   "picka": "Work to be done once: a worker pulls a message, processes it and deletes it. The queue absorbs bursts, FIFO queues give ordering and exactly-once processing, and a dead-letter queue catches poison messages.",
+   "pickb": "One announcement, many listeners: fan-out to queues, Lambda functions, HTTP endpoints, email, SMS and mobile push at the same moment, with each subscriber filtering what it wants.",
+   "trap": "The classic pattern is both: SNS fans out to several SQS queues so each consumer gets its own durable copy. SNS alone has no store-and-retry queue, so a subscriber that is down misses what it did not receive.",
+   "scenarios": [
+    {
+     "s": "Resize uploaded images; a fleet of workers should share the load and no image should be processed twice.",
+     "ok": "a",
+     "why": "Shared work, each item done once: a queue."
+    },
+    {
+     "s": "When a payment settles, billing, the warehouse and the customer's phone must all hear about it at once.",
+     "ok": "b",
+     "why": "One event, many listeners, including a phone: a topic."
+    }
+   ]
+  },
+  {
+   "id": "aws-sns-eventbridge",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon SNS",
+    "row": "pubsub"
+   },
+   "b": {
+    "name": "Amazon EventBridge",
+    "row": "eventbus"
+   },
+   "share": "Both route events to many targets; EventBridge is the newer bus with rules and filters, SNS the older high-volume topic.",
+   "ask": "Do you need routing rules that read the event's content, schemas, archive and replay and SaaS sources, or raw fan-out at the highest volume and lowest latency?",
+   "picka": "Massive fan-out to millions of subscribers, mobile push, SMS and email, the lowest latency and the lowest cost per message, with filtering on message attributes.",
+   "pickb": "An event bus with rules that match on any field of the event, a schema registry, archive and replay, scheduling, pipes between services, and events arriving from AWS services and dozens of SaaS partners.",
+   "trap": "EventBridge targets are AWS-side (Lambda, Step Functions, queues, API destinations); it does not text a phone. And its per-event price is higher than SNS, which matters at very high volume.",
+   "scenarios": [
+    {
+     "s": "Route every order over a thousand dollars from a partner SaaS to a review workflow, and replay last month's events after a bug.",
+     "ok": "b",
+     "why": "Content-based rules, a SaaS source and replay are EventBridge features."
+    },
+    {
+     "s": "Push a flash-sale alert to two million app installs.",
+     "ok": "a",
+     "why": "Mobile push at that volume is SNS."
+    }
+   ]
+  },
+  {
+   "id": "aws-lambda-fargate",
+   "provider": "aws",
+   "a": {
+    "name": "AWS Lambda",
+    "row": "functions"
+   },
+   "b": {
+    "name": "AWS Fargate",
+    "row": "srvcontainers"
+   },
+   "share": "Both run your code with no servers to manage and bill for what you use; one runs functions for seconds, the other containers for as long as you like.",
+   "ask": "Is the work a short burst triggered by an event, or a container that needs to run for minutes, hours or always?",
+   "picka": "Event-driven functions that finish within fifteen minutes, scale from zero to thousands of parallel invocations in seconds, and bill per millisecond; the glue of serverless designs.",
+   "pickb": "Containers you already have, long-running services and batch jobs, more memory and CPU than a function allows, and no execution time limit, scheduled on ECS or EKS without managing instances.",
+   "trap": "Lambda's fifteen-minute limit and cold starts surprise people moving a long batch job; Fargate's per-second billing for an always-on service can cost more than a small EC2 instance. Lambda can also run a container image, which is not the same as running a container service.",
+   "scenarios": [
+    {
+     "s": "Thumbnail every image as it lands in a bucket.",
+     "ok": "a",
+     "why": "A short burst per event: a function."
+    },
+    {
+     "s": "A four-hour nightly data crunch in a container with sixteen gigabytes of memory.",
+     "ok": "b",
+     "why": "Four hours breaks the function limit; a container task on Fargate runs to completion."
+    }
+   ]
+  },
+  {
+   "id": "aws-rds-aurora",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon RDS",
+    "row": "rdbms"
+   },
+   "b": {
+    "name": "Amazon Aurora",
+    "row": "cloudrdbms"
+   },
+   "share": "Both are managed relational databases, and Aurora is even managed through the RDS console; the difference is the engine underneath.",
+   "ask": "Do you need an engine RDS offers that Aurora does not, or the fastest, most available MySQL or PostgreSQL AWS sells?",
+   "picka": "Oracle, SQL Server, MariaDB, Db2, or plain MySQL and PostgreSQL at a lower price point, with storage you size and a standby in another zone for failover.",
+   "pickb": "MySQL- and PostgreSQL-compatible engines on a storage layer that keeps six copies across three zones, grows automatically, fails over in seconds, supports many fast read replicas and a serverless option that scales capacity up and down.",
+   "trap": "Aurora is compatible with MySQL and PostgreSQL, not identical: some extensions and versions lag, and the price per hour is higher, so a small or spiky database can be cheaper on RDS. Aurora DSQL is a separate, newer product for multi-region writes.",
+   "scenarios": [
+    {
+     "s": "Move a SQL Server application to the cloud with the least change.",
+     "ok": "a",
+     "why": "Aurora has no SQL Server engine; RDS does."
+    },
+    {
+     "s": "A PostgreSQL app that needs sub-minute failover and a dozen read replicas.",
+     "ok": "b",
+     "why": "Fast failover and many replicas are what Aurora's storage layer buys."
+    }
+   ]
+  },
+  {
+   "id": "aws-athena-redshift",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon Athena",
+    "row": "adhocquery"
+   },
+   "b": {
+    "name": "Amazon Redshift",
+    "row": "warehouse"
+   },
+   "share": "Both answer SQL questions over large data; one queries files in S3 on demand, the other is a warehouse with its own storage and engine.",
+   "ask": "Occasional questions over data that already sits in S3, or sustained dashboards and heavy joins that justify a warehouse?",
+   "picka": "Serverless SQL straight over S3 files and open table formats, no cluster, priced per data scanned; perfect for ad-hoc exploration, logs and infrequent reports.",
+   "pickb": "A column-store warehouse for many concurrent analysts and dashboards, complex joins, materialised views and predictable performance, provisioned or serverless, with data loaded in or queried in place.",
+   "trap": "Athena bills every scan, so a dashboard refreshing the same question all day gets expensive and slow, while a provisioned Redshift cluster bills whether or not anyone queries. Partitioning and columnar file formats decide Athena's cost more than the SQL does.",
+   "scenarios": [
+    {
+     "s": "An engineer wants to search three terabytes of logs in S3 once a month.",
+     "ok": "a",
+     "why": "Infrequent questions over files already in S3, with no cluster to keep: Athena."
+    },
+    {
+     "s": "Two hundred analysts refreshing finance dashboards all day over a modelled schema.",
+     "ok": "b",
+     "why": "Sustained concurrent dashboards over a modelled schema is the warehouse."
+    }
+   ]
+  },
+  {
+   "id": "aws-glue-emr",
+   "provider": "aws",
+   "a": {
+    "name": "AWS Glue",
+    "row": "etl"
+   },
+   "b": {
+    "name": "Amazon EMR",
+    "row": "spark"
+   },
+   "share": "Both run Apache Spark for you to transform data; one is a serverless ETL service with a catalogue, the other managed big-data clusters you control.",
+   "ask": "Do you want a job-based ETL service that hides the cluster, or a cluster with the whole open-source stack and knobs you can tune?",
+   "picka": "Serverless Spark and Python ETL jobs, a Data Catalog and crawlers that discover schemas, visual job authoring, billed per job run; the default for pipelines that load the lake and the warehouse.",
+   "pickb": "Spark, Hive, Trino, Flink and HBase on clusters you size and tune, long-running or transient, on instances, on EKS or serverless; for heavy, custom or interactive big-data work and teams who know the stack.",
+   "trap": "Glue is Spark underneath but with its own job model and versions, so not every Spark program ports straight across; EMR can be far cheaper for sustained heavy workloads while Glue wins for intermittent ones.",
+   "scenarios": [
+    {
+     "s": "Nightly: discover new files in S3, convert them to Parquet and load the warehouse, with no cluster to babysit.",
+     "ok": "a",
+     "why": "Catalogue, crawlers and a serverless job run once a night: Glue."
+    },
+    {
+     "s": "A data science team running Spark and Trino interactively on a cluster they tune themselves.",
+     "ok": "b",
+     "why": "Interactive, tuned, multi-engine clusters are EMR."
+    }
+   ]
+  },
+  {
+   "id": "aws-cloudwatch-cloudtrail",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon CloudWatch",
+    "row": "monitoring"
+   },
+   "b": {
+    "name": "AWS CloudTrail",
+    "row": "audit"
+   },
+   "share": "Both are where you look when something went wrong; one tells you what the systems were doing, the other who did what to the account.",
+   "ask": "Are you asking how the system behaved, or who changed it?",
+   "picka": "Metrics, logs, dashboards and alarms: CPU, latency, error rates, application logs, and alarms that page or auto-scale.",
+   "pickb": "A record of every API call made to the account: which identity created, changed or deleted which resource, from where and when; the audit trail for security and compliance.",
+   "trap": "CloudTrail is not a logging service for your application, and CloudWatch does not know who ran a command. They meet in the middle: CloudTrail can deliver its trail to CloudWatch Logs so you can alarm on a dangerous API call.",
+   "scenarios": [
+    {
+     "s": "The API's p99 latency doubled at three in the morning; alert on it next time.",
+     "ok": "a",
+     "why": "A metric over time with an alarm: CloudWatch."
+    },
+    {
+     "s": "Somebody opened a bucket to the public last Tuesday; find out who.",
+     "ok": "b",
+     "why": "Who called which API, when: the audit trail."
+    }
+   ]
+  },
+  {
+   "id": "aws-efs-ebs",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon EFS",
+    "row": "nfs"
+   },
+   "b": {
+    "name": "Amazon EBS",
+    "row": "block"
+   },
+   "share": "Both are disks for your compute; one is a shared network file system, the other a block volume bolted to one instance.",
+   "ask": "Does one machine need a fast disk, or do many machines need the same files at once?",
+   "picka": "A managed NFS file system mounted by thousands of instances, containers and Lambda functions at the same time, growing and shrinking as you add and delete files, billed per gigabyte stored.",
+   "pickb": "A block volume attached to one instance in one zone (a boot disk, a database volume) with provisioned size and performance tiers, snapshots to S3, and the lowest latency.",
+   "trap": "An EBS volume lives in one zone and attaches to one instance (multi-attach is a narrow exception for some volume types within a zone); EFS costs several times more per gigabyte and has higher latency per operation, so a database on EFS is a mistake.",
+   "scenarios": [
+    {
+     "s": "A PostgreSQL data directory on a single instance.",
+     "ok": "b",
+     "why": "One machine, lowest latency, provisioned performance: a block volume."
+    },
+    {
+     "s": "A content management system on six instances that must all see the same uploads directory.",
+     "ok": "a",
+     "why": "Six machines sharing one directory is the network file system."
+    }
+   ]
+  },
+  {
+   "id": "aws-kinesis-sqs",
+   "provider": "aws",
+   "a": {
+    "name": "Amazon Kinesis Data Streams",
+    "row": "streamingest"
+   },
+   "b": {
+    "name": "Amazon SQS",
+    "row": "queue"
+   },
+   "share": "Both hold messages between producers and consumers; one is an ordered stream many readers can replay, the other a queue where each message is taken once.",
+   "ask": "Should several independent consumers read the same records in order and be able to replay them, or should each message be consumed once and gone?",
+   "picka": "A stream of ordered shards that several consumers read independently, with records retained for a day by default and up to a year, so a new consumer or a fixed bug can replay from any point; clickstreams, telemetry, change feeds.",
+   "pickb": "A queue of tasks: a message is delivered to one consumer and deleted once processed, with no replay; bursts absorbed, retries by visibility timeout, dead-letter queues, near-unlimited throughput on standard queues.",
+   "trap": "SQS has no replay: once deleted, gone. Kinesis makes you think about shards and partition keys, and a hot key throttles one shard while the rest idle. Kinesis is also the wrong tool for a plain work queue.",
+   "scenarios": [
+    {
+     "s": "A clickstream read by the fraud model, the analytics loader and a new team that wants last week's data too.",
+     "ok": "a",
+     "why": "Several independent readers and replay: a stream."
+    },
+    {
+     "s": "Resize jobs that a fleet of workers should share, each done once.",
+     "ok": "b",
+     "why": "Shared work, each item consumed once: a queue."
+    }
+   ]
+  },
+  {
+   "id": "az-servicebus-eventgrid",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Service Bus",
+    "row": "queue"
+   },
+   "b": {
+    "name": "Azure Event Grid",
+    "row": "eventbus"
+   },
+   "share": "Both are Azure messaging, and Microsoft's own guidance splits them by payload: Service Bus for high-value messages, Event Grid for lightweight notifications that something happened.",
+   "ask": "Is this a message that must be processed once, in order, maybe inside a transaction, or a notification that something changed, which anyone may react to?",
+   "picka": "Enterprise messaging: queues and topics, ordering through sessions, duplicate detection, transactions, dead-lettering, scheduled delivery and consumers that pull; orders, payments, workflows.",
+   "pickb": "Push-based event routing: discrete events from Azure services, your apps and partners, filtered and delivered to webhooks, Functions, Logic Apps and queues, dynamically scalable and serverless; also an MQTT broker for devices.",
+   "trap": "Event Grid pushes and expects the receiver to be up (with retries and dead-lettering); Service Bus holds the message until a consumer pulls it. Using Event Grid to carry an order payload, or Service Bus to broadcast a blob-created notification, works until it does not.",
+   "scenarios": [
+    {
+     "s": "Process orders exactly once, in the order each customer placed them, with a dead-letter queue for the bad ones.",
+     "ok": "a",
+     "why": "Ordering, once-only processing and dead-lettering are broker features: Service Bus."
+    },
+    {
+     "s": "Run a function whenever a blob is created in a container, and let three teams subscribe without the uploader knowing.",
+     "ok": "b",
+     "why": "A notification from an Azure service, fanned out to subscribers: Event Grid."
+    }
+   ]
+  },
+  {
+   "id": "az-eventgrid-eventhubs",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Event Grid",
+    "row": "eventbus"
+   },
+   "b": {
+    "name": "Azure Event Hubs",
+    "row": "streamingest"
+   },
+   "share": "Both carry events; one routes discrete notifications, the other ingests a firehose of telemetry for streaming and analytics.",
+   "ask": "Discrete events to react to one at a time, or a continuous stream of many thousands of events a second that consumers read in order and can replay?",
+   "picka": "Reactive, serverless routing of individual events (a file arrived, a resource changed) to whichever subscribers filtered for them.",
+   "pickb": "Big-data streaming: partitions, consumer groups reading at their own pace, retention and replay by offset, capture to storage, and the Kafka protocol so existing Kafka clients just repoint.",
+   "trap": "Event Hubs is not a notification service and Event Grid is not for millions of telemetry points a second; a common design is Event Hubs for the stream and Event Grid to announce that a capture file landed.",
+   "scenarios": [
+    {
+     "s": "Fifty thousand devices sending readings a second, read by a real-time dashboard and a nightly batch that reprocesses the day.",
+     "ok": "b",
+     "why": "A firehose with two readers at different paces and a replay: the stream."
+    },
+    {
+     "s": "Email the owner whenever a resource group is deleted.",
+     "ok": "a",
+     "why": "One discrete event from an Azure service, routed to a handler: Event Grid."
+    }
+   ]
+  },
+  {
+   "id": "az-functions-logicapps",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Functions",
+    "row": "functions"
+   },
+   "b": {
+    "name": "Azure Logic Apps",
+    "row": "workflow"
+   },
+   "share": "Both run small pieces of automation on triggers without servers; one is code, the other a designer with hundreds of connectors.",
+   "ask": "Is the logic best expressed as code, or as a visual workflow stitched from connectors to other systems?",
+   "picka": "Code in C#, Python, JavaScript or Java that runs on an HTTP, timer, queue or event trigger, with full control over logic, libraries and performance.",
+   "pickb": "A low-code workflow designer with connectors to hundreds of services (Office 365, SharePoint, Salesforce, SAP, databases), approvals, retries and run history, built and read by people who are not necessarily developers.",
+   "trap": "Logic Apps can call a Function and a Function can start a Logic App; the trap is writing complex logic in a designer, or rebuilding a connector by hand in code. Per-action billing on Logic Apps can also surprise at high volume.",
+   "scenarios": [
+    {
+     "s": "When a form is submitted, create a SharePoint item, post to Teams and wait for a manager's approval.",
+     "ok": "b",
+     "why": "Connectors and an approval step are the designer's home ground."
+    },
+    {
+     "s": "Parse ten thousand uploaded CSV files a day with custom validation rules.",
+     "ok": "a",
+     "why": "Custom parsing logic at volume is code."
+    }
+   ]
+  },
+  {
+   "id": "az-containerapps-aks",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Container Apps",
+    "row": "srvcontainers"
+   },
+   "b": {
+    "name": "Azure Kubernetes Service (AKS)",
+    "row": "k8s"
+   },
+   "share": "Both run containers at scale on Kubernetes-based infrastructure; one hides the cluster, the other hands you the whole cluster.",
+   "ask": "Do you want to run containers, or do you want to run Kubernetes?",
+   "picka": "Serverless containers: deploy an image and get scaling to zero, event-driven scaling through KEDA, traffic splitting between revisions and Dapr building blocks, with no nodes, no upgrades and no Kubernetes API to learn.",
+   "pickb": "Full Kubernetes: your own node pools, operators, custom networking and storage, service meshes, GPU nodes, cluster-level policies and every open-source tool that speaks to the Kubernetes API.",
+   "trap": "Container Apps runs on Kubernetes but does not expose it, so anything that needs a custom controller, a DaemonSet, a privileged container or kubectl is an AKS job; and on AKS the nodes, upgrades and on-call are yours.",
+   "scenarios": [
+    {
+     "s": "A team of three shipping a few web services and a queue worker; nobody wants to learn Kubernetes.",
+     "ok": "a",
+     "why": "Containers without the cluster: Container Apps."
+    },
+    {
+     "s": "A platform team running fifty services with a service mesh, GPU nodes and custom operators.",
+     "ok": "b",
+     "why": "Operators, a mesh and GPU node pools need the Kubernetes API."
+    }
+   ]
+  },
+  {
+   "id": "az-sqldb-cosmos",
+   "provider": "azure",
+   "a": {
+    "name": "Azure SQL Database",
+    "row": "rdbms"
+   },
+   "b": {
+    "name": "Azure Cosmos DB",
+    "row": "kv"
+   },
+   "share": "Both are Azure's flagship managed databases; one is SQL Server in the cloud, the other a globally distributed multi-model NoSQL store.",
+   "ask": "A relational schema with joins and transactions in one region, or documents and key-value at global scale with single-digit-millisecond reads everywhere?",
+   "picka": "A managed SQL Server engine: tables, joins, stored procedures, familiar tooling, and a scale model in DTUs or vCores with Hyperscale for very large databases.",
+   "pickb": "Document, key-value, graph and column-family APIs, replication to any region at the turn of a dial, multi-region writes, tunable consistency, and throughput bought in request units or serverless.",
+   "trap": "Cosmos DB's request-unit pricing punishes unindexed queries and large documents, and its query language is SQL-like syntax over JSON, not a relational database. SQL Database's geo-replication is readable secondaries with failover, not multi-region writes.",
+   "scenarios": [
+    {
+     "s": "An ERP module with hundreds of related tables and reports.",
+     "ok": "a",
+     "why": "Hundreds of related tables and joins are the relational engine."
+    },
+    {
+     "s": "A game's player profiles read and written from Asia, Europe and the Americas with low latency everywhere.",
+     "ok": "b",
+     "why": "Documents with multi-region writes and local reads everywhere is Cosmos DB."
+    }
+   ]
+  },
+  {
+   "id": "az-blob-files",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Blob Storage",
+    "row": "object"
+   },
+   "b": {
+    "name": "Azure Files",
+    "row": "nfs"
+   },
+   "share": "Both are Azure Storage; one holds objects reached over HTTP, the other serves file shares you mount.",
+   "ask": "Objects by name over an API, or a file share mounted over SMB or NFS by machines that expect a drive?",
+   "picka": "Unlimited objects for data lakes, backups, media and static sites, with hot, cool, cold and archive tiers and lifecycle rules; the cheapest way to keep a lot of data.",
+   "pickb": "Managed SMB and NFS shares mounted by VMs, containers and on-premises machines alike, with Azure File Sync to cache a share on a local server; lift-and-shift applications and shared drives.",
+   "trap": "Blob is not a drive: no in-place edits and no file locking (BlobFuse helps but keeps the same limits). Azure Files premium is priced on provisioned capacity, and SMB over the internet means port 445, which many networks block.",
+   "scenarios": [
+    {
+     "s": "Replace a branch office's shared drive, keeping a local cache.",
+     "ok": "b",
+     "why": "A mounted share with a local cache is Azure Files with File Sync."
+    },
+    {
+     "s": "Archive years of scanned invoices as cheaply as possible.",
+     "ok": "a",
+     "why": "Cheap, tiered object storage: Blob with the archive tier."
+    }
+   ]
+  },
+  {
+   "id": "az-frontdoor-appgw",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Front Door",
+    "row": "anycast"
+   },
+   "b": {
+    "name": "Azure Application Gateway",
+    "row": "lb"
+   },
+   "share": "Both are layer-7 load balancers with a web application firewall option; one is global at the edge, the other regional inside your virtual network.",
+   "ask": "Global users and edge features, or layer-7 routing and TLS termination for applications inside one region's network?",
+   "picka": "A global entry point on Microsoft's edge network: anycast addressing, caching and CDN, TLS at the edge, routing to the nearest healthy region, WAF; for applications served to users worldwide.",
+   "pickb": "A regional load balancer in your VNet: URL-based routing, TLS termination, session affinity, WAF, private frontends; the front door for apps that live in one region or must stay private.",
+   "trap": "They stack rather than compete: Front Door globally in front of an Application Gateway per region is the standard pattern. Front Door cannot reach a private backend without Private Link, and an Application Gateway alone has no global failover.",
+   "scenarios": [
+    {
+     "s": "An internal line-of-business app in one region behind a private IP, with path-based routing to three services.",
+     "ok": "b",
+     "why": "Regional, private and path-routed: Application Gateway."
+    },
+    {
+     "s": "A public site served to customers on four continents with failover between two regions.",
+     "ok": "a",
+     "why": "Global users and cross-region failover: Front Door."
+    }
+   ]
+  },
+  {
+   "id": "az-queuestorage-servicebus",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Queue Storage",
+    "row": "queue"
+   },
+   "b": {
+    "name": "Azure Service Bus",
+    "row": "queue"
+   },
+   "share": "Both are queues, and Microsoft documents the choice side by side; one is a simple, cheap queue inside a storage account, the other a full message broker.",
+   "ask": "Do you need a simple, enormous, cheap queue, or ordering, dead-lettering, transactions, topics and larger messages?",
+   "picka": "A queue inside a storage account that holds terabytes of small messages, billed with the storage, polled by workers; simple decoupling and background work at the lowest cost.",
+   "pickb": "A broker: FIFO through sessions, duplicate detection, dead-letter queues, transactions, scheduled messages, topics with subscriptions and filters, larger messages, and AMQP for standard clients.",
+   "trap": "Queue Storage gives no ordering guarantee and no publish-subscribe; Service Bus is priced per operation and per messaging unit, and polling it tightly out of habit costs money.",
+   "scenarios": [
+    {
+     "s": "A thumbnail backlog where order does not matter and cost does.",
+     "ok": "a",
+     "why": "Cheap, simple, unordered background work: Queue Storage."
+    },
+    {
+     "s": "Bank transfers that must be processed once, in order, with the failures parked for review.",
+     "ok": "b",
+     "why": "Ordering, duplicate detection and dead-lettering: the broker."
+    }
+   ]
+  },
+  {
+   "id": "az-firewall-waf",
+   "provider": "azure",
+   "a": {
+    "name": "Azure Firewall",
+    "row": "firewall"
+   },
+   "b": {
+    "name": "Azure Web Application Firewall",
+    "row": "waf"
+   },
+   "share": "Both are firewalls by name; one controls network traffic in and out of your virtual networks, the other inspects HTTP requests for attacks on web applications.",
+   "ask": "Are you controlling which addresses and domains traffic may flow to, or protecting a web app from attacks hidden inside legitimate-looking requests?",
+   "picka": "A managed network firewall in a hub VNet: allow and deny rules by address, port, protocol and fully-qualified domain name, threat intelligence feeds, and central egress control for every spoke.",
+   "pickb": "Rules against injection, cross-site scripting and the rest of the OWASP top ten, bot protection and rate limiting, attached to Application Gateway or Front Door in front of the application.",
+   "trap": "A network firewall sees that port 443 is open and lets the attack through; a WAF sees nothing of a database server talking to the internet. Mature estates run both: the WAF in front of the app, Azure Firewall at the hub.",
+   "scenarios": [
+    {
+     "s": "Stop every workload in the estate from reaching the internet except an approved list of update servers.",
+     "ok": "a",
+     "why": "Egress control by domain for every spoke: the network firewall."
+    },
+    {
+     "s": "A public web form keeps getting SQL injection attempts.",
+     "ok": "b",
+     "why": "An attack inside an HTTP request is the WAF's job."
+    }
+   ]
+  }
+ ]
 }
