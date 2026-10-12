@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **25 hands-on labs**, **334 in-browser simulations**,
+topics. **304 topics**, **25 hands-on labs**, **336 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -35,7 +35,8 @@ assets/lab.css     Shared lab styling and theme tokens
 assets/styles.css  Dashboard styling
 data/topics.json   The 304 topics as plain JSON
 data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
-                   jobs with pros and cons, the change log, the acronym dictionary
+                   jobs with pros and cons, the change log, the look-alike
+                   pairs, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
 <lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, fde4, gpu, train, classic, llm, serving,
@@ -123,6 +124,13 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **Atlas look-alikes.** A tag on every atlas and catalogue name that is
+  often confused with a neighbour in the same cloud, opening a side-by-side
+  comparison: 27 pairs in `data/services.json` (Pub/Sub against Eventarc,
+  SQS against SNS, Service Bus against Event Grid and so on), each with the
+  question that decides, pick-when for both, the trap and two situations;
+  a which-one drill built from the situations. Two new simulations.
 
 - **The FDE bootcamp, day four.** The front-door chapter as a lab: which
   layer stops it, ingest or federate, the six-step life of a query with a
