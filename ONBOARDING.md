@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **25 hands-on labs**, **340 in-browser simulations**,
+topics. **304 topics**, **26 hands-on labs**, **355 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -17,7 +17,7 @@ Two kinds of content, one site:
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered on the dashboard and browse view
   (`index.html` + `assets/app.js`).
-- **The labs** (`*.html`): 25 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`): 26 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -39,7 +39,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    pairs, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, fde4, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -124,6 +124,12 @@ honestly shows "local dev build".
 ## What's new (recent changes and implementations)
 
 The most recent arc of work, newest first:
+
+- **Vibe coding lab.** `vibe.html`, built from builder-guide material on
+  building apps with Google's AI tools (white-labelled): the six-layer prompt,
+  choosing between Stitch, AI Studio and Antigravity, small specific changes,
+  the context window, AI features, publishing and a pre-flight check.
+  Fifteen simulations, step 11 of the build track.
 
 - **Atlas look-alikes.** A tag on every atlas and catalogue name that is
   often confused with a neighbour in the same cloud, opening a side-by-side

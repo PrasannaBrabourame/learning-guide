@@ -212,6 +212,14 @@ fde4.html         FDE bootcamp lab, day four: the front door (which layer
                   custom-portal authorisation flow, connector or tool server
                   with a registration lint, which method), read the trace,
                   and the scenario drill
+vibe.html         Vibe coding lab: think it, build it, ship it (developer
+                  or builder, name the idea, the six-layer prompt builder,
+                  label the layer, find the missing layer, which tool to open
+                  first, the tool sorter, a tour of the build workspace,
+                  small specific changes against vague ones, the rule that
+                  falls out of the context window, which AI feature, compose
+                  an app from a starter, which way to publish, the pre-flight
+                  check before sharing a link) and the scenario drill
 design.html       Diagram lab, audiences, levels of zoom, anatomy, notation,
                   choosing services, what people leave out, the questions
                   behind the picture, surviving a review, diagram rot, the
@@ -238,7 +246,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 340 simulations across the twenty-five labs. Every one carries a
+There are 355 simulations across the twenty-six labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -321,7 +329,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-five labs are self-contained pages, but the chrome around the content
+The twenty-six labs are self-contained pages, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
