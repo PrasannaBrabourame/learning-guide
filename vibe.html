@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe coding: think it, build it, ship it</title>
+<link rel="stylesheet" href="assets/lab.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/favicon.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+  /* page-specific: the shared sorter and lint styles from the bootcamp labs, plus the prompt builder, the tool bars and the workspace map */
+  .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .pill4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+  @media (max-width:760px){.pill4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .pill{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--panel2);font-size:12.5px;line-height:1.5}
+  .pill h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+  .pill small{display:block;color:var(--muted);font-size:11.5px;margin-top:4px}
+  .daymap{display:grid;grid-template-columns:70px 1fr;gap:6px 12px;font-size:12.5px;line-height:1.5;margin-top:8px}
+  .daymap b{font-family:var(--mono);font-size:11px;color:var(--accent);padding-top:2px}
+  .cmtag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line2);border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px;white-space:nowrap}
+  .cmap{display:grid;grid-template-columns:28px 1fr;gap:6px 10px;font-size:12.5px;line-height:1.5;margin-top:8px}
+  .cmap b{font-family:var(--display);font-size:18px;color:var(--accent);line-height:1.2}
+  .cmap i{font-style:normal;display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .daymap .now{background:var(--accent-soft);border-radius:6px;padding:2px 6px;margin-left:-6px}
+  .stmt{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.5;background:var(--panel2)}
+  .segmented.col{flex-direction:column;align-items:stretch}
+  .segmented.col .seg{text-align:left;font-size:12px;line-height:1.4;white-space:normal}
+  .segmented.col .seg small{display:block;font-family:var(--sans);font-size:11px;color:var(--dim);margin-top:2px}
+  .rv{display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .rv i{font-style:normal;color:var(--dim)}
+  .sl{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:12px;padding:5px 0}
+  .sl label{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .sl input[type=range]{width:100%}
+  .sl output{font-family:var(--mono);font-size:11.5px;text-align:right}
+  .answer{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--panel2);font-size:12.5px;line-height:1.55;margin-top:10px}
+  .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .btns .btn{font-size:11.5px;padding:6px 10px} .btns .btn:disabled{opacity:.35;cursor:not-allowed}
+  .toggles2{display:flex;flex-direction:column;gap:6px}
+  .toggles2 label{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.4;cursor:pointer}
+  .toggles2 label small{display:block;color:var(--dim);font-size:11px}
+  .chart{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
+  .meter{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:8px 0}
+  .meter .big{font-family:var(--display);font-size:30px;letter-spacing:-.02em;line-height:1}
+  .meter .big small{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin-top:4px}
+  .probe{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.55}
+  .probe .n{font-family:var(--display);font-size:20px;color:var(--accent);line-height:1}
+  .probe b{display:block} .probe small{color:var(--muted);font-size:12px}
+  .probe.off{opacity:.45} .probe.stop .n{color:var(--red)} .probe.hit .n{color:var(--green)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .tbl th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2)}
+  .tbl td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .tbl td:first-child{font-weight:600}
+  .tbl td.v{font-family:var(--mono);font-size:11px}
+  .tbl td.r{text-align:right;font-family:var(--mono);font-size:11px}
+  .tbl tr.sum td{border-top:2px solid var(--line2);font-weight:700}
+  .evlog{font-family:var(--mono);font-size:11px;line-height:1.6;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;background:var(--panel2);min-height:60px}
+  .evlog .ev{display:flex;gap:8px} .evlog .ev i{color:var(--green);font-style:normal;flex:none} .evlog .ev.bad i{color:var(--red)} .evlog .ev.warn i{color:var(--amber)} .evlog .ev.dim{opacity:.6}
+  .lint{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.45}
+  .lint i{font-style:normal;font-weight:700} .lint.ok i{color:var(--green)} .lint.bad i{color:var(--red)} .lint.warn i{color:var(--amber)} .lint.dim{opacity:.55}
+  .lint small{display:block;color:var(--muted);font-size:11.5px}
+  .conf{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+  @media (max-width:760px){.conf{grid-template-columns:1fr 1fr}}
+  .conf div{border:1px solid var(--line2);border-radius:9px;padding:8px 10px;font-size:12px;background:var(--panel2);line-height:1.4}
+  .conf b{display:block;font-family:var(--display);font-size:24px;line-height:1.1}
+  .conf .good b{color:var(--green)} .conf .badc b{color:var(--red)} .conf .warnc b{color:var(--amber)}
+  .conf small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+  .traj{font-family:var(--mono);font-size:11px;line-height:1.6;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;background:var(--panel2);white-space:pre-wrap;margin-bottom:8px}
+  .traj .bad{color:var(--red)} .traj .dim{color:var(--dim)} .traj .hi{color:var(--accent)} .traj .good{color:var(--green)}
+  .pass{color:var(--green);font-weight:700} .fail{color:var(--red);font-weight:700} .warnt{color:var(--amber);font-weight:700}
+  .mini{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .cite{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--accent);border:1px solid var(--line2);border-radius:4px;padding:0 4px;margin-left:2px}
+  .bigrec{border:1px solid var(--line2);border-left:4px solid var(--accent);border-radius:10px;padding:10px 12px;background:var(--panel2);margin-top:8px;font-size:12.5px;line-height:1.5}
+  .bigrec b.h{display:block;font-family:var(--display);font-size:20px;letter-spacing:-.01em;margin-bottom:4px}
+  .bigrec.bad{border-left-color:var(--red)} .bigrec.warn{border-left-color:var(--amber)}
+  .chk2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:6px}
+  @media (max-width:760px){.chk2{grid-template-columns:1fr}}
+  .tblwrap{overflow-x:auto}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{cursor:pointer;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--line2);background:transparent;color:var(--muted)}
+  .chip.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+  .traj{min-height:40px}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=vibe">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark">&#127769; theme</button>
+      <button class="tn tn-quiet" id="findBtn" type="button" title="Find a section on this page">&#8981; find</button>
+    </nav>
+    <div class="eyebrow">zero to one &middot; prompt, preview, publish &middot; no coding needed to start</div>
+    <h1>Vibe coding: <span class="thin">think it, build it, ship it</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">Vibe coding means describing the app you want in ordinary words and letting an AI tool write it. You say the goal and the feel, the tool writes the code, and you watch a live preview change as you talk. Most people get from an idea to a working preview in about a quarter of an hour. This lab is the skill behind that: how to say what you want so the tool has nothing left to guess, which of Google&rsquo;s three tools to start in, how to change an app without breaking it, which AI features to add, and how to put it online safely.</p>
+    <div class="note" style="margin-top:14px"><b>Neighbours.</b> When the app you vibe-coded needs to become an agent that uses tools on its own, the <a href="adk.html">ADK lab</a> is the next step. When a coding agent does the building for you at scale, read <a href="agentbuild.html">agents building agents</a>. Words like tokens and context window are taken apart properly in <a href="llm.html">one token at a time</a>.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="vstart" role="tab">Start here</button>
+    <button class="tab" data-pane="vthink" role="tab">Think</button>
+    <button class="tab" data-pane="vtools" role="tab">Pick a tool</button>
+    <button class="tab" data-pane="vbuild" role="tab">Build</button>
+    <button class="tab" data-pane="vfeat" role="tab">Add AI</button>
+    <button class="tab" data-pane="vship" role="tab">Ship it</button>
+    <button class="tab" data-pane="vexam" role="tab">Exam angle</button>
+  </div>
+
+  <!-- ================= 1 · START HERE ================= -->
+  <section class="pane on" id="pane-vstart">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Say what you want, watch it appear</h2>
+      <div class="plain-line"><b>In plain English:</b> you type something like &ldquo;build me a habit tracker with a calendar and a streak counter&rdquo;. An AI tool writes the whole app and shows it running beside the chat. You keep talking to change it. No programming experience is needed to start, though it helps when something breaks.</div>
+      <div class="plain-line" style="margin-top:8px"><b>The analogy for the whole lab.</b> Hiring a very fast builder who never asks questions. Whatever you leave out of the brief, they guess. A one-line brief gets a house; a good brief gets your house. Every tab here is about writing a better brief, choosing the right builder, and checking the work before you hand out the keys.</div>
+      <div class="pill4">
+        <div class="pill"><h4>Think</h4>Decide the problem, who uses it and how it should feel, before you type a prompt.<small>The Think tab.</small></div>
+        <div class="pill"><h4>Build</h4>Describe it to a tool that writes the code and shows a live preview, then change it in small steps.<small>Pick a tool, Build and Add AI.</small></div>
+        <div class="pill"><h4>Ship</h4>Put it online with one click and share a link, after checking what a stranger will see.<small>The Ship it tab.</small></div>
+        <div class="pill"><h4>Revise</h4>The questions people ask about vibe coding, with the short answer.<small>Exam angle.</small></div>
+      </div>
+      <div id="vsLadder"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: developer, builder, or either?</h2>
+      <div class="plain-line"><b>Try this:</b> vibe coders fall into two groups. <b>Developers</b> can already code and use AI to go faster. <b>Builders</b> have a real problem and little coding, so they lean on the AI for all of it. Sort ten tasks. Some belong to both, and that is the point.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A kitchen with a professional chef and a keen home cook, both using the same food processor. The chef checks the processor&rsquo;s work and knows when it got it wrong. The home cook trusts it more and gets dinner on the table anyway.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the task and ask one question: does it need someone who can read the code the AI wrote?</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>developer</b> someone with the technical background to write and read code, who uses AI to work faster</span><span class="sp-w"><b>builder</b> someone with little coding experience, such as a product manager or designer, who relies on AI to make the app</span><span class="sp-w"><b>vibe coding</b> describing the app you want in ordinary words and letting an AI tool write the code</span><span class="sp-w"><b>agent</b> an AI that can take actions on its own, not just answer in a chat</span><span class="sp-w"><b>orchestrate</b> direct several agents working at once, the way a conductor directs players</span><span class="sp-w"><b>workflow</b> a chain of steps that runs the same way every time</span><span class="sp-w"><b>AI</b> artificial intelligence: software that does tasks that normally need human judgement</span><span class="sp-w"><b>codebase</b> all the code files of one project together</span><span class="sp-w"><b>lazy prompt</b> a one-line request that leaves the AI to guess most things</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="wbOut"></div></div>
+        <div><div id="wbCtl"></div><div id="wbNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: name the idea</h2>
+      <div class="plain-line"><b>Try this:</b> six words come up in every vibe-coding session. Each situation below is one of them in action. Name it, then read why. By the end the words should feel like things you have seen, not things you memorised.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Learning the names of the tools in a workshop by watching each one used. &ldquo;Spanner&rdquo; means little until you see it turn a nut.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the situation, guess the word, and only then look at the six choices.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>agentic AI</b> AI that does not just chat but takes actions: browses the web, runs commands, edits files</span><span class="sp-w"><b>token</b> a small chunk of text, roughly a short word, that the AI reads and writes; the unit it is billed and limited in</span><span class="sp-w"><b>quota</b> how many tokens or requests you may use in a day or a minute; the fuel tank</span><span class="sp-w"><b>MCP</b> Model Context Protocol: a standard plug that lets an AI tool safely reach your files, drives or code storage</span><span class="sp-w"><b>context window</b> how much the AI can hold in mind at once: the conversation, files and instructions it can see right now</span><span class="sp-w"><b>skill</b> a saved set of instructions that teaches an agent how to do one kind of task, loaded when needed</span><span class="sp-w"><b>artifact</b> a structured thing the agent produces and keeps, such as a plan or a checklist, that survives between sessions</span><span class="sp-w"><b>terminal</b> the text window where commands are typed to a computer</span><span class="sp-w"><b>repository</b> a folder of code with its full history, usually kept on GitHub</span><span class="sp-w"><b>GitHub</b> a website where people store and share code</span><span class="sp-w"><b>vibe</b> the look and feel you want an app to have</span><span class="sp-w"><b>vibe coding</b> describing the app you want in ordinary words and letting an AI tool write the code</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="gsOut"></div></div>
+        <div><div id="gsCtl"></div><div id="gsNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 · THINK ================= -->
+  <section class="pane" id="pane-vthink">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: build a powerful prompt, one layer at a time</h2>
+      <div class="plain-line"><b>Try this:</b> a lazy prompt is one line: &ldquo;help me build an app to track my food and water&rdquo;. It works, but the tool has to guess everything else. A powerful prompt has up to six layers: a <b>role</b>, the <b>goal</b>, the <b>context</b>, whether it needs <b>AI</b>, the <b>vibe</b>, and optionally a <b>visual</b>. Switch the layers on and off. Watch the list of guesses shrink and the preview turn into the app you meant.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Ordering a birthday cake by phone. &ldquo;A cake, please&rdquo; gets a plain sponge. Say who it is for, how many people, chocolate, no nuts, and a photo of the design you like, and you get the cake you pictured. The baker was always good; the order was the problem.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>switch every layer off except the goal and read the guesses. Then add context and AI and watch two guesses disappear and two things appear in the preview.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>prompt</b> the instructions you type to the AI</span><span class="sp-w"><b>lazy prompt</b> a one-line request that leaves the tool to guess most things</span><span class="sp-w"><b>powerful prompt</b> a request with layers that leave little to guess</span><span class="sp-w"><b>role</b> who the AI should act as, which sets its priorities</span><span class="sp-w"><b>goal</b> what the app must do, in one sentence</span><span class="sp-w"><b>context</b> how and how often it will be used, and anything it must produce</span><span class="sp-w"><b>vibe</b> the look and feel you want</span><span class="sp-w"><b>visual</b> a sketch, mock-up or screenshot attached for the layout</span><span class="sp-w"><b>mock-up</b> a rough picture of what a screen should look like</span><span class="sp-w"><b>skeuomorphic</b> a style where buttons and cards look like real objects, with depth and texture</span><span class="sp-w"><b>preview</b> the app running live beside the chat, as a user would see it</span><span class="sp-w"><b>AI</b> artificial intelligence: software that does tasks that normally need human judgement</span><span class="sp-w"><b>wireframe</b> a bare outline of a screen: boxes where things will go, no colour or detail</span></span></div></div>
+      <div class="ctlrow" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><span class="lbl">the app idea</span><div class="segmented" id="pbIdea" style="margin:0"><button class="seg on" data-v="food">food and water tracker</button><button class="seg" data-v="habit">daily habit log</button><button class="seg" data-v="count">event countdown</button></div></div>
+      <div class="sim-layout">
+        <div><div class="toggles2" id="pbTg">
+          <label><input type="checkbox" data-k="role"> <span><b>Role</b><small>who the AI should act as</small></span></label>
+          <label><input type="checkbox" data-k="goal" checked> <span><b>Goal</b><small>what the app must do</small></span></label>
+          <label><input type="checkbox" data-k="context"> <span><b>Context</b><small>how often, for whom, what it must produce</small></span></label>
+          <label><input type="checkbox" data-k="ai"> <span><b>Does it need AI?</b><small>where AI earns its place, if anywhere</small></span></label>
+          <label><input type="checkbox" data-k="vibe"> <span><b>Vibe</b><small>the look and feel</small></span></label>
+          <label><input type="checkbox" data-k="visual"> <span><b>Visual (optional)</b><small>a sketch or screenshot for the layout</small></span></label>
+        </div>
+        <div class="lbl" style="margin-top:12px">the prompt you would send</div>
+        <div id="pbPrompt" class="traj"></div></div>
+        <div><div id="pbPreview"></div><div id="pbOut" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: label the layer</h2>
+      <div class="plain-line"><b>Try this:</b> twelve sentences cut out of real prompts. Say which of the six layers each one is. Once you can hear the layers in other people&rsquo;s prompts, you start writing them into your own without thinking.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Reading a recipe and spotting which lines are ingredients, which are steps and which are serving suggestions. Same page, different jobs.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>look for the giveaway words: &ldquo;you are&rdquo; is a role, &ldquo;I will use it&rdquo; is context, a colour or a style is the vibe.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>layer</b> one of the six parts of a powerful prompt</span><span class="sp-w"><b>role</b> who the AI should act as</span><span class="sp-w"><b>goal</b> what the app must do</span><span class="sp-w"><b>context</b> how and how often it will be used</span><span class="sp-w"><b>vibe</b> the look and feel</span><span class="sp-w"><b>visual</b> an attached sketch, mock-up or screenshot</span><span class="sp-w"><b>AI</b> artificial intelligence: software that does tasks that normally need human judgement</span><span class="sp-w"><b>dashboard</b> one screen of charts and numbers that sums something up</span><span class="sp-w"><b>wireframe</b> a bare outline of a screen: boxes where things will go, no colour or detail</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="lyOut"></div></div>
+        <div><div id="lyCtl"></div><div id="lyNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: find the missing layer</h2>
+      <div class="plain-line"><b>Try this:</b> eight prompts, each with one layer missing. Find the gap, then read what the tool would have guessed in its place. This is the habit that saves the most rework: read your prompt back before you send it.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Checking a parcel label before posting it. Name, street, town, postcode. A missing postcode still gets posted; it just goes somewhere you did not choose.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>tick the layers off in your head in order: role, goal, context, AI, vibe, visual. The first one you cannot find is the answer.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>layer</b> one of the six parts of a powerful prompt</span><span class="sp-w"><b>rework</b> doing a piece of work again because the first version missed the point</span><span class="sp-w"><b>default</b> what the tool picks when you do not say</span><span class="sp-w"><b>role</b> who the AI should act as</span><span class="sp-w"><b>context</b> how and how often it will be used</span><span class="sp-w"><b>vibe</b> the look and feel</span><span class="sp-w"><b>AI</b> artificial intelligence: software that does tasks that normally need human judgement</span><span class="sp-w"><b>pixel art</b> a blocky retro style where each tiny square is visible, like old video games</span><span class="sp-w"><b>scanlines</b> faint horizontal stripes that make a screen look like an old television</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="mlOut"></div></div>
+        <div><div id="mlCtl"></div><div id="mlNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 3 · PICK A TOOL ================= -->
+  <section class="pane" id="pane-vtools">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Three tools, three starting points</h2>
+      <div class="plain-line"><b>In plain English:</b> Google offers three places to vibe-code, and the right one depends on what you have in your hand when you start. A <b>picture</b> of a screen points to Stitch. An <b>idea</b> you want to see fast points to AI Studio. A real <b>engineering task</b> in a folder of code points to Antigravity. Many projects pass through all three in that order.</div>
+      <div class="tblwrap"><table class="tbl">
+        <tr><th>tool</th><th>you start with</th><th>who it suits</th><th>how you work</th><th>what it is best at</th></tr>
+        <tr><td>Stitch</td><td>a wireframe, a screenshot or a design prompt</td><td>designers and product builders</td><td>a visual canvas of screens and parts</td><td>several linked screens generated at once, exportable to Figma</td></tr>
+        <tr><td>AI Studio</td><td>an idea you want to see, fast</td><td>beginners; no coding needed</td><td>no code or low code: one prompt, live preview</td><td>a working app from one prompt, deployed with one click</td></tr>
+        <tr><td>Antigravity</td><td>an engineering task or mission</td><td>beginners to advanced</td><td>agent-first: you direct agents that work on their own</td><td>a mission control for agents across the editor, the terminal and the browser</td></tr>
+      </table></div>
+      <div class="plain-line" style="margin-top:10px"><b>Words in this table.</b> <b>Wireframe</b>: a bare outline of a screen. <b>Figma</b>: a popular design tool. <b>Low code</b>: mostly configuring, a little typing. <b>Agent-first</b>: you give agents a goal and they plan and act on their own. <b>Terminal</b>: the text window where commands are typed.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: which tool should you open first?</h2>
+      <div class="plain-line"><b>Try this:</b> describe your situation and the three bars move. The recommendation names a starting tool and, when it fits, the next one to move to. Try a designer with a screenshot, then a developer with an existing code folder, and watch the answer flip.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Choosing between a sketchbook, a ready-meal kit and a full kitchen. Each makes dinner. Which you reach for depends on whether you have a picture, an appetite or a recipe with twenty steps.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>leave everything as it is and read the answer, then tick <b>a folder of existing code</b> and see why the answer changes.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>Stitch</b> Google&rsquo;s tool for turning sketches, screenshots or descriptions into designed screens</span><span class="sp-w"><b>AI Studio</b> Google&rsquo;s web tool where one prompt becomes a working app with a live preview</span><span class="sp-w"><b>Antigravity</b> Google&rsquo;s downloadable coding tool where you direct AI agents that edit files, run commands and use a browser</span><span class="sp-w"><b>IDE</b> integrated development environment: the program developers write code in</span><span class="sp-w"><b>terminal</b> the text window where commands are typed</span><span class="sp-w"><b>git</b> the tool that records every change to code so you can go back</span><span class="sp-w"><b>Figma</b> a popular design tool for drawing screens</span><span class="sp-w"><b>agent</b> an AI that can take actions on its own, not just answer in a chat</span><span class="sp-w"><b>hand-off</b> moving the work from one tool to the next</span><span class="sp-w"><b>wireframe</b> a bare outline of a screen</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="lbl">what you have in your hand</div>
+          <div class="segmented col" id="tcStart" style="margin:6px 0 10px"><button class="seg" data-v="pic">a sketch, wireframe or screenshot</button><button class="seg on" data-v="idea">an idea and nothing else</button><button class="seg" data-v="task">a task in an existing project</button></div>
+          <div class="lbl">your coding experience</div>
+          <div class="segmented" id="tcSkill" style="margin:6px 0 10px"><button class="seg on" data-v="none">none</button><button class="seg" data-v="some">a little</button><button class="seg" data-v="dev">I am a developer</button></div>
+          <div class="toggles2" id="tcTg">
+            <label><input type="checkbox" data-k="screens"> <span>several linked screens, handed to a designer<small>a multi-screen design, exported to Figma</small></span></label>
+            <label><input type="checkbox" data-k="repo"> <span>a folder of existing code<small>many files, with its history in git</small></span></label>
+            <label><input type="checkbox" data-k="term"> <span>it must run commands and tests<small>the terminal, not just a preview</small></span></label>
+            <label><input type="checkbox" data-k="share"> <span>a shareable link today<small>publish from where you build</small></span></label>
+          </div>
+        </div>
+        <div><div id="tcBars"></div><div id="tcOut" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which tool for the job?</h2>
+      <div class="plain-line"><b>Try this:</b> ten jobs, three tools. Sort each one. The reason under the answer is the starting point that decided it.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Sorting jobs between a sign-writer, a market stall and a workshop. A poster, a quick sale, a repair that needs tools. Nobody is better; each is best at one thing.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>ask what the person has in their hand: a picture, an idea, or a codebase.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>Stitch</b> Google&rsquo;s tool for turning sketches or screenshots into designed screens</span><span class="sp-w"><b>AI Studio</b> Google&rsquo;s web tool where one prompt becomes a working app with a live preview</span><span class="sp-w"><b>Antigravity</b> Google&rsquo;s downloadable tool where AI agents edit files, run commands and use a browser</span><span class="sp-w"><b>codebase</b> all the code files of one project together</span><span class="sp-w"><b>refactor</b> reorganise code without changing what it does</span><span class="sp-w"><b>test</b> a small program that checks the real program still works</span><span class="sp-w"><b>prototype</b> a quick first version to try an idea</span><span class="sp-w"><b>Figma</b> a popular design tool for drawing screens</span><span class="sp-w"><b>terminal</b> the text window where commands are typed</span><span class="sp-w"><b>git</b> the tool that records every change to code so you can go back</span><span class="sp-w"><b>agent</b> an AI that can take actions on its own</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="tsOut"></div></div>
+        <div><div id="tsCtl"></div><div id="tsNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 4 · BUILD ================= -->
+  <section class="pane" id="pane-vbuild">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: a tour of the build workspace</h2>
+      <div class="plain-line"><b>Try this:</b> a prompt-to-app workspace has six places worth knowing. The drawing shows them. Then eight questions ask where you would look or click. Learn the map once and every session after is faster.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>The first day in a new car. Mirrors, indicators, the fuel gauge. You learn where they are once, and after that your hands go there without looking.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>find the letter for <b>the code</b> in the drawing before you answer anything.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>workspace</b> the screen where you chat, preview and publish the app</span><span class="sp-w"><b>action history</b> the list under your prompt of which files the AI changed for each request</span><span class="sp-w"><b>preview</b> the app running live, exactly as a user would see it</span><span class="sp-w"><b>code view</b> the raw files the AI wrote</span><span class="sp-w"><b>suggestion chips</b> buttons the tool offers with ideas for what to add next</span><span class="sp-w"><b>annotate</b> draw or point on the preview to show the AI what to change</span><span class="sp-w"><b>publish</b> put the app on the internet at a public address</span><span class="sp-w"><b>share</b> give someone a link to see or copy your project</span><span class="sp-w"><b>React</b> a popular toolkit for building web pages out of reusable parts</span><span class="sp-w"><b>CSS</b> the language that sets colours, fonts and layout on a web page</span><span class="sp-w"><b>TypeScript</b> JavaScript with labels on every value, so mistakes show up earlier</span><span class="sp-w"><b>JavaScript</b> the programming language web pages run</span><span class="sp-w"><b>file</b> one document of code inside the project</span></span></div></div>
+      <div id="wsMap"></div>
+      <div class="sim-layout" style="margin-top:10px">
+        <div><div id="wsOut"></div></div>
+        <div><div id="wsCtl"></div><div id="wsNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: change it in small steps</h2>
+      <div class="plain-line"><b>Try this:</b> a retro arcade game with a music player is already built. Ask for four changes. Before each, choose how you ask: <b>specific</b> (&ldquo;add a high-score counter that is kept between visits&rdquo;) or <b>vague</b> (&ldquo;add some stats&rdquo;). Watch how many files each request touches, how many tokens it burns from the day&rsquo;s allowance, and what breaks along the way.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Asking a decorator to &ldquo;freshen up the house&rdquo; against &ldquo;paint the hall ceiling white&rdquo;. The first gets you a repainted kitchen you liked as it was, and a bigger bill.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>ask for all four changes the vague way and read the meter, then press <b>start again</b> and ask the specific way.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>request</b> one message asking the AI for a change</span><span class="sp-w"><b>file</b> one document of code inside the project; the more files a request touches, the more can break</span><span class="sp-w"><b>token</b> a small chunk of text the AI reads and writes; the unit you are billed and limited in</span><span class="sp-w"><b>quota</b> how many tokens you may use in a day</span><span class="sp-w"><b>regression</b> something that used to work and stopped working after a change</span><span class="sp-w"><b>annotate</b> draw or point on the preview to show the AI exactly what to change</span><span class="sp-w"><b>action history</b> the list of which files the AI changed for each request</span><span class="sp-w"><b>palette</b> the set of colours an app uses</span><span class="sp-w"><b>scanlines</b> faint horizontal stripes that make a screen look like an old television</span><span class="sp-w"><b>power-up</b> a bonus item in a game that gives the player a temporary advantage</span><span class="sp-w"><b>CSS</b> the language that sets colours, fonts and layout on a web page</span></span></div></div>
+      <div class="ctlrow" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><span class="lbl">how you ask</span><div class="segmented" id="itMode" style="margin:0"><button class="seg on" data-v="spec">specific</button><button class="seg" data-v="vague">vague</button></div><button class="btn" id="itReset" type="button">start again</button></div>
+      <div class="btns" id="itReq"></div>
+      <div class="sim-layout" style="margin-top:10px">
+        <div><div id="itApp"></div><div id="itMeter"></div></div>
+        <div><div class="lbl">action history</div><div id="itHist" class="evlog"></div><div id="itNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: the rule it forgot</h2>
+      <div class="plain-line"><b>Try this:</b> in the first message you told the tool two rules: a purple, skeuomorphic look, and calories shown as whole numbers. Twelve turns later the app is bigger and the conversation is longer. The tool can only hold so much in mind at once. Step through the conversation and watch the first message slide out of view. When it does, the next answer quietly breaks the rule.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A whiteboard of fixed size in a long meeting. New notes go on the right; when it is full, the oldest notes are wiped from the left. The rule written first is the first to go, unless somebody pins it on the wall beside the board.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next turn</b> until the warning appears. Then tick <b>keep the rules in a saved instruction</b> and step through again.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>context window</b> how much the AI can hold in mind at once: the recent conversation, files and instructions</span><span class="sp-w"><b>turn</b> one message, from you or from the AI</span><span class="sp-w"><b>rule</b> an instruction that should hold for the whole project</span><span class="sp-w"><b>skill</b> a saved set of instructions an agent loads when it needs them</span><span class="sp-w"><b>artifact</b> a structured thing the agent produces and keeps, such as a plan, that survives between sessions</span><span class="sp-w"><b>saved instruction</b> a rule stored outside the chat, so the tool reads it on every turn</span><span class="sp-w"><b>skeuomorphic</b> a style where buttons and cards look like real objects</span><span class="sp-w"><b>token</b> a small chunk of text the AI reads and writes</span></span></div></div>
+      <div class="ctlrow" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <div class="sl" style="flex:1;min-width:260px"><label for="cwSize">window holds</label><input type="range" id="cwSize" min="4" max="12" step="1" value="6"><output id="cwSizeV">6 turns</output></div>
+        <button class="btn" id="cwStep" type="button">next turn &rarr;</button><button class="btn" id="cwReset" type="button">start again</button>
+      </div>
+      <div class="toggles2" id="cwTg"><label><input type="checkbox" data-k="pin"> <span>keep the rules in a saved instruction<small>a skill, a project rules file or an artifact the tool reads every turn</small></span></label></div>
+      <div class="sim-layout" style="margin-top:10px">
+        <div><div id="cwOut"></div></div>
+        <div><div id="cwNote" class="cidr-out"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 5 · ADD AI ================= -->
+  <section class="pane" id="pane-vfeat">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: which AI feature does it need?</h2>
+      <div class="plain-line"><b>Try this:</b> an app can do more than show buttons. It can read a photo, speak, listen, search the web, find places or make a video. Twelve app requests, ten features. Match each request to the feature that makes it possible.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Fitting out a new shop. A till, a camera, a speaker, a map on the wall. Each does one job. Buy the speaker when you need announcements, not because the catalogue had it.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>find the verb in the request: read a picture, speak, listen, look up today&rsquo;s news, find a place.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>image analysis</b> the AI reading a picture: text on a receipt, items on a menu, numbers on a graph</span><span class="sp-w"><b>image editing</b> the AI changing a photo when you describe the change: remove an object, swap a background, change the style</span><span class="sp-w"><b>speech generation</b> turning text into a natural-sounding voice; also called text-to-speech</span><span class="sp-w"><b>transcription</b> turning recorded or live speech into written text</span><span class="sp-w"><b>search grounding</b> the AI looking up current information on the web before it answers, so it can discuss today&rsquo;s news</span><span class="sp-w"><b>maps grounding</b> the AI using real map data: places, opening hours, routes</span><span class="sp-w"><b>video generation</b> making a short video clip from a script or a description</span><span class="sp-w"><b>fast responses</b> a small, quick model for instant replies and auto-complete</span><span class="sp-w"><b>chatbot memory</b> a conversation that remembers what was said earlier</span><span class="sp-w"><b>language model</b> the AI that reads and writes text; Gemini is Google&rsquo;s</span><span class="sp-w"><b>Gemini</b> Google&rsquo;s family of AI models</span><span class="sp-w"><b>latency</b> the wait between asking and getting an answer</span><span class="sp-w"><b>model</b> the trained AI program that produces the answers</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="fmOut"></div></div>
+        <div><div id="fmCtl"></div><div id="fmNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: compose an app from a starter and features</h2>
+      <div class="plain-line"><b>Try this:</b> pick one of ten starter apps you can build in fifteen minutes, then tick the AI features to add. The page draws how your app would work, warns you about anything missing for that app&rsquo;s promise, and writes the &ldquo;does it need AI?&rdquo; layer of your prompt for you.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A pizza with a base and toppings. Two toppings that suit the base beat seven that fight each other. And a pizza called &ldquo;the seafood&rdquo; needs some fish on it.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>pick <b>smart calculator</b> with no features and read the warning, then add the one it asks for.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>starter app</b> a simple app idea you can build in about fifteen minutes and grow from</span><span class="sp-w"><b>feature</b> one thing the app can do</span><span class="sp-w"><b>image analysis</b> the AI reading a picture</span><span class="sp-w"><b>image editing</b> the AI changing a photo when you describe the change</span><span class="sp-w"><b>speech generation</b> turning text into a natural-sounding voice</span><span class="sp-w"><b>transcription</b> turning speech into written text</span><span class="sp-w"><b>search grounding</b> the AI looking up current information on the web before it answers</span><span class="sp-w"><b>maps grounding</b> the AI using real map data</span><span class="sp-w"><b>video generation</b> making a short video from a script or description</span><span class="sp-w"><b>fast responses</b> a small, quick model for instant replies</span><span class="sp-w"><b>chatbot memory</b> a conversation that remembers what was said earlier</span><span class="sp-w"><b>dashboard</b> one screen of charts and numbers that sums something up</span><span class="sp-w"><b>portfolio</b> a personal site that shows your work</span><span class="sp-w"><b>storyboard</b> a sequence of sketched frames that plans a story or a video</span></span></div></div>
+      <div class="chips" id="caIdea" style="margin-bottom:8px"></div>
+      <div class="sim-layout">
+        <div><div class="toggles2" id="caTg"></div></div>
+        <div><div id="caDiag"></div><div id="caOut" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6 · SHIP IT ================= -->
+  <section class="pane" id="pane-vship">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: which way to put it online?</h2>
+      <div class="plain-line"><b>Try this:</b> publishing from the build tool turns your app into a live web address on Cloud Run, Google&rsquo;s service that runs apps for you. There is a quick path with no setup, a standard path with your own cloud project and billing, and an export path that copies the code to GitHub or Firebase. Describe your situation and see which path fits, and why.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A market stall, a rented shop and taking your recipes home. The stall is free and up today, but there are only a couple of pitches each and they are all in one street. The shop needs a lease and a bank account, and you choose the town. Taking the recipes home means you own them, whatever happens to the stall.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>slide <b>apps you already published</b> to two and read what changes.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>publish</b> put the app on the internet at a public address</span><span class="sp-w"><b>Cloud Run</b> Google Cloud&rsquo;s service that runs an app for you and gives it a web address; each published app becomes one service there</span><span class="sp-w"><b>service</b> one running app on Cloud Run</span><span class="sp-w"><b>starter tier</b> the no-setup path: publish a small number of apps, in a single region, without your own cloud project or billing account</span><span class="sp-w"><b>standard deployment</b> publishing into your own Google Cloud project with billing turned on</span><span class="sp-w"><b>Google Cloud project</b> your own container for cloud resources, with its own permissions and bill</span><span class="sp-w"><b>billing account</b> the card or invoice account a cloud project charges to</span><span class="sp-w"><b>region</b> the part of the world where the app&rsquo;s servers sit</span><span class="sp-w"><b>export</b> copy the project&rsquo;s code out of the tool</span><span class="sp-w"><b>GitHub</b> a website where people store and share code</span><span class="sp-w"><b>Firebase</b> Google&rsquo;s platform for hosting apps with ready-made sign-in and databases</span><span class="sp-w"><b>full-stack</b> an app with both the part the user sees and the server part behind it</span><span class="sp-w"><b>starter app</b> a simple app idea you can build in about fifteen minutes and grow from</span></span></div></div>
+      <div class="sim-layout">
+        <div>
+          <div class="sl"><label for="dpN">apps you already published</label><input type="range" id="dpN" min="0" max="3" step="1" value="0"><output id="dpNV">0</output></div>
+          <div class="lbl" style="margin-top:8px">where it must run</div>
+          <div class="segmented" id="dpRegion" style="margin:6px 0 10px"><button class="seg on" data-v="any">anywhere is fine</button><button class="seg" data-v="pick">a region I choose</button></div>
+          <div class="toggles2" id="dpTg">
+            <label><input type="checkbox" data-k="org"> <span>it is for a team or a company<small>their project, their permissions, their bill</small></span></label>
+            <label><input type="checkbox" data-k="own"> <span>I want the code in my own repository<small>to keep, review or hand to a developer</small></span></label>
+            <label><input type="checkbox" data-k="bill"> <span>I already have a cloud project with billing on</span></label>
+          </div>
+        </div>
+        <div><div id="dpOut"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: the pre-flight check before you share the link</h2>
+      <div class="plain-line"><b>Try this:</b> the step guides end at &ldquo;publish&rdquo;. A stranger with the link starts there. Six checks stand between a demo and an embarrassment. Tick the ones you did and read what a stranger would meet for each one you skipped.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A pilot&rsquo;s walk round the plane before take-off. It takes two minutes and nobody skips it, because the problems it finds cannot be fixed in the air.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>leave everything unticked and read the list of what goes wrong, then tick the two that cost money first.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>API key</b> a secret string that lets an app use a paid service such as an AI model; anyone holding it can spend on your account</span><span class="sp-w"><b>API</b> a defined way for one program to ask another for something</span><span class="sp-w"><b>front end</b> the part of an app that runs in the visitor&rsquo;s browser, where anyone can read its code</span><span class="sp-w"><b>server side</b> the part of an app that runs on the server, out of the visitor&rsquo;s sight</span><span class="sp-w"><b>spending cap</b> a limit on how much the app may use or spend in a day</span><span class="sp-w"><b>quota</b> how many requests or tokens may be used in a day</span><span class="sp-w"><b>error message</b> what the app shows when something fails</span><span class="sp-w"><b>personal data</b> anything that identifies a real person: names, emails, photos</span><span class="sp-w"><b>link sharing</b> who can open the link: only people you invite, or anyone who has it</span><span class="sp-w"><b>mobile</b> a phone-sized screen</span></span></div></div>
+      <div class="sim-layout">
+        <div><div class="toggles2" id="pfTg"></div></div>
+        <div><div id="pfOut"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 7 · EXAM ANGLE ================= -->
+  <section class="pane" id="pane-vexam">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the scenario drill</h2>
+      <div class="plain-line"><b>Try this:</b> the questions below, shuffled, with the wrong answers taken from other questions on this page so they are plausible by construction.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Flashcards: a question on one side, the answer on the other, and the wrong choices borrowed from neighbouring cards. The list underneath is the revision guide. Read it after the drill, not before, or you only recognise the answers instead of producing them.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a situation described the way a colleague or an exam would put it</span><span class="sp-w"><b>distractor</b> a wrong option that is the right answer to a different question</span><span class="sp-w"><b>vibe coding</b> describing the app you want in ordinary words and letting an AI tool write the code</span><span class="sp-w"><b>prompt</b> the instructions you type to the AI</span><span class="sp-w"><b>context window</b> how much the AI can hold in mind at once</span><span class="sp-w"><b>API key</b> a secret string that lets an app use a paid service; anyone holding it can spend on your account</span><span class="sp-w"><b>Cloud Run</b> Google Cloud&rsquo;s service that runs an app and gives it a web address</span><span class="sp-w"><b>MCP</b> Model Context Protocol: a standard plug that lets an AI tool reach your files, drives or code storage</span></span></div></div>
+      <div id="drillHost"></div>
+    </div>
+    <div class="card">
+      <h2 class="sec">When someone asks&hellip; the short answer</h2>
+      <div class="plain-line"><b>In plain English:</b> each line is a question as a colleague, a client or an interview panel would put it, then the answer that shows you have done it, then why the usual answer falls short.</div>
+      <div class="exam-line"><b>&ldquo;What is vibe coding, in one sentence?&rdquo;</b> &rarr; Describing an app&rsquo;s goal and feel in ordinary words to an agentic tool that writes the code and shows a live preview. You direct and it implements. It is not &ldquo;no thinking&rdquo;: the brief still decides the result.</div>
+      <div class="exam-line"><b>&ldquo;Why did the tool build the wrong thing?&rdquo;</b> &rarr; The prompt left it guessing. Add the missing layers: a role, the goal, the context of use, whether AI is needed, the vibe, and a visual if you have one. Read the prompt back before you send it.</div>
+      <div class="exam-line"><b>&ldquo;Stitch, AI Studio or Antigravity?&rdquo;</b> &rarr; Start from what you hold. A picture of a screen goes to Stitch, an idea to AI Studio, and a task in an existing codebase to Antigravity. Many projects move through all three in that order.</div>
+      <div class="exam-line"><b>&ldquo;The tool keeps changing things I did not ask it to change.&rdquo;</b> &rarr; Ask for one specific change at a time, and point at it with the annotate tool when it is visual. Check the action history for files you did not expect. Vague requests touch more files and spend more tokens.</div>
+      <div class="exam-line"><b>&ldquo;It forgot the style I asked for at the start.&rdquo;</b> &rarr; The first message has slid out of the context window. Put lasting rules in a saved instruction the tool reads on every turn, such as a skill, a rules file or an artifact, or restate them.</div>
+      <div class="exam-line"><b>&ldquo;What is a token, and why should I care?&rdquo;</b> &rarr; A small chunk of text, roughly a short word. Models read, write, bill and limit in tokens. Long chats and big files use them up, and the daily quota is the fuel tank.</div>
+      <div class="exam-line"><b>&ldquo;What is MCP for?&rdquo;</b> &rarr; A standard plug that lets an AI tool safely reach your files, your Google Drive or your GitHub code. You connect a source once instead of pasting its contents into every chat.</div>
+      <div class="exam-line"><b>&ldquo;Make the app talk about today&rsquo;s news.&rdquo;</b> &rarr; Search grounding: the model looks up current information before it answers. Without it, the model only knows what it learned during training, and that is always out of date.</div>
+      <div class="exam-line"><b>&ldquo;Read the receipt in this photo.&rdquo;</b> &rarr; Image analysis. Image editing is the different feature that changes a photo. Speech generation and transcription are the voice pair: one speaks, the other listens.</div>
+      <div class="exam-line"><b>&ldquo;Publish my first app without setting up billing.&rdquo;</b> &rarr; The starter tier publishes from the build tool to Cloud Run with no cloud project or billing account. It is limited to a couple of apps in a single region. Beyond that comes a standard deployment into your own project with billing on.</div>
+      <div class="exam-line"><b>&ldquo;I want to keep the code.&rdquo;</b> &rarr; Export it to GitHub, or to Firebase for hosting. The project then outlives the tool, can be reviewed, and can be handed to a developer.</div>
+      <div class="exam-line"><b>&ldquo;Is it safe to share the link yet?&rdquo;</b> &rarr; Not until the API key is out of the browser code and a spending cap is set. Also check the failure message, a phone-sized screen, that the sample data is made up, and who the link is shared with.</div>
+      <div class="exam-line"><b>&ldquo;Who is vibe coding for?&rdquo;</b> &rarr; Anyone with a real problem. Builders lean on the AI for all of it, and developers use it to go faster and review what it wrote. The difference shows when something breaks: who can read the code.</div>
+      <div class="exam-line"><b>&ldquo;What changed that made this possible?&rdquo;</b> &rarr; Models moved from understanding, to thinking, to acting. Agentic AI browses, runs commands and edits files on its own, which is what lets a tool go from a prompt to a published app.</div>
+      <div class="plain-line" style="margin-top:10px"><b>Words in these lines.</b> <b>Agentic</b>: able to take actions on its own. <b>Codebase</b>: all the code files of one project. <b>Annotate</b>: draw on the preview to show what to change. <b>Action history</b>: the list of files changed per request. <b>Context window</b>: how much the AI holds in mind at once. <b>Token</b>: a small chunk of text the AI reads and writes. <b>Quota</b>: how much you may use in a day. <b>MCP</b>: Model Context Protocol, a standard plug to your files and code. <b>Grounding</b>: looking facts up before answering. <b>Cloud Run</b>: Google Cloud&rsquo;s service that runs an app at a web address. <b>Billing</b>: the account a cloud project charges to. <b>API key</b>: a secret that lets an app spend on your account. <b>Firebase</b>: Google&rsquo;s app-hosting platform. <b>GitHub</b>: a website for storing code.</div>
+    </div>
+  </section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="cheatsheet.html">cheatsheet</a> &middot; <a href="adk.html">ADK lab</a> &middot; <a href="agentbuild.html">agents building agents</a> &middot; <a href="llm.html">one token at a time</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const $=id=>document.getElementById(id);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt=n=>Math.round(n).toLocaleString('en-GB');
+const usd=(x,d)=>'$'+x.toLocaleString('en-GB',{minimumFractionDigits:d==null?0:d,maximumFractionDigits:d==null?0:d});
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const shuffle=(arr,rnd)=>{const b=arr.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+function segs(id,fn){ $$('#'+id+' .seg').forEach(b=>b.onclick=()=>{ $$('#'+id+' .seg').forEach(x=>x.classList.toggle('on',x===b)); fn(b.dataset.v); }); }
+const segVal=id=>{ const b=document.querySelector('#'+id+' .seg.on'); return b?b.dataset.v:null; };
+const setSeg=(id,v)=>{ $$('#'+id+' .seg').forEach(x=>x.classList.toggle('on',x.dataset.v===v)); };
+const checks=sel=>{ const o={}; $$(sel+' input[type=checkbox]').forEach(i=>o[i.dataset.k]=i.checked); return o; };
+const lint=(cls,t,sub)=>'<div class="lint '+cls+'"><i>'+(cls==='ok'?'&#10003;':cls==='bad'?'&#10007;':cls==='warn'?'!':'&middot;')+'</i><span>'+t+(sub?'<small>'+sub+'</small>':'')+'</span></div>';
+const mark=st=>st==='ok'?'<span class="pass">&#10003;</span>':st==='bad'?'<span class="fail">&#10007;</span>':'<span class="warnt">!</span>';
+
+/* ---------- a reusable sorter: one item at a time, pick an option, read why ---------- */
+function sorter(cfg){
+  const out=$(cfg.out), ctl=$(cfg.ctl), note=$(cfg.note); if(!out) return;
+  const rnd=mulberry32(cfg.seed||11); const Q=shuffle(cfg.items,rnd);
+  let cur=0,score=0,hist=[];
+  const labelOf=(it,k)=>((it.opts||cfg.options).find(o=>o.k===k)||{label:k}).label;
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' on the first try.</b> '+cfg.done+'</div><div style="margin-top:10px">'+Q.map((q,i)=>'<div class="rv"><span style="color:'+(hist[i]?'var(--green)':'var(--red)')+'">'+(hist[i]?'&#10003;':'&#10007;')+'</span><span>'+esc(q.s)+' <i>'+esc(q.ok.map(k=>labelOf(q,k)).join(' / '))+'</i></span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="'+cfg.out+'Again" style="width:100%;font-size:12px">&#9654; shuffle and go again</button>';
+      $(cfg.out+'Again').onclick=()=>{cur=0;score=0;hist=[];note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> '+cfg.keeper+'</div>'; return;
+    }
+    const it=Q[cur], opts=it.opts||cfg.options;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">'+(cfg.unit||'ITEM')+' '+(cur+1)+' OF '+Q.length+'</div>'+(it.html?it.html:'<div class="stmt">'+esc(it.s)+'</div>')+'<div class="k" style="font-size:11px;color:var(--muted);margin-top:8px">right so far: '+score+' / '+cur+'</div>';
+    ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">'+cfg.prompt+'</div><div class="segmented col">'+opts.map(o=>'<button class="seg" data-k="'+o.k+'">'+esc(o.label)+(o.desc?'<small>'+esc(o.desc)+'</small>':'')+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ const ok=it.ok.includes(b.dataset.k); if(ok) score++; hist.push(ok);
+      const names=it.ok.map(k=>labelOf(it,k)).join(' or ');
+      note.innerHTML=(ok?'<div class="ok"><b>Yes: '+esc(names)+'.</b> ':'<div class="lzbad"><b>Not that. It is '+esc(names)+'.</b> ')+esc(it.why)+'</div>'; cur++; render(); });
+  }
+  render();
+}
+
+/* ================= 1 · THE LADDER ================= */
+(function(){
+  const host=$('vsLadder'); if(!host) return;
+  const MONO="font:10.5px ui-monospace,SFMono-Regular,Menlo,monospace", SANS="font:600 13px Inter,Helvetica,Arial,sans-serif";
+  const box=(x,c,t1,t2,t3)=>`<rect x="${x}" y="40" width="200" height="78" rx="10" style="fill:var(--panel2);stroke:${c}"/><text x="${x+100}" y="66" text-anchor="middle" style="${MONO};fill:${c}">${t1}</text><text x="${x+100}" y="88" text-anchor="middle" style="${SANS};fill:var(--text)">${t2}</text><text x="${x+100}" y="106" text-anchor="middle" style="${MONO};fill:var(--muted)">${t3}</text>`;
+  const ar=x=>`<path d="M${x} 79 L${x+36} 79" style="stroke:var(--wire)" stroke-width="1.5" marker-end="url(#vah)"/>`;
+  host.innerHTML=`<div class="diagram"><svg viewBox="0 0 720 150" role="img" aria-label="Three steps: understanding, thinking, action.">
+   <defs><marker id="vah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--wire)"/></marker></defs>
+   ${box(10,'var(--dim)','STEP ONE','understanding','reads and explains')}${ar(214)}${box(258,'var(--muted)','STEP TWO','thinking','plans and reasons')}${ar(462)}${box(506,'var(--accent)','STEP THREE','action','edits files, runs, publishes')}
+   <text x="360" y="140" text-anchor="middle" style="${MONO};fill:var(--muted)">vibe coding needs the third step: an AI that acts, not one that only answers</text></svg>
+   <div class="diagcap"><b>How to read it:</b> the models behind these tools grew in three steps. First they understood text and pictures, then they reasoned through a plan, and now they act: they edit files, run commands and publish. Vibe coding is what the third step makes possible.</div></div>`;
+})();
+
+/* ================= 1 · DEVELOPER OR BUILDER ================= */
+sorter({out:'wbOut',ctl:'wbCtl',note:'wbNote',seed:31,unit:'TASK',prompt:'who is this task for?',
+ options:[{k:'dev',label:'Developer',desc:'can read and write code, uses AI to go faster'},{k:'bld',label:'Builder',desc:'has the problem, relies on AI for the code'},{k:'both',label:'Either',desc:'nothing about it needs code knowledge, or both do it'}],
+ items:[
+  {s:'Read the code the AI wrote and spot that it saves passwords in plain text.',ok:['dev'],why:'Reviewing AI-written code needs someone who can read code. That is the developer\'s superpower in this world.'},
+  {s:'A shop manager builds a rota app for her own team in an afternoon.',ok:['bld'],why:'A real problem, little coding, and the AI writes all of it: the builder\'s case exactly.'},
+  {s:'Run three coding agents at once: one on the tests, one on the layout, one on the database.',ok:['dev'],why:'Directing several agents and judging their work is orchestration, which leans on knowing how the pieces fit.'},
+  {s:'Write a clear brief: who uses it, what it does, how it should feel.',ok:['both'],why:'The brief is the skill everyone needs. A developer with a lazy prompt gets the same guesswork as anyone.'},
+  {s:'A designer turns a screenshot of a competitor\'s page into a working prototype.',ok:['bld'],why:'Starting from a picture, with no code, is a builder working with the AI doing the implementation.'},
+  {s:'Fix a bug where the app crashes only when two people save at the same moment.',ok:['dev'],why:'Timing bugs hide in the code. Someone has to read it, or at least ask the AI the right question about it.'},
+  {s:'Decide which feature to add next based on what users asked for.',ok:['both'],why:'Product judgement, not code. Anyone close to the users can make the call.'},
+  {s:'A consultant replaces a paid survey tool with a form app they built themselves.',ok:['bld'],why:'Building instead of paying for a solution is one of the builder\'s two habits; the other is improving a workflow.'},
+  {s:'Move a vibe-coded prototype into the company\'s real codebase, with tests.',ok:['dev'],why:'Production code, history and tests are a developer\'s ground, even when an agent does the typing.'},
+  {s:'Try the published app on a phone before sharing the link.',ok:['both'],why:'Checking the result is everyone\'s job, and needs no code at all.'}],
+ done:'Ten tasks sorted.',keeper:'The line is not talent, it is whether the task needs someone who can read the code. Writing the brief and checking the result belong to everyone.'});
+
+/* ================= 1 · NAME THE IDEA ================= */
+sorter({out:'gsOut',ctl:'gsCtl',note:'gsNote',seed:52,unit:'SITUATION',prompt:'which idea is this?',
+ options:[{k:'vibe',label:'Vibe coding'},{k:'agentic',label:'Agentic AI'},{k:'tokens',label:'Tokens and quota'},{k:'mcp',label:'Model Context Protocol (MCP)'},{k:'ctx',label:'Context window'},{k:'skills',label:'Skills and artifacts'}],
+ items:[
+  {s:'You type "make the buttons rounder and the mood calmer" and never open a code file.',ok:['vibe'],why:'You give the goal and the style; the tool handles the implementation. That is the whole idea of vibe coding.'},
+  {s:'The tool opens a browser, runs the app, sees a broken button and edits the file to fix it.',ok:['agentic'],why:'It did not just chat: it took actions on its own. That is what agentic means.'},
+  {s:'After a long afternoon of changes, the tool says you have reached today\'s limit.',ok:['tokens'],why:'Every message and every file read uses tokens; the quota is the day\'s fuel, and long sessions burn it.'},
+  {s:'The tool reads your project notes straight from your Google Drive without you pasting them in.',ok:['mcp'],why:'MCP is the standard plug that lets the tool reach your files, drives or code storage safely.'},
+  {s:'Twenty messages in, the tool no longer follows an instruction from your very first message.',ok:['ctx'],why:'The first message has fallen out of what the tool can hold in mind at once.'},
+  {s:'A saved "how we write tests here" instruction is loaded every time the agent works on tests.',ok:['skills'],why:'A skill is a reusable set of instructions the agent loads when the task calls for it.'},
+  {s:'The agent writes a plan as a checklist, and tomorrow it picks up from the same checklist.',ok:['skills'],why:'An artifact is a structured thing the agent makes and keeps, so state survives between sessions.'},
+  {s:'A screenshot and a two-line brief become a working app with a live preview.',ok:['vibe'],why:'Intent in, implementation out. The brief is the "vibe"; the code is the tool\'s job.'},
+  {s:'Uploading a large code folder makes each reply slower and costs more.',ok:['tokens'],why:'The tool reads the files as tokens. More text in means more tokens used and a longer wait.'},
+  {s:'The tool connects to your GitHub repository to read issues and open a change.',ok:['mcp'],why:'Another source reached through the standard connector, rather than copy and paste.'},
+  {s:'A model with a bigger memory can keep your whole project history in view.',ok:['ctx'],why:'A larger context window is literally more active memory: more of the project fits at once.'},
+  {s:'The tool runs a terminal command to install a package, then edits three files.',ok:['agentic'],why:'Running commands and editing files on its own is the agentic step.'}],
+ done:'Twelve situations, six ideas.',keeper:'Vibe coding is the way of working; agentic AI is what makes it possible; tokens are the fuel; the context window is the memory; MCP is the plug; skills and artifacts are what the agent keeps.'});
+
+/* ================= 2 · THE PROMPT BUILDER ================= */
+(function(){
+  const out=$('pbOut'), prev=$('pbPreview'), pr=$('pbPrompt'); if(!out) return;
+  const ORDER=['role','goal','context','ai','vibe','visual'];
+  const IDEAS={
+   food:{lazy:'Help me build an app to track my food and water intake.',title:'Daily Fuel',a:'kcal today',b:'water',chart:'this week',cam:'snap a meal',
+    L:{role:'You are an app builder who puts a good user experience first.',goal:'Create a web app that helps me track my food calories and water intake.',context:'I will use it every day to count calories and log water, and I want a weekly summary.',ai:'Use AI to estimate calories when I upload a photo of my meal.',vibe:'Give it a skeuomorphic feel: buttons and cards that look like real objects.',visual:'Use the attached sketch of the home screen for the layout.'}},
+   habit:{lazy:'Make me a habit tracker.',title:'Daily Habits',a:'streak',b:'done today',chart:'calendar',cam:'coach tip',
+    L:{role:'You are a friendly coach who designs simple, motivating apps.',goal:'Build a habit log where I tick off up to five habits each day.',context:'I check it every morning on my phone, and I want a monthly calendar and my longest streak.',ai:'Use AI to write one short, encouraging tip each morning based on my streak.',vibe:'Calm and green, like a plant growing, with soft rounded corners.',visual:'Follow the attached wireframe: habits on top, calendar below.'}},
+   count:{lazy:'Build a countdown app.',title:'Launch Day',a:'days',b:'hours',chart:'events',cam:'event image',
+    L:{role:'You are a product designer who makes event pages people want to share.',goal:'Create a countdown page for our product launch, with several upcoming events listed.',context:'Our team of twenty will open it all week; it must show days, hours and minutes and each event\'s date.',ai:'Use AI to generate a small header image for each event from its title.',vibe:'Bold and playful: a dark sky, a rocket, bright accent colours.',visual:'Match the attached screenshot of last year\'s event page.'}}};
+  const GUESS={role:'what to prioritise: speed, looks or ease of use. It picks its own priorities.',goal:'what the app is actually for. It builds something generic.',context:'how often you use it and what it must sum up. No summary appears.',ai:'whether AI belongs in the app at all. It leaves AI out.',vibe:'the look and feel. You get its plain default style.',visual:'where things sit on the screen. It invents a layout.'};
+  segs('pbIdea',render); $$('#pbTg input').forEach(i=>i.onchange=render);
+  function draw(I,T){
+    const sk=T.vibe, lay=T.visual, g=T.goal;
+    const card=(x,y,w,h,label,val)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${sk?10:3}" style="fill:${sk?'var(--panel)':'var(--panel2)'};stroke:${sk?'var(--accent)':'var(--line2)'}" ${sk?'filter="url(#pbSh)"':''}/><text x="${x+10}" y="${y+18}" style="font:10px ui-monospace,Menlo,monospace;fill:var(--dim)">${label}</text><text x="${x+10}" y="${y+40}" style="font:600 16px Inter,Arial,sans-serif;fill:var(--text)">${val}</text>`;
+    let s=`<defs><filter id="pbSh" x="-10%" y="-10%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-opacity=".35"/></filter></defs>`;
+    s+=`<rect x="0" y="0" width="320" height="260" rx="14" style="fill:${sk?'var(--accent-soft)':'var(--panel2)'};stroke:var(--line2)"/>`;
+    s+=`<text x="16" y="28" style="font:700 15px Inter,Arial,sans-serif;fill:var(--text)">${g?esc(I.title):'My App'}</text>`;
+    if(!g){ s+=`<rect x="16" y="44" width="288" height="14" rx="3" style="fill:var(--line2)"/><rect x="16" y="66" width="220" height="14" rx="3" style="fill:var(--line2)"/><rect x="16" y="88" width="250" height="14" rx="3" style="fill:var(--line2)"/><text x="160" y="160" text-anchor="middle" style="font:11px ui-monospace,Menlo,monospace;fill:var(--dim)">placeholder text: no goal given</text>`; }
+    else {
+      if(lay){ s+=card(16,42,140,56,I.a.toUpperCase(),T.ai?'auto':'type it in')+card(164,42,140,56,I.b.toUpperCase(),'0 / 8'); }
+      else { s+=card(16,42,288,48,I.a.toUpperCase(),T.ai?'auto':'type it in')+card(16,96,288,40,I.b.toUpperCase(),'0 / 8'); }
+      const cy=lay?108:144;
+      if(T.context){ s+=`<text x="16" y="${cy+12}" style="font:10px ui-monospace,Menlo,monospace;fill:var(--dim)">${I.chart.toUpperCase()}</text>`; [30,52,24,60,44,70,38].forEach((h,i)=>{ s+=`<rect x="${16+i*26}" y="${cy+90-h}" width="18" height="${h}" rx="${sk?4:1}" style="fill:var(--accent)" opacity=".75"/>`; }); }
+      if(T.ai){ s+=`<rect x="${lay?206:200}" y="${cy+40}" width="98" height="34" rx="17" style="fill:var(--accent)"/><text x="${lay?255:249}" y="${cy+62}" text-anchor="middle" style="font:600 11px Inter,Arial,sans-serif;fill:var(--panel)">${esc(I.cam)}</text>`; }
+    }
+    if(T.role) s+=`<text x="304" y="250" text-anchor="end" style="font:9.5px ui-monospace,Menlo,monospace;fill:var(--green)">easy to use first</text>`;
+    return `<div class="diagram"><svg viewBox="0 0 320 260" role="img" aria-label="Preview of the app the tool would build from this prompt.">${s}</svg><div class="diagcap"><b>How to read it:</b> the preview the tool would most likely build from this prompt. Grey bars are placeholder text, a flat card is the default style, and every missing layer is something the tool decided for you.</div></div>`;
+  }
+  function render(){
+    const I=IDEAS[segVal('pbIdea')], T=checks('#pbTg');
+    const on=ORDER.filter(k=>T[k]), n=on.length, core=ORDER.filter(k=>k!=='visual'&&T[k]).length;
+    pr.innerHTML=n?on.map(k=>'<span class="hi">['+k+']</span> '+esc(I.L[k])).join('\n'):'<span class="dim">(nothing: switch on a layer)</span>';
+    prev.innerHTML=draw(I,T);
+    const miss=ORDER.filter(k=>!T[k]);
+    let v;
+    if(!T.goal) v='<div class="lzbad"><b>No goal, no app.</b> Every other layer describes an app the tool does not know about. The goal is the one layer nothing can replace.</div>';
+    else if(core<=2) v='<div class="lzwarn"><b>Lazy prompt.</b> It will build something, as fast as ever, but it has to guess '+miss.length+' things. Compare it with the one-line version: &ldquo;'+esc(I.lazy)+'&rdquo;</div>';
+    else if(core<5) v='<div class="lzwarn"><b>Workable.</b> '+core+' of the five main layers. Each layer you add removes one guess you would otherwise fix later, one message at a time.</div>';
+    else v='<div class="ok"><b>Powerful prompt.</b> All five main layers'+(T.visual?' and a visual':'; the visual is optional, but a sketch beats a paragraph about layout')+'. The tool has almost nothing left to guess.</div>';
+    out.innerHTML=v+'<div class="lbl" style="margin-top:10px">what the tool has to guess</div>'+(miss.length?miss.map(k=>lint(k==='visual'?'dim':'warn','<b>'+k+'</b>: '+GUESS[k])).join(''):lint('ok','nothing: every layer is in the prompt'));
+  }
+  render();
+})();
+
+/* ================= 2 · LABEL THE LAYER ================= */
+const LAYERS=[{k:'role',label:'Role',desc:'who the AI should act as'},{k:'goal',label:'Goal',desc:'what the app must do'},{k:'context',label:'Context',desc:'how and how often it is used'},{k:'ai',label:'Does it need AI?',desc:'where AI earns its place'},{k:'vibe',label:'Vibe',desc:'the look and feel'},{k:'visual',label:'Visual',desc:'an attached picture'}];
+sorter({out:'lyOut',ctl:'lyCtl',note:'lyNote',seed:13,unit:'SENTENCE',prompt:'which layer is this?',options:LAYERS,
+ items:[
+  {s:'"You are a patient teacher who explains things to ten-year-olds."',ok:['role'],why:'"You are" sets who the AI acts as, and so what it cares about first.'},
+  {s:'"Build a quiz app that tests times tables from 2 to 12."',ok:['goal'],why:'What the app must do, in one sentence.'},
+  {s:'"My class of thirty will use it on tablets for ten minutes each morning."',ok:['context'],why:'Who uses it, on what, and how often: context.'},
+  {s:'"Use AI to read a photo of a worksheet and turn it into questions."',ok:['ai'],why:'Where AI earns its place in the app.'},
+  {s:'"Bright, chunky buttons in primary colours, like a toy."',ok:['vibe'],why:'The look and feel.'},
+  {s:'"Copy the layout of the attached drawing."',ok:['visual'],why:'An attached picture for the layout is the visual layer.'},
+  {s:'"I want a weekly email that sums up who improved."',ok:['context'],why:'A thing the app must produce, and on what rhythm, is context.'},
+  {s:'"Act as a senior designer who cares about accessibility."',ok:['role'],why:'A role, with a priority built in.'},
+  {s:'"No AI needed: just store the scores."',ok:['ai'],why:'Saying AI is not needed is still the AI layer, and it stops the tool adding a chatbot nobody asked for.'},
+  {s:'"Make a dashboard of my monthly spending by category."',ok:['goal'],why:'The core job of the app.'},
+  {s:'"Dark mode, neon green text, like an old computer terminal."',ok:['vibe'],why:'Style words are the vibe.'},
+  {s:'"Here is a screenshot of a wireframe: three cards across the top."',ok:['visual'],why:'A screenshot or wireframe is the visual.'}],
+ done:'Twelve sentences, six layers.',keeper:'"You are" is a role, the one-sentence job is the goal, who, how often and what it produces is context, AI or not is its own layer, style words are the vibe, and a picture is the visual.'});
+
+/* ================= 2 · FIND THE MISSING LAYER ================= */
+sorter({out:'mlOut',ctl:'mlCtl',note:'mlNote',seed:71,unit:'PROMPT',prompt:'which layer is missing?',options:LAYERS.filter(l=>l.k!=='visual'),
+ items:[
+  {s:'"You are a careful planner. Build a packing-list app for family holidays. We go away twice a year with three children. Use AI to suggest items from the destination\'s weather."',ok:['vibe'],why:'No look and feel, so the tool picks its plain default. One line about the style would have avoided a round of "make it nicer".'},
+  {s:'"Build a recipe app that keeps my favourite dishes. I cook four nights a week for two people. Use AI to scale recipes. Warm, cosy, like a handwritten notebook."',ok:['role'],why:'No role, so the tool chooses its own priorities. "An app builder who puts ease of use first" would have told it what to optimise.'},
+  {s:'"You are a game designer. Make a pixel-art space shooter. Use AI to make the enemies smarter each level. Purple and pink, with scanlines."',ok:['context'],why:'Nothing about who plays, on what, or what it must keep. Does it need a high score saved between visits? Phone or keyboard? The tool will guess.'},
+  {s:'"You are a fitness coach. I train three times a week and want to see my progress by month. Clean, sporty, blue and white."',ok:['goal'],why:'Everything except what the app does. A workout log? A timer? A meal plan? Without a goal, the rest describes an app nobody specified.'},
+  {s:'"You are a librarian who loves order. Build a catalogue of the board games in our club, with who borrowed what. Twenty members check it weekly. Wooden shelves, warm browns."',ok:['ai'],why:'It never says whether AI belongs. The tool may add a chatbot nobody needs, or leave out a useful one. Say "no AI" or say where.'},
+  {s:'"You are a travel agent. Build a trip-countdown page with the flight, the hotel and a packing checklist. Use AI to suggest things to do on arrival. Sunny and relaxed."',ok:['context'],why:'Who opens it and how often? Is it for one person or a group, phone or laptop? Context is the layer most often skipped.'},
+  {s:'"Build a budgeting app that splits shared bills between flatmates. Four of us, settled every month. Use AI to read photos of receipts. Simple and friendly, mint green."',ok:['role'],why:'No role. Everything else is there, which is why this one is easy to miss.'},
+  {s:'"You are an app builder who prioritises speed. Make a habit tracker for my morning routine, used daily on my phone, with a monthly view. Use AI for a daily tip."',ok:['vibe'],why:'No style at all. The visual layer is optional; the vibe is not, because it is the difference between your app and a template.'}],
+ done:'Eight prompts read back.',keeper:'Read the prompt back in layer order before sending. The most commonly missing layers are context and the vibe; the one that ruins everything is the goal.'});
+
+/* ================= 3 · TOOL CHOOSER ================= */
+(function(){
+  const bars=$('tcBars'), out=$('tcOut'); if(!bars) return;
+  segs('tcStart',render); segs('tcSkill',render); $$('#tcTg input').forEach(i=>i.onchange=render);
+  const NAME={stitch:'Stitch',studio:'AI Studio',anti:'Antigravity'};
+  function render(){
+    const st=segVal('tcStart'), sk=segVal('tcSkill'), T=checks('#tcTg');
+    const s={stitch:0,studio:0,anti:0}, why=[];
+    if(st==='pic'){ s.stitch+=4; s.studio+=1; why.push('You start from a picture: Stitch turns sketches, wireframes and screenshots into designed screens.'); }
+    if(st==='idea'){ s.studio+=4; s.stitch+=1; s.anti+=1; why.push('You start from an idea: AI Studio turns one prompt into a working app with a live preview.'); }
+    if(st==='task'){ s.anti+=4; s.studio+=1; why.push('You start from a task in a project: Antigravity\'s agents work across the files, the terminal and the browser.'); }
+    if(sk==='none'){ s.studio+=2; s.stitch+=1; why.push('With no coding, a live preview you can talk to matters more than access to the files.'); }
+    if(sk==='some'){ s.studio+=1; s.anti+=1; }
+    if(sk==='dev'){ s.anti+=2; why.push('As a developer you can review what agents write, which is what Antigravity assumes you will do.'); }
+    if(T.screens){ s.stitch+=3; why.push('Several linked screens handed to a designer is Stitch\'s job, with export to Figma.'); }
+    if(T.repo){ s.anti+=4; s.studio-=2; why.push('An existing folder of code with history needs a tool that opens the folder; a fresh preview cannot.'); }
+    if(T.term){ s.anti+=3; why.push('Running commands and tests means the terminal, which the agent-first tool controls.'); }
+    if(T.share){ s.studio+=2; why.push('Publishing a link from where you build is one click in AI Studio.'); }
+    const max=Math.max(1,...Object.values(s)), rank=Object.keys(s).sort((a,b)=>s[b]-s[a]);
+    bars.innerHTML='<div class="lbl" style="margin-bottom:6px">how well each tool fits</div>'+rank.map(k=>'<div class="sl" style="grid-template-columns:110px 1fr 40px"><label>'+NAME[k]+'</label><div style="height:12px;border-radius:99px;background:var(--dot);overflow:hidden"><i style="display:block;height:100%;width:'+Math.max(4,Math.round(Math.max(0,s[k])/max*100))+'%;background:'+(k===rank[0]?'var(--accent)':'var(--wire)')+';transition:width .3s"></i></div><output>'+Math.max(0,s[k])+'</output></div>').join('');
+    const top=rank[0], next=rank[1];
+    let path='';
+    if(top==='stitch'&&(st!=='pic'||T.share||sk!=='none')) path=' Then take the screens into <b>AI Studio</b> to make them work.';
+    else if(top==='stitch') path=' When the screens look right, take them into <b>AI Studio</b> to make them work.';
+    else if(top==='studio'&&(T.term||sk==='dev'||T.repo)) path=' When it outgrows a single preview, move it to <b>Antigravity</b>.';
+    else if(top==='studio') path=' If it grows into a real project with many files, move it to <b>Antigravity</b> later.';
+    else if(top==='anti'&&T.screens) path=' Design the screens in <b>Stitch</b> first and hand them over.';
+    bars.insertAdjacentHTML('beforeend','<div class="bigrec"><b class="h">Open '+NAME[top]+' first.</b>'+path+'</div>');
+    out.innerHTML='<div class="lbl">why</div>'+why.map(w=>lint('ok',w)).join('')+(s[top]-s[next]<=1?lint('warn','Close call with '+NAME[next]+'. Either works; pick the one whose starting point matches what you hold.'):'');
+  }
+  render();
+})();
+
+/* ================= 3 · TOOL SORTER ================= */
+sorter({out:'tsOut',ctl:'tsCtl',note:'tsNote',seed:23,unit:'JOB',prompt:'which tool would you open first?',
+ options:[{k:'stitch',label:'Stitch',desc:'from a picture to designed screens'},{k:'studio',label:'AI Studio',desc:'from an idea to a working app'},{k:'anti',label:'Antigravity',desc:'agents working on a real project'}],
+ items:[
+  {s:'Turn a napkin sketch of a booking flow into five polished screens for the design team.',ok:['stitch'],why:'A picture in, several linked screens out, ready for Figma.'},
+  {s:'See a working version of "a quiz for my book club" in fifteen minutes.',ok:['studio'],why:'An idea and a need for speed: one prompt, a live preview.'},
+  {s:'Add tests and fix three bugs in the team\'s existing web app.',ok:['anti'],why:'An existing codebase, tests and the terminal: the agent-first tool.'},
+  {s:'Make a competitor\'s page layout into an editable design for your own product.',ok:['stitch'],why:'A screenshot is a picture: Stitch\'s starting point.'},
+  {s:'A product manager wants a shareable link to a prototype for tomorrow\'s meeting.',ok:['studio'],why:'No coding, a live preview and one-click publishing.'},
+  {s:'Have one agent update the documentation while another refactors the database code.',ok:['anti'],why:'Several agents working at once, managed from mission control.'},
+  {s:'Try three colour schemes for an app\'s home screen before anyone builds it.',ok:['stitch'],why:'Visual exploration of screens before code exists.'},
+  {s:'Build a small arcade game with a music player, just for fun.',ok:['studio'],why:'An idea you want to see fast, with nothing to inherit.'},
+  {s:'The vibe-coded prototype is now a real project in git and needs proper structure.',ok:['anti'],why:'Once there is a folder of code with history, the agent-first tool opens it.'},
+  {s:'Upgrade a library across forty files and run the build to check nothing broke.',ok:['anti'],why:'Many files and a build command in the terminal.'}],
+ done:'Ten jobs, three tools.',keeper:'A picture goes to Stitch, an idea to AI Studio, a codebase to Antigravity. The common journey runs through all three in that order.'});
+
+/* ================= 4 · WORKSPACE MAP + TOUR ================= */
+(function(){
+  const map=$('wsMap'); if(!map) return;
+  const MONO="font:10.5px ui-monospace,Menlo,monospace", SANS="font:600 12px Inter,Arial,sans-serif";
+  const R=(x,y,w,h,l,t,sub)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" style="fill:var(--panel2);stroke:var(--line2)"/><circle cx="${x+16}" cy="${y+16}" r="11" style="fill:var(--accent)"/><text x="${x+16}" y="${y+20}" text-anchor="middle" style="font:700 12px Inter,Arial,sans-serif;fill:var(--panel)">${l}</text><text x="${x+34}" y="${y+20}" style="${SANS};fill:var(--text)">${t}</text><text x="${x+34}" y="${y+36}" style="${MONO};fill:var(--muted)">${sub}</text>`;
+  map.innerHTML=`<div class="diagram"><svg viewBox="0 0 720 300" role="img" aria-label="The build workspace: chat and history on the left, preview and code on the right, toolbar at the bottom left, share and publish top right.">
+   <rect x="2" y="2" width="716" height="296" rx="12" style="fill:none;stroke:var(--line2)"/>
+   ${R(14,14,250,170,'A','your prompt and history','what you asked, and the files')}
+   <text x="48" y="78" style="${MONO};fill:var(--dim)">edited 5 files:</text><text x="48" y="96" style="${MONO};fill:var(--dim)">  App.tsx, Game.tsx, index.css</text>
+   ${R(14,194,250,92,'D','toolbar and suggestions','chips, microphone, upload')}
+   <circle cx="236" cy="262" r="12" style="fill:var(--panel);stroke:var(--accent)"/><text x="236" y="266" text-anchor="middle" style="font:700 11px Inter,Arial,sans-serif;fill:var(--accent)">E</text><text x="218" y="266" text-anchor="end" style="${MONO};fill:var(--muted)">annotate</text>
+   ${R(278,14,150,48,'B','preview','the app, running')}
+   ${R(438,14,120,48,'C','code','the raw files')}
+   ${R(568,14,140,48,'F','share, publish','link or live')}
+   <rect x="278" y="72" width="430" height="214" rx="8" style="fill:var(--accent-soft);stroke:var(--accent);stroke-dasharray:4 4"/>
+   <text x="493" y="180" text-anchor="middle" style="${MONO};fill:var(--accent)">the preview or the code fills this area</text></svg>
+   <div class="diagcap"><b>How to read it:</b> six places. <b>A</b> is the conversation with the list of files changed per request. <b>B</b> and <b>C</b> switch the big area between the running app and its code. <b>D</b> is where you type, with suggestion chips above it. <b>E</b> opens the annotation pen, and <b>F</b> shares or publishes.</div></div>`;
+})();
+sorter({out:'wsOut',ctl:'wsCtl',note:'wsNote',seed:61,unit:'QUESTION',prompt:'where do you look or click?',
+ options:[{k:'A',label:'A · prompt and history'},{k:'B',label:'B · preview'},{k:'C',label:'C · code'},{k:'D',label:'D · toolbar and suggestions'},{k:'E',label:'E · annotate'},{k:'F',label:'F · share or publish'}],
+ items:[
+  {s:'Which files did the AI change when you asked for power-ups?',ok:['A'],why:'The action history under each request lists the files it edited.'},
+  {s:'Does the game actually play the way a visitor would see it?',ok:['B'],why:'The preview is the live view: the app as a user would meet it, running.'},
+  {s:'You want to see the CSS file that sets the colours.',ok:['C'],why:'The code view shows the raw files, the bricks the house is built from.'},
+  {s:'You are out of ideas for what to add next.',ok:['D'],why:'The suggestion chips above the prompt box offer next steps based on what you built so far.'},
+  {s:'The score sits in the wrong corner, and words keep failing to describe which corner.',ok:['E'],why:'Annotate: draw on the preview and point at it. A picture of the change beats a paragraph.'},
+  {s:'A friend should be able to open the app at a web address tonight.',ok:['F'],why:'Publish puts it live; share hands someone the project.'},
+  {s:'You want to describe a change out loud instead of typing it.',ok:['D'],why:'The microphone sits in the toolbar beside the prompt box.'},
+  {s:'You need to check what you originally asked for at the start of the session.',ok:['A'],why:'The conversation keeps your first prompt and every request after it.'}],
+ done:'Eight questions, six places.',keeper:'History on the left, the app or its code on the right, the toolbar and the pen at the bottom, and the way out at the top right.'});
+
+/* ================= 4 · SMALL STEPS ================= */
+(function(){
+  const host=$('itReq'), app=$('itApp'), hist=$('itHist'), meter=$('itMeter'), note=$('itNote'); if(!host) return;
+  const QUOTA=200000;
+  const REQ=[
+   {k:'power',label:'add power-ups',
+    spec:{ask:'Add a power-up that doubles the player\'s fire rate for five seconds.',files:['src/game/PowerUps.tsx (new)','src/game/Game.tsx'],tok:16000},
+    vague:{ask:'Make the game more fun.',files:['src/game/Game.tsx','src/game/Enemies.tsx','src/components/MusicPlayer.tsx','src/App.tsx','src/index.css'],tok:44000,broke:'The music now restarts every time a level begins.'}},
+   {k:'pal',label:'change the colours',
+    spec:{ask:'Change the palette to purples and pinks, with faint scanlines.',files:['src/index.css'],tok:6000},
+    vague:{ask:'Make it look cooler.',files:['src/index.css','src/App.tsx','src/game/Game.tsx'],tok:22000,broke:'The score is now pink on purple and hard to read.'}},
+   {k:'score',label:'add a high score',
+    spec:{ask:'Add a high-score counter that is kept between visits.',files:['src/components/Score.tsx (new)','src/App.tsx'],tok:12000},
+    vague:{ask:'Add some stats.',files:['src/components/Stats.tsx (new)','src/components/Leaderboard.tsx (new)','src/App.tsx','src/game/Game.tsx'],tok:31000,broke:'A leaderboard full of made-up names appeared, and nobody asked for it.'}},
+   {k:'bug',label:'fix the controls',
+    spec:{ask:'(annotated on the preview) The ship stops at the left edge: let it wrap round to the right.',files:['src/game/Game.tsx'],tok:7000},
+    vague:{ask:'The controls feel wrong.',files:['src/game/Game.tsx','src/game/Controls.tsx','src/App.tsx'],tok:26000,broke:'Fire moved from the space bar to the up arrow.'}}];
+  let done={}, used=0, log=[], broken=[], files=0;
+  segs('itMode',()=>{});
+  $('itReset').onclick=()=>{ done={}; used=0; log=[]; broken=[]; files=0; render(); };
+  host.innerHTML=REQ.map(r=>'<button class="btn" data-k="'+r.k+'" type="button">'+r.label+'</button>').join('');
+  host.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{
+    const r=REQ.find(x=>x.k===b.dataset.k); if(done[r.k]) return;
+    const m=segVal('itMode'), v=r[m]; done[r.k]=m; used+=v.tok; files+=v.files.length;
+    log.push({ask:v.ask,files:v.files,tok:v.tok,m}); if(v.broke) broken.push(v.broke); render();
+  });
+  function render(){
+    host.querySelectorAll('.btn').forEach(b=>b.disabled=!!done[b.dataset.k]);
+    const has=k=>!!done[k], vg=k=>done[k]==='vague';
+    const bg=has('pal')?(vg('pal')?'#3a1d4a':'#2a1840'):'#10131a', fg=has('pal')&&vg('pal')?'#d06ab0':'#e9e6f2';
+    let s=`<rect x="0" y="0" width="320" height="200" rx="12" style="fill:${bg}"/>`;
+    if(has('pal')&&!vg('pal')) for(let y=4;y<200;y+=6) s+=`<rect x="0" y="${y}" width="320" height="1" style="fill:#ffffff" opacity=".05"/>`;
+    for(let r=0;r<3;r++) for(let c=0;c<7;c++) s+=`<rect x="${70+c*26}" y="${30+r*18}" width="16" height="10" rx="2" style="fill:${['#5a8cff','#ff5a7a','#4fd18b'][r]}"/>`;
+    const sx=has('bug')&&!vg('bug')?20:150; s+=`<rect x="${sx}" y="160" width="26" height="10" rx="2" style="fill:#7fd3ff"/>`;
+    s+=`<text x="12" y="20" style="font:700 11px ui-monospace,Menlo,monospace;fill:${fg}">SCORE 1200</text>`;
+    if(has('score')) s+=`<text x="308" y="20" text-anchor="end" style="font:700 11px ui-monospace,Menlo,monospace;fill:#ffd166">HIGH ${vg('score')?'GOOD_DEV 15000':'4300'}</text>`;
+    if(has('power')) s+=`<circle cx="230" cy="120" r="8" style="fill:#ffd166"/><text x="230" y="124" text-anchor="middle" style="font:700 9px Inter,Arial;fill:#10131a">2x</text>`;
+    if(has('score')&&vg('score')) s+=`<rect x="236" y="34" width="76" height="52" rx="4" style="fill:#000" opacity=".5"/><text x="242" y="50" style="font:9px ui-monospace,Menlo,monospace;fill:#ffd166">1 ACE_PILOT</text><text x="242" y="64" style="font:9px ui-monospace,Menlo,monospace;fill:#ffd166">2 NOVA_99</text><text x="242" y="78" style="font:9px ui-monospace,Menlo,monospace;fill:#ffd166">3 ZED</text>`;
+    s+=`<text x="12" y="192" style="font:10px ui-monospace,Menlo,monospace;fill:#9aa3b5">&#9835; track 1 ${has('power')&&vg('power')?'(restarts each level)':'playing'}</text>`;
+    if(has('bug')&&vg('bug')) s+=`<text x="308" y="192" text-anchor="end" style="font:10px ui-monospace,Menlo,monospace;fill:#ff7a7a">fire: up arrow?</text>`;
+    app.innerHTML=`<div class="diagram"><svg viewBox="0 0 320 200" role="img" aria-label="The arcade game preview after your changes.">${s}</svg><div class="diagcap"><b>How to read it:</b> the live preview after the changes so far. Anything here you did not ask for is a regression.</div></div>`;
+    const pct=Math.min(100,used/QUOTA*100);
+    meter.innerHTML='<div class="meter"><div class="big">'+fmt(used/1000)+'k<small>tokens used of an illustrative '+fmt(QUOTA/1000)+'k a day</small></div><div class="big">'+files+'<small>file edits</small></div><div class="big" style="color:'+(broken.length?'var(--red)':'var(--green)')+'">'+broken.length+'<small>regressions</small></div></div><div style="height:10px;border-radius:99px;background:var(--dot);overflow:hidden"><i style="display:block;height:100%;width:'+pct+'%;background:'+(pct>50?'var(--amber)':'var(--accent)')+';transition:width .3s"></i></div>';
+    hist.innerHTML=log.length?log.map(e=>'<div class="ev'+(e.m==='vague'?' warn':'')+'"><i>&#9656;</i><span>&ldquo;'+esc(e.ask)+'&rdquo; &middot; '+e.files.length+' file'+(e.files.length>1?'s':'')+' &middot; '+fmt(e.tok/1000)+'k tokens<br><span style="color:var(--dim)">'+e.files.map(esc).join(', ')+'</span></span></div>').join(''):'<div class="ev dim"><i>&middot;</i><span>no requests yet: pick how you ask, then press a change</span></div>';
+    const n=Object.keys(done).length, nv=Object.values(done).filter(m=>m==='vague').length;
+    if(!n) note.innerHTML='<div class="simnote">Choose specific or vague, then ask for a change.</div>';
+    else if(n<4) note.innerHTML=(broken.length?'<div class="lzbad"><b>Something broke.</b> '+esc(broken[broken.length-1])+'</div>':'<div class="ok"><b>Clean change.</b> Only the files that needed to change were touched.</div>');
+    else note.innerHTML=(nv===0?'<div class="ok"><b>Four specific changes, '+files+' file edits, '+fmt(used/1000)+'k tokens and nothing broken.</b> Small, specific asks are cheaper and safer.</div>':nv===4?'<div class="lzbad"><b>Four vague changes, '+files+' file edits, '+fmt(used/1000)+'k tokens and '+broken.length+' regressions.</b> The tool did exactly what it was told: it guessed. Now press start again and ask the specific way.</div>':'<div class="lzwarn"><b>A mix: '+nv+' vague, '+(4-nv)+' specific.</b> Every regression came from a vague request.</div>')
+      +'<div class="simnote" style="margin-top:8px"><b>The keeper.</b> One change per message, named precisely, and point at visual changes with the annotate pen. Then read the action history: a file you did not expect is a regression waiting to be found.</div>';
+  }
+  render();
+})();
+
+/* ================= 4 · THE RULE IT FORGOT ================= */
+(function(){
+  const out=$('cwOut'), note=$('cwNote'); if(!out) return;
+  const TURNS=[
+   {w:'you',t:'Build a calorie and water tracker. Rules: purple and skeuomorphic, and show calories as whole numbers.',rule:true},
+   {w:'ai',t:'Built it: purple cards with depth, today shows 1,843 kcal.',out:true},
+   {w:'you',t:'Add a water log with eight glasses.'},
+   {w:'ai',t:'Added the water row: eight glass buttons.',out:true},
+   {w:'you',t:'Add a weekly chart of calories.'},
+   {w:'ai',t:'Added a bar chart of the last seven days.',out:true},
+   {w:'you',t:'Let me photograph a meal to estimate calories.'},
+   {w:'ai',t:'Added a camera button; the estimate appears under the photo.',out:true},
+   {w:'you',t:'Add a settings page with my daily target.'},
+   {w:'ai',t:'Added settings with a daily target field.',out:true},
+   {w:'you',t:'Show today\'s total against the target.'},
+   {w:'ai',t:'Added a progress ring: today against target.',out:true}];
+  let at=2;
+  const size=$('cwSize'); size.oninput=()=>{ $('cwSizeV').textContent=size.value+' turns'; render(); };
+  $('cwStep').onclick=()=>{ if(at<TURNS.length){ at++; render(); } };
+  $('cwReset').onclick=()=>{ at=2; render(); };
+  $$('#cwTg input').forEach(i=>i.onchange=render);
+  function render(){
+    const W=+size.value, pin=checks('#cwTg').pin, lo=Math.max(0,at-W);
+    const ruleIn=lo===0||pin;
+    out.innerHTML=(pin?'<div class="probe hit"><span class="n">&#9733;</span><span><b>Saved instruction, read on every turn</b><small>Purple and skeuomorphic; calories as whole numbers.</small></span></div>':'')
+      +TURNS.slice(0,at).map((x,i)=>{ const inw=i>=lo; const ok=x.out?(pin||i-W<=0):null;
+        const shown=x.out&&!ok?x.t.replace(/\.$/,'')+'; flat grey cards, today 1,842.6 kcal.':x.t;
+        return '<div class="probe'+(inw?'':' off')+(x.out&&!ok?' stop':'')+'"><span class="n">'+(i+1)+'</span><span><b>'+(x.w==='you'?'You':'The tool')+(inw?'':' &middot; out of view')+'</b><small>'+esc(shown)+'</small></span></div>'; }).join('');
+    if(ruleIn) note.innerHTML='<div class="ok"><b>The rules are in view.</b> '+(pin?'They live outside the chat, so they never slide out, however long the session.':'The first message is still inside the window of '+W+' turns. Keep stepping.')+'</div>';
+    else note.innerHTML='<div class="lzbad"><b>Turn 1 has slid out of the window.</b> The tool can only see the last '+W+' turns, so the rules are gone. Its next answers drift back to the default style and decimals: nobody told it otherwise.</div>';
+    note.innerHTML+='<div class="mini" style="margin-top:8px">turn '+at+' of '+TURNS.length+' &middot; the window covers turns '+(lo+1)+' to '+at+'</div>'
+      +(at===TURNS.length?'<div class="simnote" style="margin-top:8px"><b>The keeper.</b> A bigger window only delays the forgetting. Rules that must hold for the whole project belong in a saved instruction the tool reads every turn: a skill, a rules file or an artifact. Restating them also works, if you remember to.</div>':'')
+      ;
+  }
+  render();
+})();
+
+/* ================= 5 · FEATURE MATCHER ================= */
+const FEATS=[{k:'img',label:'Image analysis',desc:'read a picture'},{k:'edit',label:'Image editing',desc:'change a photo by description'},{k:'tts',label:'Speech generation',desc:'text to a natural voice'},{k:'stt',label:'Transcription',desc:'speech to text'},{k:'search',label:'Search grounding',desc:'current information from the web'},{k:'maps',label:'Maps grounding',desc:'places, hours, routes'},{k:'video',label:'Video generation',desc:'a clip from a script'},{k:'fast',label:'Fast responses',desc:'instant replies, auto-complete'},{k:'chat',label:'Chatbot memory',desc:'remembers the conversation'},{k:'lm',label:'The language model alone',desc:'write, summarise, sort text'}];
+sorter({out:'fmOut',ctl:'fmCtl',note:'fmNote',seed:44,unit:'REQUEST',prompt:'which feature makes it possible?',options:FEATS,
+ items:[
+  {s:'Snap a receipt and have the amounts filled in for you.',ok:['img'],why:'Reading text and numbers from a photo is image analysis.'},
+  {s:'Remove the bin from the background of a holiday photo.',ok:['edit'],why:'Changing a photo by describing the change is image editing.'},
+  {s:'Read the day\'s plan aloud while I drive.',ok:['tts'],why:'Text into a natural voice is speech generation.'},
+  {s:'Turn my voice notes from a meeting into written minutes.',ok:['stt'],why:'Speech into text is transcription.'},
+  {s:'A study buddy that can discuss this week\'s news.',ok:['search'],why:'Only search grounding brings in information newer than the model\'s training.'},
+  {s:'Find vegetarian restaurants open now within a ten-minute walk.',ok:['maps'],why:'Live places, opening hours and walking routes come from maps grounding.'},
+  {s:'Turn a product description into a short advert clip.',ok:['video'],why:'A video from a script is video generation.'},
+  {s:'Suggest the rest of a sentence as the user types, with no visible wait.',ok:['fast'],why:'Auto-complete needs a small, quick model; a big one feels sluggish.'},
+  {s:'A helper that remembers what the user said five messages ago.',ok:['chat'],why:'Keeping the conversation\'s earlier turns is chatbot memory.'},
+  {s:'Sort a hundred customer comments into praise, complaints and questions.',ok:['lm'],why:'Plain text in, plain text out: the language model alone, no extra feature.'},
+  {s:'Pull the numbers out of a photographed bar chart.',ok:['img'],why:'Graphs are pictures too: image analysis reads them.'},
+  {s:'Live captions for a video call.',ok:['stt'],why:'Live speech into text is still transcription.'}],
+ done:'Twelve requests matched.',keeper:'Find the verb. Read a picture: image analysis. Change a picture: image editing. Speak: speech generation. Listen: transcription. Today\'s facts: search. Places: maps. Make a clip: video. Instant: fast. Remember: chat memory.'});
+
+/* ================= 5 · COMPOSE AN APP ================= */
+(function(){
+  const chips=$('caIdea'), tg=$('caTg'), diag=$('caDiag'), out=$('caOut'); if(!chips) return;
+  const F={img:'Image analysis',edit:'Image editing',tts:'Speech generation',stt:'Transcription',search:'Search grounding',maps:'Maps grounding',video:'Video generation',fast:'Fast responses',chat:'Chatbot memory'};
+  const DO={img:'reads the photo the user uploads',edit:'changes the photo as the user describes',tts:'reads the result aloud',stt:'turns the user\'s voice into text',search:'looks up current information first',maps:'finds real places and routes',video:'makes a short clip',fast:'answers instantly as the user types',chat:'remembers the conversation'};
+  const APPS=[
+   {k:'arcade',n:'retro arcade game',promise:'a game with a talking announcer',need:['tts'],nice:['fast']},
+   {k:'dash',n:'interactive dashboard',promise:'charts of today\'s market news',need:['search'],nice:['chat']},
+   {k:'util',n:'productivity utility',promise:'a to-do list you can speak to',need:['stt'],nice:['fast']},
+   {k:'port',n:'personal portfolio',promise:'a portfolio with polished photos',need:['edit'],nice:['chat']},
+   {k:'media',n:'custom media player',promise:'a player that captions what it plays',need:['stt'],nice:['tts']},
+   {k:'calc',n:'smart calculator',promise:'a currency converter with today\'s rates',need:['search'],nice:['fast']},
+   {k:'story',n:'interactive storyboard',promise:'storyboards that become short clips',need:['video'],nice:['edit']},
+   {k:'lib',n:'resource library',promise:'a library you can ask questions about a photographed page',need:['img'],nice:['chat']},
+   {k:'event',n:'event countdown',promise:'a countdown with directions to the venue',need:['maps'],nice:['edit']},
+   {k:'habit',n:'daily habit log',promise:'a habit log with a coach that remembers you',need:['chat'],nice:['tts']}];
+  let A=APPS[0];
+  chips.innerHTML=APPS.map(a=>'<button class="chip'+(a===A?' on':'')+'" data-k="'+a.k+'">'+esc(a.n)+'</button>').join('');
+  tg.innerHTML=Object.keys(F).map(k=>'<label><input type="checkbox" data-k="'+k+'"> <span>'+F[k]+'<small>'+DO[k]+'</small></span></label>').join('');
+  chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ A=APPS.find(a=>a.k===b.dataset.k); chips.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); $$('#caTg input').forEach(i=>i.checked=false); render(); });
+  $$('#caTg input').forEach(i=>i.onchange=render);
+  function render(){
+    const T=checks('#caTg'), on=Object.keys(F).filter(k=>T[k]);
+    const MONO="font:10.5px ui-monospace,Menlo,monospace", SANS="font:600 12px Inter,Arial,sans-serif";
+    let s=`<rect x="6" y="10" width="120" height="46" rx="9" style="fill:var(--panel2);stroke:var(--accent)"/><text x="66" y="30" text-anchor="middle" style="${SANS};fill:var(--text)">the user</text><text x="66" y="46" text-anchor="middle" style="${MONO};fill:var(--muted)">types, taps, talks</text>`;
+    s+=`<rect x="160" y="10" width="194" height="46" rx="9" style="fill:var(--panel2);stroke:var(--line2)"/><text x="257" y="30" text-anchor="middle" style="${SANS};fill:var(--text)">${esc(A.n)}</text><text x="257" y="46" text-anchor="middle" style="${MONO};fill:var(--muted)">${on.length} AI feature${on.length===1?'':'s'}</text><path d="M126 33 L158 33" style="stroke:var(--wire)" stroke-width="1.5"/>`;
+    const H=Math.max(40,on.length*30);
+    on.forEach((k,i)=>{ const y=72+i*30; const nd=A.need.includes(k); s+=`<path d="M180 56 L180 ${y+11} L200 ${y+11}" style="fill:none;stroke:var(--wire)" stroke-width="1.2"/><rect x="200" y="${y}" width="154" height="22" rx="6" style="fill:${nd?'var(--accent-soft)':'var(--panel2)'};stroke:${nd?'var(--accent)':'var(--line2)'}"/><text x="210" y="${y+15}" style="${MONO};fill:var(--text)">${F[k]}</text>`; });
+    if(!on.length) s+=`<text x="257" y="86" text-anchor="middle" style="${MONO};fill:var(--dim)">no AI yet: a plain app</text>`;
+    diag.innerHTML=`<div class="diagram"><svg viewBox="0 0 360 ${H+80}" role="img" aria-label="How the app would use the chosen AI features.">${s}</svg><div class="diagcap"><b>How to read it:</b> the app in the middle, and a branch for each AI feature it calls. A highlighted branch is the feature this app&rsquo;s promise depends on.</div></div>`;
+    const miss=A.need.filter(k=>!T[k]), extra=on.filter(k=>!A.need.includes(k)&&!A.nice.includes(k));
+    let html='<div class="lbl">the promise: '+esc(A.promise)+'</div>';
+    html+=miss.length?lint('bad','Missing <b>'+miss.map(k=>F[k]).join(', ')+'</b>: without it the app cannot keep its promise, because nothing else '+miss.map(k=>DO[k]).join(' or ')+'.'):lint('ok','The feature the promise depends on is there.');
+    if(A.nice.some(k=>!T[k])) html+=lint('dim','Worth adding later: '+A.nice.filter(k=>!T[k]).map(k=>F[k]).join(', ')+'.');
+    if(extra.length) html+=lint('warn','Not needed for this promise: '+extra.map(k=>F[k]).join(', ')+'. Each extra feature is another thing to test and pay for.');
+    if(on.length>3) html+=lint('warn',on.length+' features at once. Start with one, get it working, then add the next.');
+    html+='<div class="lbl" style="margin-top:10px">your prompt&rsquo;s &ldquo;does it need AI?&rdquo; layer</div><div class="traj">'+(on.length?'Use AI so that the app '+on.map(k=>DO[k]).join(', and ')+'.':'No AI needed for the first version.')+'</div>';
+    out.innerHTML=html;
+  }
+  render();
+})();
+
+/* ================= 6 · DEPLOY PATH ================= */
+(function(){
+  const out=$('dpOut'); if(!out) return;
+  const n=$('dpN'); n.oninput=()=>{ $('dpNV').textContent=n.value; render(); };
+  segs('dpRegion',render); $$('#dpTg input').forEach(i=>i.onchange=render);
+  function render(){
+    const N=+n.value, reg=segVal('dpRegion'), T=checks('#dpTg');
+    const blocks=[];
+    if(N>=2) blocks.push('you already have two apps published, the starter tier\'s limit');
+    if(reg==='pick') blocks.push('the starter tier publishes to a single region you do not choose');
+    if(T.org) blocks.push('a team or company app should live in their own project, under their permissions and their bill');
+    const rows=[];
+    if(!blocks.length){
+      rows.push('<div class="bigrec"><b class="h">The starter tier.</b>Publish straight from the build tool. No cloud project, no billing account. The app becomes one service on Cloud Run with a web address you can share.</div>');
+      rows.push(lint('ok','No setup at all. This will be starter app '+(N+1)+' of 2'+(N===1?', so it is the last one':'')+'.'));
+    } else {
+      rows.push('<div class="bigrec warn"><b class="h">A standard deployment.</b>Link a Google Cloud project to the build tool and turn billing on in that project. Then publish as before: each app is still one Cloud Run service.</div>');
+      blocks.forEach(b=>rows.push(lint('warn','Why not the starter tier: '+b+'.')));
+      rows.push(T.bill?lint('ok','You already have a project with billing on, so this is a link and a click.'):lint('bad','You need a cloud project with a billing account first. That is the one real setup step.'));
+    }
+    rows.push(T.own?lint('ok','Also export the code to GitHub (or Firebase for hosting). The project then outlives the tool and can be reviewed or handed to a developer.'):lint('dim','Optional: export the code to GitHub to keep your own copy.'));
+    out.innerHTML=rows.join('')+'<div class="simnote" style="margin-top:10px"><b>The keeper.</b> The starter tier is for trying things: a couple of apps, one region, no setup. Anything for an organisation, a chosen region or a third app goes to a standard deployment. Export whenever you want to own the code.</div>';
+  }
+  render();
+})();
+
+/* ================= 6 · PRE-FLIGHT ================= */
+(function(){
+  const tg=$('pfTg'), out=$('pfOut'); if(!tg) return;
+  const C=[
+   {k:'key',t:'The API key is not in the browser code',bad:'Anyone can open the page source, copy the key and spend on your account. Keep keys on the server side, or let the platform hold them.',money:true},
+   {k:'cap',t:'A spending cap or a daily quota is set',bad:'A popular link or a bot can run up a bill overnight. A cap turns a surprise invoice into a polite "try again tomorrow".',money:true},
+   {k:'err',t:'It shows a friendly message when the AI fails',bad:'When the model is busy or a request fails, the visitor sees a blank screen or raw error text and assumes the app is broken.'},
+   {k:'phone',t:'It has been tried on a phone',bad:'Most people open a shared link on a phone. A layout that only fits a laptop screen loses them in the first second.'},
+   {k:'data',t:'The sample data is made up, not real people\'s',bad:'Real names, emails or photos in a demo are personal data shown to strangers.'},
+   {k:'share',t:'Link sharing is set on purpose',bad:'"Anyone with the link" travels further than you think; "only people I invite" may lock out the person you meant.'}];
+  tg.innerHTML=C.map(c=>'<label><input type="checkbox" data-k="'+c.k+'"> <span>'+c.t+(c.money?'<small>costs money if skipped</small>':'')+'</span></label>').join('');
+  $$('#pfTg input').forEach(i=>i.onchange=render);
+  function render(){
+    const T=checks('#pfTg'), skipped=C.filter(c=>!T[c.k]), money=skipped.filter(c=>c.money).length;
+    out.innerHTML=(skipped.length===0?'<div class="ok"><b>Ready to share.</b> All six checks done. A stranger meets a working app that cannot spend your money or show anyone\'s data.</div>':money?'<div class="lzbad"><b>Not yet: '+money+' check'+(money>1?'s':'')+' that can cost money.</b> Fix those before anything else.</div>':'<div class="lzwarn"><b>Safe, not yet polished.</b> Nothing here costs money, but a stranger will notice.</div>')
+      +'<div class="lbl" style="margin-top:10px">what a stranger with the link meets</div>'
+      +C.map(c=>T[c.k]?lint('ok',c.t):lint(c.money?'bad':'warn',c.t.replace(/^The |^A |^It |^Link /,m=>m),c.bad)).join('');
+  }
+  render();
+})();
+</script>
+<script src="assets/version.js"></script>
+<script src="assets/lab.js"></script>
+</body>
+</html>
