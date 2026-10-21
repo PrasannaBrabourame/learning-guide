@@ -439,7 +439,7 @@
 
 <h2 class="dtitle">Difficulty: <small>click a level to drill</small></h2>
 <div class="dlegend" id="dlegend"></div>
-<h2 class="dtitle">Categories: <small>coloured by domain</small></h2>
+<h2 class="dtitle">Categories: <small>coloured by domain, each with an optical illusion that fits it</small></h2>
 <div class="flegend" id="flegend"></div>
 <div class="tiles" id="tiles"></div>
 </section>
@@ -448,6 +448,7 @@
 <button class="btn" id="back">← Categories</button>
 <div class="btitle"><span class="bring" id="bring"></span><div class="btxt"><h2 id="bname">All topics</h2><span class="bsub" id="bsub"></span></div><span class="bcount" id="bcount"></span></div>
 </div>
+<figure class="bart" id="bart" hidden></figure>
 <div class="tools">
 <select id="state" class="select"><option value="all">All topics</option><option value="unstudied">Not studied</option><option value="studied">Studied</option><option value="starred">★ Starred</option></select>
 <select id="diff" class="select"><option value="all">All levels</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Complex">Complex</option></select>
@@ -462,6 +463,7 @@
 </main>
 <footer class="foot"><span class="by">Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a></span><br>Self-contained static site, no external libraries.</footer>
 <script src="assets/version.js"></script>
+<script src="assets/illusions.js"></script>
 <script src="assets/app.js" defer></script>
 <script>
 /* labs menu, one affordance for eight labs, instead of six buttons in the bar */

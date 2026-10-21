@@ -139,6 +139,7 @@ function init(topics) {
     // straight back into the lab's list the reader just left
     if (/^#lab=/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search);
     browse.hidden = true; dash.hidden = false;
+    const art = $("#bart"); if (art) { art.hidden = true; art.innerHTML = ""; }
     diffSel.value = "all"; stateSel.value = "all"; ms.value = "";
     renderTiles(); renderLegends(); updateCounters(true);
     scrollTo(0, 0);
@@ -161,6 +162,14 @@ function init(topics) {
     $("#bring").innerHTML = ring(items.length ? done / items.length : 0, !!sel);
     if (sel) $("#bring").style.setProperty("--hue", lab ? lab.hue : catHue.get(sel));
     else $("#bring").style.removeProperty("--hue");
+    /* the category's illusion, large, with the one line that says why it fits */
+    const art = $("#bart");
+    if (art) {
+      const show = !lab && sel && window.ILLUSIONS && ILLUSIONS.has(sel);
+      art.hidden = !show;
+      if (show) { art.style.setProperty("--hue", catHue.get(sel)); art.innerHTML = `<div class="bartimg">${ILLUSIONS.svg(sel, true)}</div><figcaption><b>Why this picture.</b> <i>${esc(ILLUSIONS.name(sel))}:</i> ${esc(ILLUSIONS.caption(sel))}</figcaption>`; }
+      else art.innerHTML = "";
+    }
     filter();
     scrollTo(0, 0);
   }
@@ -195,7 +204,7 @@ function init(topics) {
         .map((n, i) => n ? `<i class="d-${DSLUG[DIFFS[i]]}" style="flex:${n}" title="${n} ${DIFFS[i]}"></i>` : "").join("");
       return `<button class="tile${done === items.length ? " done" : ""}" data-cat="${esc(c)}" style="--hue:${catHue.get(c)}">
 <span class="tring">${ring(pct, true)}<b>${Math.round(pct * 100)}%</b></span>
-<span class="tinfo"><b>${esc(c)}</b><small>${done}/${items.length} studied${done === items.length ? " ✓" : ""}</small><span class="tmix">${mix}</span></span></button>`;
+<span class="tinfo"><b>${esc(c)}</b><small>${done}/${items.length} studied${done === items.length ? " ✓" : ""}</small><span class="tmix">${mix}</span></span>${window.ILLUSIONS && ILLUSIONS.has(c) ? `<span class="tart">${ILLUSIONS.svg(c, false)}</span>` : ""}</button>`;
     }).join("");
   }
   tiles.onclick = e => { const t = e.target.closest(".tile"); if (t) showBrowse(t.dataset.cat) };
