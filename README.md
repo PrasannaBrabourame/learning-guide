@@ -23,7 +23,11 @@ The 43 categories are coloured by **domain family** (Cloud & Infrastructure,
 Architecture & Platform, AI & LLM, Agents & MCP, Security & Governance,
 Leadership & Business, Reliability & Ops, Data, RAG & Retrieval) rather than
 one hue each, 41 hues are not visually distinguishable, 9 are, and the
-colour then carries meaning. Tiles remain sorted alphabetically.
+colour then carries meaning. Tiles remain sorted alphabetically. Each category also carries an
+optical illusion chosen for the idea it teaches (the Kanizsa triangle for
+retrieval-augmented generation, because the triangle you see is not drawn),
+drawn inline in the family colour; open the category and the browse view
+shows it large with the one line that says why it fits.
 
 ## Files
 
@@ -233,6 +237,9 @@ assets/lab.js     Behaviour shared by every lab page, theme toggle,
                   dashboard),
                   tab deep links, the scenario drill, the navigation rail,
                   the labs menu and the track line
+assets/illusions.js One optical illusion per topic category, drawn as inline SVG
+                  in the family colour, with the line that says why it fits;
+                  small on the dashboard tiles, large in the browse view
 assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, starred bookmarks and a reset control, lab-to-topic mapping

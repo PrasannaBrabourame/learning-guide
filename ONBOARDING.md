@@ -28,6 +28,8 @@ Plus `cheatsheet.html`: the whole guide distilled onto one printable page.
 
 ```
 index.html         Dashboard, browse view, quiz and flashcard modes
+assets/illusions.js One optical illusion per topic category (inline SVG, family
+                   colour, both themes) with a caption tying it to the content
 assets/app.js      Dashboard logic: rendering, search/filter, progress,
                    bookmarks, the Reset control
 assets/lab.js      Shared lab chrome (theme, tabs, find, labs menu, bookmarks)
