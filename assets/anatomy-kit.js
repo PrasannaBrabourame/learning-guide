@@ -712,10 +712,14 @@ function live(stage, spec) {
   let x = spec.start != null ? spec.start : stops[0], target = x, frame = 0, last = 0, clock = 0;
   let touring = !still.matches, visible = false, idle = 0, said = "";
   const extra = spec.state || {};
+  let story = null; try { story = JSON.parse(stage.dataset.story || "null"); } catch (e) { story = null; }
+  const root = stage.closest("[data-anatomy]"), nowEl = root ? root.querySelector("[data-now]") : null;
+  let toldAt = -1;
   function draw(dt, calm) {
     const busy = spec.draw(x, dt, calm, extra) === true;
     const text = spec.text(x, extra);
     if (readout && readout.textContent !== text) readout.textContent = text;
+    if (story && nowEl) { const i = stops.reduce((b, st, j) => (Math.abs(st - x) < Math.abs(stops[b] - x) ? j : b), 0); if (i !== toldAt && story[i]) { toldAt = i; nowEl.textContent = story[i]; } }
     const value = spec.value ? spec.value(target, extra) : text;
     if (value !== said) { said = value; stage.setAttribute("aria-valuetext", value); }
     return busy;
@@ -756,5 +760,8 @@ function live(stage, spec) {
   draw(0, true);
 }
 
-window.ANATOMY = { AZIMUTH, ELEVATION, SHADES, cameraOf, iso, towardViewer, depthOf, pathOf, joinPaths, roundedPlan, extrude, ringOf, slabOf, circleRing, cylinder, insetPlan, onTop, planOutline, lineOnTop, segment, rise, ring, pointsAt, dotGrid, corners, boxCorners, knurl, sideArc, ringSeam, sideSeam, sideRing, coil, topTicks, sideTicks, radialTicks, haloOf, axisVector, translateAlong, holdStill, topMatrix, sideMatrix, screenRise, fitProjection, solidSvg, lineSvg, dotsSvg, fadedSvg, fadeLineSvg, wireSvg, faceTextSvg, groupSvg, figureSvg, plateHtml, pageHtml, ISO_CSS, live };
+/* a numbered badge for a moving part, matching the legend under the figure */
+function badge(n, point, P) { const c = iso(point, P); return '<g class="iso-badge" aria-hidden="true"><circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.4"/><text x="' + c[0].toFixed(1) + '" y="' + (c[1] + 0.3).toFixed(1) + '">' + n + '</text></g>'; }
+
+window.ANATOMY = { AZIMUTH, ELEVATION, SHADES, cameraOf, iso, towardViewer, depthOf, pathOf, joinPaths, roundedPlan, extrude, ringOf, slabOf, circleRing, cylinder, insetPlan, onTop, planOutline, lineOnTop, segment, rise, ring, pointsAt, dotGrid, corners, boxCorners, knurl, sideArc, ringSeam, sideSeam, sideRing, coil, topTicks, sideTicks, radialTicks, haloOf, axisVector, translateAlong, holdStill, topMatrix, sideMatrix, screenRise, fitProjection, solidSvg, lineSvg, dotsSvg, fadedSvg, fadeLineSvg, wireSvg, faceTextSvg, groupSvg, figureSvg, plateHtml, pageHtml, ISO_CSS, live, badge };
 })();
