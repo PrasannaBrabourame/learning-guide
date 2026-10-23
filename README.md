@@ -237,6 +237,14 @@ assets/lab.js     Behaviour shared by every lab page, theme toggle,
                   dashboard),
                   tab deep links, the scenario drill, the navigation rail,
                   the labs menu and the track line
+assets/anatomy-kit.js The isometric figure kit (MIT, from the open-source
+                  "anatomy" skill) wrapped in one function, plus a small live
+                  runtime: tour, pointer, keyboard, offscreen stop, reduced
+                  motion. Each lab's Start-here tab carries one figure, a real
+                  machine whose working is the lab's core idea, injected between
+                  anatomy markers; the generators live in the gitignored
+                  .claude/tools/figures, so edit there and re-inject
+assets/anatomy.css The figure styles, light by default and dark with the lab
 assets/illusions.js One optical illusion per topic category, drawn as inline SVG
                   in the family colour, with the line that says why it fits;
                   small on the dashboard tiles, large in the browse view
