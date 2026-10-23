@@ -18474,7 +18474,10 @@
   "backoff": "waiting longer between each retry",
   "trigger": "the thing that starts a function or a workflow: a request, a timer, a message, an event",
   "rate limit": "a cap on how many requests or tasks are allowed per second",
-  "hot key": "one partition key getting far more traffic than the others, so its lane is overloaded"
+  "hot key": "one partition key getting far more traffic than the others, so its lane is overloaded",
+  "Cloud Run": "Google Cloud’s service that runs an app for you and gives it a web address",
+  "workflow": "a chain of steps that runs the same way every time",
+  "JavaScript": "the programming language web pages run"
  },
  "lookalikes": [
   {
