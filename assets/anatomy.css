@@ -117,4 +117,5 @@
 .iso [data-good][data-on] .iso-top,.iso [data-good][data-on] .iso-shade{fill:var(--anatomy-green)}
 .iso [data-lamp] .iso-top,.iso [data-reject] .iso-top,.iso [data-good] .iso-top{transition:fill .25s ease}
 .iso .iso-dark>.iso-top{fill:var(--anatomy-mid)}
+.iso .iso-glass .iso-fill,.iso .iso-glass .iso-top,.iso .iso-glass .iso-shade{fill-opacity:.45}
 .iso .iso-dark>.iso-shade,.iso .iso-dark>.iso-fill{fill:var(--anatomy-lo)}
