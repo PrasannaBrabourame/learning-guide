@@ -52,6 +52,13 @@ hotseat.html      The hot seat: the questions AI engineering and
                   follow-up; an answer grader, an operable RAG pipeline, a
                   cut-the-bill cost meter, a cheaper-better-safer-faster
                   sorter, a model-migration stepper and the drill
+k8s.html          Kubernetes lab: from one Docker server to a fleet that runs
+                  itself (what breaks at 2am, name the part, container or
+                  virtual machine, which line of the recipe, match the job to
+                  the part, size the cluster, read the file, the rolling
+                  update dial, does this need Kubernetes, the bill three ways,
+                  read the symptom, three isometric walkthroughs) and the
+                  scenario drill
 atlas.html        Three-cloud atlas: every AWS, Google Cloud and Azure
                   service (786 as of September 2026) mapped onto 175
                   cross-cloud jobs, each with the three names, plain-English
@@ -261,7 +268,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 381 simulations across the twenty-six labs. Every one carries a
+There are 396 simulations across the twenty-seven labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in

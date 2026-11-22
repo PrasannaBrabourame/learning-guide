@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **26 hands-on labs**, **381 in-browser simulations**,
+topics. **304 topics**, **27 hands-on labs**, **396 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -46,7 +46,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    pairs, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, k8s, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -132,6 +132,11 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
+- **Kubernetes lab.** `k8s.html`: containers against virtual machines, the parts
+  of a cluster added when their problem appears, deploying an app from the
+  recipe to a rollback, when a cluster is worth its cost, and reading the pod
+  states when it breaks. Eleven simulations, three isometric walkthroughs and
+  the drill; step 2 of the cloud track.
 - **Vibe coding lab.** `vibe.html`, built from builder-guide material on
   building apps with Google's AI tools (white-labelled): the six-layer prompt,
   choosing between Stitch, AI Studio and Antigravity, small specific changes,

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kubernetes lab, from one Docker server to a fleet that runs itself</title>
+<link rel="stylesheet" href="assets/lab.css">
+<link rel="stylesheet" href="assets/anatomy.css">
+<link rel="stylesheet" href="assets/walk.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/favicon.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+  /* page-specific: the shared sorter styles from the other labs, the calculators and the YAML block */
+  .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .pill4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+  @media (max-width:760px){.pill4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .pill{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--panel2);font-size:12.5px;line-height:1.5}
+  .pill h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+  .pill small{display:block;color:var(--muted);font-size:11.5px;margin-top:4px}
+  .stmt{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.5;background:var(--panel2)}
+  .stmt code,.yaml{font-family:var(--mono);font-size:11.5px}
+  .yaml{display:block;white-space:pre;border:1px solid var(--line2);border-radius:9px;padding:10px 12px;background:var(--panel2);line-height:1.55;overflow-x:auto;margin-top:8px}
+  .yaml i{font-style:normal;color:var(--accent)} .yaml b{color:var(--amber);font-weight:600} .yaml s{text-decoration:none;color:var(--dim)}
+  .segmented.col{flex-direction:column;align-items:stretch}
+  .segmented.col .seg{text-align:left;font-size:12px;line-height:1.4;white-space:normal}
+  .segmented.col .seg small{display:block;font-family:var(--sans);font-size:11px;color:var(--dim);margin-top:2px}
+  .rv{display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .rv i{font-style:normal;color:var(--dim)}
+  .sl{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:12px;padding:5px 0}
+  .sl label{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .sl input[type=range]{width:100%}
+  .sl output{font-family:var(--mono);font-size:11.5px;text-align:right}
+  .meter{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:8px 0}
+  .meter .big{font-family:var(--display);font-size:30px;letter-spacing:-.02em;line-height:1}
+  .meter .big small{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin-top:4px}
+  .lint{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.45}
+  .lint i{font-style:normal;font-weight:700} .lint.ok i{color:var(--green)} .lint.bad i{color:var(--red)} .lint.warn i{color:var(--amber)} .lint.dim{opacity:.55}
+  .lint small{display:block;color:var(--muted);font-size:11.5px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .tbl th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2)}
+  .tbl td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .tbl td:first-child{font-weight:600}
+  .tblwrap{overflow-x:auto}
+  .pods{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+  .pods i{display:inline-block;width:18px;height:18px;border-radius:5px;border:1px solid var(--line2);background:var(--panel2)}
+  .pods i.on{background:var(--green);border-color:var(--green)} .pods i.new{background:var(--accent);border-color:var(--accent)} .pods i.off{background:var(--red);border-color:var(--red);opacity:.6} .pods i.wait{background:var(--amber);border-color:var(--amber)}
+  .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  .mini{font-family:var(--mono);font-size:11px;color:var(--muted)}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <header>
+    <nav class="topnav" aria-label="Lab navigation">
+      <a class="tn" href="index.html">&larr; guide</a>
+      <a class="tn tn-accent" href="index.html#lab=k8s">&#9636; related topics</a>
+      <span class="labwrap" id="labsWrap"><button class="tn" id="labsBtn" type="button"
+        aria-expanded="false" aria-haspopup="true">&#8862; all labs</button></span>
+      <span class="tnspace"></span>
+      <a class="tn tn-quiet" href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame &#8599;</a>
+      <button class="tn tn-quiet" id="themeBtn" type="button" title="Toggle light / dark">&#127769; theme</button>
+      <button class="tn tn-quiet" id="findBtn" type="button" title="Find a section on this page">&#8981; find</button>
+    </nav>
+    <div class="eyebrow">containers &middot; the cluster &middot; deploy an app &middot; when it is worth it &middot; when it breaks</div>
+    <h1>Kubernetes: <span class="thin">from one Docker server to a fleet that runs itself</span></h1>
+    <p class="track" id="trackLine"></p>
+    <p class="sub">A container is your app packed in a box with everything it needs. Docker runs that box on one computer. Kubernetes runs hundreds of boxes across many computers and keeps them running: it restarts the ones that die, adds more when the queue grows, swaps in a new version without anyone noticing, and finds a new home for everything when a computer fails. This lab starts with one server at 2am, builds the cluster up one part at a time, deploys a real app through it, and is honest about when you do not need any of it.</p>
+    <div class="note" style="margin-top:14px"><b>Neighbours.</b> The network a cluster lives in, VPCs, subnets and load balancers, is built from nothing in the <a href="cloud.html#pane-vpcd">cloud lab</a>. The three clouds each sell a managed Kubernetes, which the <a href="atlas.html">atlas</a> lines up. Serving a model on a cluster is the <a href="fleet.html">fleet lab</a>.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="kstart" role="tab">Start here</button>
+    <button class="tab" data-pane="kbox" role="tab">Containers first</button>
+    <button class="tab" data-pane="kparts" role="tab">The parts</button>
+    <button class="tab" data-pane="kdeploy" role="tab">Deploy an app</button>
+    <button class="tab" data-pane="kwhen" role="tab">When it is worth it</button>
+    <button class="tab" data-pane="kwrong" role="tab">When it breaks</button>
+    <button class="tab" data-pane="kexam" role="tab">Exam angle</button>
+  </div>
+
+  <!-- ================= 1 · START HERE ================= -->
+  <section class="pane on" id="pane-kstart">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">One server at 2am, then a fleet that looks after itself</h2>
+      <div class="plain-line"><b>In plain English:</b> with one Docker server, your app runs in a box on one computer. If the box crashes, someone restarts it. If the computer fails, the site is down until someone builds another. If Monday brings ten times the traffic, someone adds boxes by hand. Kubernetes is the manager that does all of that for you: you tell it &ldquo;keep three copies of this box running&rdquo; and it keeps three running, on whichever computers have room, whatever happens.</div>
+      <div class="plain-line" style="margin-top:8px"><b>The analogy for the whole lab.</b> Docker is a shipping container: standard box, fits any ship, any crane. Kubernetes is the port. The port does not care what is in the boxes; it decides which ship each box goes on, moves boxes off a ship that is sinking, and brings in more ships when the queue of boxes grows. You still pack the boxes.</div>
+      <div class="pill4">
+        <div class="pill"><h4>Containers</h4>What a container is, how it differs from a whole virtual computer, and what the box is made of.<small>Containers first.</small></div>
+        <div class="pill"><h4>The parts</h4>Cluster, nodes, pods, deployments, services, ingress, config, namespaces: each one added when the problem it solves appears.<small>The parts.</small></div>
+        <div class="pill"><h4>Deploy</h4>Pack an app, push it to a registry, describe what you want in a file, apply it, scale it, update it, roll it back.<small>Deploy an app.</small></div>
+        <div class="pill"><h4>Judgement</h4>When a cluster is worth its cost, when a simpler service is the right answer, and how to read it when it breaks.<small>When it is worth it, When it breaks, Exam angle.</small></div>
+      </div>
+    </div>
+
+    <!-- walk:start -->
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Walk it through: One Docker server at 2am, then a cluster that looks after itself</h2>
+      <div class="plain-line"><b>In plain English:</b> your app runs in a container on one server. It works until the container crashes, the server dies, or Monday brings ten times the traffic, and each of those is a person out of bed. Kubernetes is the manager that takes those jobs: you tell it "keep three copies running" and it keeps three running, on whichever computers have room, whatever happens. This walk runs the same container both ways.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>One shopkeeper who does everything, against a shopping centre with a management company. The management company reopens a flooded unit, finds a new unit when one burns down, and opens more tills on a busy Saturday. The shopkeeper still decides what to sell.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>Press Next to watch one server fail three ways, then hand the same container to a cluster. Arrow keys work too.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>container</b> your app packed in a box with everything it needs to run, so it runs the same on any computer</span><span class="sp-w"><b>Docker</b> the tool that builds and runs containers on one computer</span><span class="sp-w"><b>Kubernetes</b> the manager that runs many containers across many computers and keeps the number you asked for running</span><span class="sp-w"><b>cluster</b> the group of computers Kubernetes manages as one</span><span class="sp-w"><b>node</b> one computer in the cluster</span><span class="sp-w"><b>control plane</b> the brain of the cluster: it keeps the list of what you asked for and makes the nodes match it</span><span class="sp-w"><b>replica</b> one running copy of your app; the file calls copies replicas</span><span class="sp-w"><b>autoscaler</b> the part that adds and removes copies, or nodes, as the load changes</span><span class="sp-w"><b>rolling update</b> replacing old copies with new ones a few at a time, so the app never goes fully down</span></span></div></div>
+      <div class="walk" data-walk="k8s" tabindex="0" aria-label="A step-by-step walkthrough, 9 steps: Start with your app in a container on one server, watch what wakes you up, then hand the same container to a cluster and see it restart, re-place, scale and update the app without you."></div>
+    </div>
+    <!-- walk:end -->
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: what breaks at 2am</h2>
+      <div class="plain-line"><b>Try this:</b> ten things that happen to a running app. For each, decide whether a single Docker server leaves it to a person, whether Kubernetes handles it on its own, or whether it is still your problem either way. The third pile is the one people forget exists.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>One shopkeeper versus a shopping centre with a management company. The management company reopens a flooded unit, finds a new unit when one burns down, and opens more tills on a busy Saturday. It still cannot fix a product nobody wants to buy.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the situation, decide who deals with it, then read why.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>container</b> your app packed in a box with everything it needs to run, so it runs the same on any computer</span><span class="sp-w"><b>Docker</b> the tool that builds and runs containers on one computer</span><span class="sp-w"><b>Kubernetes</b> the manager that runs many containers across many computers and keeps the number you asked for running</span><span class="sp-w"><b>cluster</b> the group of computers Kubernetes manages as one</span><span class="sp-w"><b>node</b> one computer in the cluster</span><span class="sp-w"><b>replica</b> one running copy of your app; the file calls copies replicas</span><span class="sp-w"><b>autoscaler</b> the part that adds and removes copies, or nodes, as the load changes</span><span class="sp-w"><b>dependencies</b> the other systems your app needs to work, such as its database</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="bkOut"></div></div>
+        <div><div id="bkCtl"></div><div id="bkNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: name the part</h2>
+      <div class="plain-line"><b>Try this:</b> six words carry most conversations about Kubernetes. Each situation below is one of them doing its job. Name it, then read why. By the end the words should feel like things you have seen move, not vocabulary.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Learning the parts of a port by watching one afternoon of work: the harbour master, the ships, the containers, the orders on the board, the one gate lorries use.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the situation, guess the word, and only then look at the six choices.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>pod</b> the smallest thing Kubernetes runs: one or a few containers that share a box and an address, started and stopped together</span><span class="sp-w"><b>node</b> one computer in the cluster; pods run on nodes</span><span class="sp-w"><b>cluster</b> the group of computers Kubernetes manages as one</span><span class="sp-w"><b>control plane</b> the brain of the cluster: it keeps the list of what you asked for and makes the nodes match it</span><span class="sp-w"><b>deployment</b> your written wish: this image, this many copies, updated this way; Kubernetes keeps the pods matching it</span><span class="sp-w"><b>service</b> one steady address in front of a set of pods, so callers never need to know which pod answered</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="npOut"></div></div>
+        <div><div id="npCtl"></div><div id="npNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 · CONTAINERS FIRST ================= -->
+  <section class="pane" id="pane-kbox">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">The box: what a container actually is</h2>
+      <div class="plain-line"><b>In plain English:</b> &ldquo;it works on my machine&rdquo; is the oldest excuse in software. A container ends it. You write a short recipe, a Dockerfile, that says which base to start from, which files to copy in, what to install and what command to run. Docker bakes that into an image: a frozen, complete copy of your app and everything it needs. Anyone who runs the image gets exactly your app, on their laptop, on a server, in a cluster. A running image is a container.</div>
+      <div class="plain-line" style="margin-top:8px"><b>Not a virtual machine.</b> A virtual machine is a whole pretend computer with its own operating system: gigabytes, minutes to start. A container shares the computer&rsquo;s operating system and only packs your app and its libraries: megabytes, a second to start. That is why you can run fifty containers where you could run five virtual machines, and why a cluster can start and stop them all day.</div>
+      <div class="grid2">
+        <div class="stmt"><b>The recipe</b><span class="yaml"><i>FROM</i> python:3.12-slim
+<i>COPY</i> . /app
+<i>RUN</i> pip install -r /app/requirements.txt
+<i>EXPOSE</i> 8080
+<i>CMD</i> ["python", "/app/server.py"]</span><span class="mini">five lines: start from, copy in, install, which door, what to run</span></div>
+        <div class="stmt"><b>The three words</b><br>An <b>image</b> is the baked, unchanging copy. A <b>container</b> is that image running. A <b>registry</b> is the shelf images are pushed to and pulled from, so a cluster on the other side of the world can fetch exactly the one you built.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: container or virtual machine?</h2>
+      <div class="plain-line"><b>Try this:</b> ten statements. Decide whether each is true of a container, of a virtual machine, or of both. Two of them catch almost everyone, because the box and the pretend computer are easy to confuse until you have paid for both.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A lunchbox against a whole kitchen. The lunchbox holds one meal and goes anywhere; the kitchen can cook anything but you cannot carry it. Both keep your food away from other people&rsquo;s.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the statement, pick, read why; the first wrong answer teaches more than the right ones.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>virtual machine</b> a whole pretend computer, with its own operating system, running inside a real one</span><span class="sp-w"><b>image</b> the baked, unchanging copy of an app and everything it needs; a container is an image running</span><span class="sp-w"><b>kernel</b> the core of the operating system that talks to the hardware; containers on one computer all share it</span><span class="sp-w"><b>isolation</b> keeping one running thing from seeing or disturbing another on the same computer</span><span class="sp-w"><b>Dockerfile</b> the short recipe Docker follows to build an image, one instruction per line</span><span class="sp-w"><b>Kubernetes</b> the manager that runs many containers across many computers and keeps the number you asked for running</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="cvOut"></div></div>
+        <div><div id="cvCtl"></div><div id="cvNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: which line of the recipe does this?</h2>
+      <div class="plain-line"><b>Try this:</b> a Dockerfile is five kinds of line. Each description below is one of them at work. Pick the line. If you can read a Dockerfile you can read nearly every image on the internet, because they are all the same five moves.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A recipe card: start with this base, add these ingredients, do this to them, serve through this hatch, and here is how to cook it when ordered.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the description, pick the line, read why.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>Dockerfile</b> the short recipe Docker follows to build an image, one instruction per line</span><span class="sp-w"><b>base image</b> the ready-made image your recipe starts from, such as a slim Linux with a language already installed</span><span class="sp-w"><b>layer</b> what each recipe line adds on top of the one before; unchanged layers are reused, so rebuilds are fast</span><span class="sp-w"><b>port</b> a numbered door on a server; the recipe says which door the app listens on</span><span class="sp-w"><b>dependencies</b> the other people&rsquo;s code your app needs installed before it can run</span><span class="sp-w"><b>CMD</b> the recipe line that names the program to start when the container runs</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="dfOut"></div></div>
+        <div><div id="dfCtl"></div><div id="dfNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 3 · THE PARTS ================= -->
+  <section class="pane" id="pane-kparts">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">The parts, each one added when its problem appears</h2>
+      <div class="plain-line"><b>In plain English:</b> nobody learns Kubernetes by reading the list of parts. You learn it by meeting each problem: the box died, the computer died, the address kept changing, the settings were baked into the image, two teams trod on each other. Each part below exists to answer one of those. The walk on this tab adds them in that order; the table is for afterwards.</div>
+      <div class="tblwrap"><table class="tbl">
+        <tr><th>Part</th><th>The problem it solves</th><th>In the port</th></tr>
+        <tr><td>Pod</td><td>A container needs an address and a place to run; a pod is the smallest thing the cluster schedules, usually one container.</td><td>One shipping box, with a slot number.</td></tr>
+        <tr><td>Node</td><td>Pods need a computer to run on. The cluster is a group of nodes; add nodes for room.</td><td>One ship.</td></tr>
+        <tr><td>Control plane</td><td>Someone must keep the list of what you asked for and make the nodes match it, all day, without you.</td><td>The harbour master&rsquo;s office.</td></tr>
+        <tr><td>Deployment</td><td>You want three copies, replaced one at a time on update, restarted when they die. A deployment is that wish, written down.</td><td>The standing order on the board.</td></tr>
+        <tr><td>Service</td><td>Pods come and go and their addresses change. A service is one steady address in front of whichever pods are alive.</td><td>One phone number for the whole warehouse.</td></tr>
+        <tr><td>Ingress</td><td>The outside world needs one door, with a certificate, routing by site name and path to the right service.</td><td>The one gate lorries come through.</td></tr>
+        <tr><td>Config map and secret</td><td>Settings and passwords must not be baked into the image. They are handed to the pod when it starts; secrets are kept apart.</td><td>The envelope taped to the box.</td></tr>
+        <tr><td>Namespace</td><td>Two teams on one cluster need their own rooms, with their own limits, so they cannot tread on each other.</td><td>A zone of the port per customer.</td></tr>
+        <tr><td>Persistent volume</td><td>A pod&rsquo;s disk vanishes when the pod does. Data that must survive lives on a volume that outlives any pod.</td><td>The bonded warehouse.</td></tr>
+        <tr><td>Autoscaler</td><td>Traffic rises and falls. The autoscaler adds and removes copies, and the cluster adds and removes nodes, by the numbers.</td><td>Calling in more cranes on a busy day.</td></tr>
+      </table></div>
+    </div>
+
+    <!-- walk:start k8s-parts -->
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Walk it through: The parts of a cluster, each added when its problem appears</h2>
+      <div class="plain-line"><b>In plain English:</b> nobody learns the parts of Kubernetes from the list. You learn them by meeting the problem each one solves. A pod is the box; a node is where it runs; a deployment is your written wish. Then: the pod's address changed, so you add a service. The internet needs a door, so you add an ingress. The password was baked into the image, so you add a secret. The disk vanished with the pod, so you add a volume. Two teams collided, so you add namespaces.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Setting up a market. First a stall. Then a sign, because the stall moves. Then one gate for the public. Then a locked cash box instead of money in the goods. Then a storeroom that is not the stall. Then rows, so two traders do not share a pitch.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>Press Next to meet each problem and the part that answers it. Arrow keys work too.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>control plane</b> the brain of the cluster: it keeps the list of what you asked for and makes the nodes match it</span><span class="sp-w"><b>pod</b> the smallest thing Kubernetes runs: one or a few containers that share a box and an address, started and stopped together</span><span class="sp-w"><b>deployment</b> your written wish: this image, this many copies, updated this way; Kubernetes keeps the pods matching it</span><span class="sp-w"><b>service</b> one steady address in front of a set of pods, so callers never need to know which pod answered</span><span class="sp-w"><b>label</b> a name tag on a pod; a service sends traffic to pods whose tags match its selector</span><span class="sp-w"><b>ingress</b> the one door from the internet into the cluster, routing by site name and path to the right service, usually holding the certificate</span><span class="sp-w"><b>config map</b> settings handed to a pod when it starts, kept outside the image so the same image runs in test and in production</span><span class="sp-w"><b>secret</b> a password or key handed to a pod the same way, but stored and shown more carefully</span><span class="sp-w"><b>persistent volume</b> storage that outlives any pod, for data that must survive a restart</span><span class="sp-w"><b>namespace</b> a named room inside one cluster, with its own limits, so teams do not tread on each other</span></span></div></div>
+      <div class="walk" data-walk="k8s-parts" tabindex="0" aria-label="A step-by-step walkthrough, 8 steps: Start with one pod on one node and meet the problems in order: the address keeps changing, the outside world needs a door, settings are baked in, data vanishes, two teams collide. Each part is added when its problem shows up."></div>
+    </div>
+    <!-- walk:end k8s-parts -->
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: match the job to the part</h2>
+      <div class="plain-line"><b>Try this:</b> eight jobs a running app needs done. For each, pick the part of the cluster that does it. These are the parts the first tab did not cover; together with those six they are the whole working vocabulary.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Knowing which desk to go to in a large office: the post room, the keys cupboard, the room booking system. Each has one job, and the fastest way to learn them is to need each one once.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the job, pick the part, read why.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>ingress</b> the one door from the internet into the cluster, routing by site name and path to the right service, usually holding the certificate</span><span class="sp-w"><b>config map</b> settings handed to a pod when it starts, kept outside the image so the same image runs in test and in production</span><span class="sp-w"><b>secret</b> a password or key handed to a pod the same way, but stored and shown more carefully</span><span class="sp-w"><b>namespace</b> a named room inside one cluster, with its own limits, so teams do not tread on each other</span><span class="sp-w"><b>persistent volume</b> storage that outlives any pod, for data that must survive a restart</span><span class="sp-w"><b>autoscaler</b> the part that adds and removes copies, or nodes, as the load changes</span><span class="sp-w"><b>readiness check</b> a small test the cluster runs on a pod to decide whether to send it traffic yet</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="mpOut"></div></div>
+        <div><div id="mpCtl"></div><div id="mpNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: size the cluster</h2>
+      <div class="plain-line"><b>Try this:</b> how many computers does a cluster need? Set how many apps you run, how many copies of each, and how much processor and memory one copy needs. The sim packs the copies onto nodes of the size you choose, then adds the room you need so that one node can fail without anything being thrown off.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Loading boxes onto lorries. Each box has a size, each lorry a capacity, and the fleet needs one spare lorry&rsquo;s worth of room, because one lorry is always in the garage.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drag the copies-per-app slider up and watch the node count step; then try bigger nodes and see why fewer, larger nodes waste less.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>CPU</b> the computer&rsquo;s processor; a cluster shares it out in fractions, so a small app can ask for a quarter of one</span><span class="sp-w"><b>memory</b> the working space an app needs while it runs, measured in gigabytes; run out and the pod is killed</span><span class="sp-w"><b>request</b> what a pod says it needs; the cluster only places a pod on a node with that much free</span><span class="sp-w"><b>headroom</b> the spare room you keep so that when a node fails its pods can land elsewhere</span><span class="sp-w"><b>bin packing</b> fitting pods of different sizes onto nodes with as little waste as possible</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="szOut"></div></div>
+        <div><div id="szCtl"></div><div id="szNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 4 · DEPLOY AN APP ================= -->
+  <section class="pane" id="pane-kdeploy">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Deploying an app: say what you want, not what to do</h2>
+      <div class="plain-line"><b>In plain English:</b> with a plain server you tell it what to do, step by step: copy the files, start the process, start it again. With Kubernetes you write down what you want, in a file: this image, three copies, replace them one at a time, send traffic on this port. You hand the file over with one command, and from then on the cluster keeps the world matching the file. Change the file, apply it again, and the cluster works out the steps. That one idea is why a deployment that took an afternoon of typing becomes a change to a line.</div>
+      <div class="grid2">
+        <div class="stmt"><b>The file, the part that matters</b><span class="yaml"><s>kind:</s> <i>Deployment</i>
+<s>metadata:</s>
+  <s>name:</s> shop
+<s>spec:</s>
+  <s>replicas:</s> <b>3</b>
+  <s>template:</s>
+    <s>spec:</s>
+      <s>containers:</s>
+      - <s>name:</s> shop
+        <s>image:</s> <b>registry.example/shop:1.4</b>
+        <s>ports:</s>
+        - <s>containerPort:</s> 8080</span><span class="mini">three copies of image 1.4, listening on 8080; change 3 to 10 to scale, 1.4 to 1.5 to update</span></div>
+        <div class="stmt"><b>The four commands you actually run</b><br><code>kubectl apply -f shop.yaml</code> hands the file over.<br><code>kubectl get pods</code> shows what is running and its state.<br><code>kubectl logs shop-7d9f-x2k</code> reads one pod&rsquo;s output.<br><code>kubectl rollout undo deployment/shop</code> puts the last version back.<br><span class="mini">everything else is a variation on these four</span></div>
+      </div>
+    </div>
+
+    <!-- walk:start k8s-deploy -->
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Walk it through: Deploy an app: from the recipe to the rollback</h2>
+      <div class="plain-line"><b>In plain English:</b> deploying to a cluster is not a list of commands to run on a server. It is: bake the app into an image, put the image on a shelf the cluster can reach, write what you want in a file (which image, how many copies, which door), and hand the file over with one command. The cluster works out the steps. Scaling is a number in the file. An update is a version in the file. A rollback is one command.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Ordering from a catalogue instead of building furniture yourself. You write the order: this item, three of them, deliver to this door. The warehouse works out the picking, packing and vans. Change the order and they work out the difference.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>Press Next to take one app from a Dockerfile to a rollback. Arrow keys work too.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>control plane</b> the brain of the cluster: it keeps the list of what you asked for and makes the nodes match it</span><span class="sp-w"><b>Dockerfile</b> the short recipe Docker follows to build an image, one instruction per line</span><span class="sp-w"><b>autoscaler</b> the part that adds and removes copies, or nodes, as the load changes</span><span class="sp-w"><b>image</b> the baked, unchanging copy of an app and everything it needs; a container is an image running</span><span class="sp-w"><b>registry</b> the shelf images are pushed to and pulled from, so any node can fetch exactly the one you built</span><span class="sp-w"><b>YAML</b> the plain-text format the files are written in: names, colons and indentation instead of brackets</span><span class="sp-w"><b>kubectl</b> the command-line tool you talk to the cluster with: apply a file, list pods, read logs</span><span class="sp-w"><b>replicas</b> how many copies of the pod you want running at once</span><span class="sp-w"><b>image tag</b> the version label after the colon in an image name, such as shop:1.4</span><span class="sp-w"><b>readiness check</b> a small test the cluster runs on a pod to decide whether to send it traffic yet</span><span class="sp-w"><b>rolling update</b> replacing old copies with new ones a few at a time, so the app never goes fully down</span><span class="sp-w"><b>rollback</b> putting the previous version back with one command, because the cluster kept it</span></span></div></div>
+      <div class="walk" data-walk="k8s-deploy" tabindex="0" aria-label="A step-by-step walkthrough, 9 steps: Pack the app into an image, push it to a registry, write down what you want in one file, hand it to the cluster, open the door, scale it, update it, and put the old version back when the new one is bad."></div>
+    </div>
+    <!-- walk:end k8s-deploy -->
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: read the file</h2>
+      <div class="plain-line"><b>Try this:</b> nine things you might want to change about a running app. For each, pick the line of the file you would edit. The file above is the whole answer sheet; the skill is knowing which line means what, because that is what you will be staring at when it is broken.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A standing order with a supplier: which product, how many, how to swap to the new model, which door to deliver to. Change the order, not the warehouse.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the wish, find the line in the file above, pick it, read why.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>YAML</b> the plain-text format the files are written in: names, colons and indentation instead of brackets</span><span class="sp-w"><b>kubectl</b> the command-line tool you talk to the cluster with: apply a file, list pods, read logs</span><span class="sp-w"><b>replicas</b> how many copies of the pod you want running at once</span><span class="sp-w"><b>image tag</b> the version label after the colon in an image name, such as shop:1.4</span><span class="sp-w"><b>rolling update</b> replacing old copies with new ones a few at a time, so the app never goes fully down</span><span class="sp-w"><b>rollback</b> putting the previous version back with one command, because the cluster kept it</span><span class="sp-w"><b>resource limit</b> the most processor and memory a pod may use; above the memory limit it is killed</span><span class="sp-w"><b>config map</b> settings handed to a pod when it starts, kept outside the image</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="rfOut"></div></div>
+        <div><div id="rfCtl"></div><div id="rfNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: the rolling update dial</h2>
+      <div class="plain-line"><b>Try this:</b> a new version is going out. Set how many copies run, how many extra the cluster may start during the swap, how many may be missing at once, and how long one new copy takes to become ready. Watch the copies change over and read the lowest capacity you hit and how long it takes. The two dials pull against each other, and this is where you feel it.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Changing the tyres on a moving bus. Four at once stops the bus. One at a time takes four times as long but the bus keeps rolling. A spare wheel on the roof lets you fit the new one before taking the old one off.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>run the update</b> with the defaults, then set &ldquo;may be missing&rdquo; to 0 and the extra to 0 and see why that cannot move at all.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>max surge</b> how many extra copies above the target the cluster may start during an update</span><span class="sp-w"><b>max unavailable</b> how many copies below the target the cluster may go during an update</span><span class="sp-w"><b>readiness check</b> a small test the cluster runs on a pod to decide whether to send it traffic yet</span><span class="sp-w"><b>capacity</b> how many working copies are taking traffic at a given moment</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="ruOut"></div></div>
+        <div><div id="ruCtl"></div><div id="ruNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 5 · WHEN IT IS WORTH IT ================= -->
+  <section class="pane" id="pane-kwhen">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">When a cluster earns its keep, and when it does not</h2>
+      <div class="plain-line"><b>In plain English:</b> Kubernetes is a port. A port is the right answer for a shipping company and the wrong answer for one person with one van. Between the two sits a third option most people skip: a managed container service, where you hand the cloud one image and it runs copies for you with no cluster to look after. The honest ladder has three rungs. One server while you can. A managed container service when you need copies and updates without ops. A cluster when you run many apps, need fine control over how they are placed and networked, or must run the same thing on more than one cloud.</div>
+      <div class="tblwrap"><table class="tbl">
+        <tr><th>Option</th><th>You look after</th><th>Good for</th><th>Wrong for</th></tr>
+        <tr><td>One server with Docker</td><td>Everything: restarts, updates, the machine</td><td>A side project, an internal tool for ten people, the first month of anything</td><td>Anything that must stay up when the machine does not</td></tr>
+        <tr><td>Managed container service</td><td>The image and a few settings</td><td>Web apps and services that need copies, updates and scaling without a team to run them</td><td>Odd networking, many apps that must talk privately, running on several clouds</td></tr>
+        <tr><td>Kubernetes cluster</td><td>The deployments, the cluster upgrades, the add-ons</td><td>Many apps on shared machines, fine control, one way of working across clouds and on-premise</td><td>One small app, a team with nobody to run it, a deadline this week</td></tr>
+      </table></div>
+      <div class="plain-line" style="margin-top:10px"><b>The three clouds.</b> Each sells a managed cluster where the control plane is run for you: GKE on Google Cloud, EKS on AWS, AKS on Azure. The nodes, the deployments and the upgrades are still yours. Each also sells the simpler managed container service: Cloud Run, Fargate with ECS, and Container Apps. Start there unless you can name the reason not to.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: does this need Kubernetes?</h2>
+      <div class="plain-line"><b>Try this:</b> ten jobs somebody might ask you to run. For each, pick the lowest rung of the ladder that does the job: one server, a managed container service, or a cluster. Reaching too high costs money and a team; reaching too low costs a weekend at 2am.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Choosing between a van, a courier contract and your own fleet depot. The depot is only right once you have enough vans to fill it.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read the job, pick the lowest rung that works, read why.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>managed container service</b> a cloud service that takes one image and runs copies of it for you, with scaling and updates, and no cluster to run</span><span class="sp-w"><b>on-premise</b> on computers in your own building rather than a cloud</span><span class="sp-w"><b>Kubernetes</b> the manager that runs many containers across many computers and keeps the number you asked for running</span><span class="sp-w"><b>managed service</b> one the cloud provider runs, patches and gets paged for</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="nkOut"></div></div>
+        <div><div id="nkCtl"></div><div id="nkNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: the bill, three ways</h2>
+      <div class="plain-line"><b>Try this:</b> the same app, costed on one server, on a managed container service and on a small cluster, as the traffic grows. The numbers are illustrative; the shape is real. A cluster has a fixed floor you pay even when nobody visits, and only wins once you have enough apps to share it.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A van you own, a courier you pay per parcel, and a depot with a rent. The courier wins at low volume, the depot wins once it is busy all day, and the van is cheapest right up until it breaks down.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>drag the traffic slider from quiet to busy and watch which line is lowest; then add apps and watch the cluster&rsquo;s floor get shared.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>fixed cost</b> what you pay every month whether or not anyone uses the app</span><span class="sp-w"><b>per request</b> paying only for the work actually done, so a quiet month is nearly free</span><span class="sp-w"><b>control plane fee</b> what a cloud charges per month to run a managed cluster&rsquo;s brain, before any nodes</span><span class="sp-w"><b>Kubernetes</b> the manager that runs many containers across many computers and keeps the number you asked for running</span><span class="sp-w"><b>managed container service</b> a cloud service that takes one image and runs copies of it for you, with scaling and updates, and no cluster to run</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="blOut"></div></div>
+        <div><div id="blCtl"></div><div id="blNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6 · WHEN IT BREAKS ================= -->
+  <section class="pane" id="pane-kwrong">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Reading the cluster when something is wrong</h2>
+      <div class="plain-line"><b>In plain English:</b> a cluster rarely tells you &ldquo;it is broken&rdquo;. It tells you a pod&rsquo;s state in one word, and each word points at one cause. <b>Pending</b> means no node had room, or the image is still coming. <b>ImagePullBackOff</b> means it could not fetch the image: a wrong name, a wrong tag, or no permission. <b>CrashLoopBackOff</b> means the app starts and dies, over and over, and the answer is in its logs. <b>OOMKilled</b> means it used more memory than its limit and was killed. <b>Running but no traffic</b> usually means the readiness check is failing or the service&rsquo;s label does not match the pod&rsquo;s.</div>
+      <div class="grid2">
+        <div class="stmt"><b>The order to look</b><br>1. <code>kubectl get pods</code>: which word?<br>2. <code>kubectl describe pod</code>: the events at the bottom say why.<br>3. <code>kubectl logs</code>: what the app itself said.<br>4. <code>kubectl rollout undo</code>: if it started with the last change, put it back first and think second.</div>
+        <div class="stmt"><b>The two checks that keep it honest</b><br>A <b>readiness check</b> asks &ldquo;may I send you traffic?&rdquo; and holds traffic back until the answer is yes. A <b>liveness check</b> asks &ldquo;are you still alive?&rdquo; and restarts the pod when the answer is no. Get them backwards and a slow start becomes a restart loop.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec">Try it: read the symptom</h2>
+      <div class="plain-line"><b>Try this:</b> ten things the cluster showed you. For each, pick the cause. These are not trick questions: each state word maps to one or two causes, and knowing the map is most of what on-call is.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>A car dashboard. Each warning light means one thing, and the mechanic who knows the lights fixes the car in a tenth of the time of the one who opens the bonnet first.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>read what the cluster showed, pick the cause, read why.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>Pending</b> the pod has been asked for but has nowhere to run yet: no node has room, or something it needs is missing</span><span class="sp-w"><b>ImagePullBackOff</b> the node could not fetch the image from the registry, and is backing off before trying again</span><span class="sp-w"><b>CrashLoopBackOff</b> the app starts, dies, and is restarted with a growing pause between tries</span><span class="sp-w"><b>OOMKilled</b> killed for using more memory than its limit (out of memory)</span><span class="sp-w"><b>liveness check</b> a small test that decides whether a pod is alive; fail it and the pod is restarted</span><span class="sp-w"><b>readiness check</b> a small test the cluster runs on a pod to decide whether to send it traffic yet</span><span class="sp-w"><b>label</b> a name tag on a pod; a service sends traffic to pods whose tags match its selector</span><span class="sp-w"><b>events</b> the cluster&rsquo;s own log of what it tried to do to a pod and what happened, shown by describe</span><span class="sp-w"><b>kubectl</b> the command-line tool you talk to the cluster with: list pods, describe one, read logs</span></span></div></div>
+      <div class="sim-layout">
+        <div><div id="syOut"></div></div>
+        <div><div id="syCtl"></div><div id="syNote" class="cidr-out" style="margin-top:12px"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 7 · EXAM ANGLE ================= -->
+  <section class="pane" id="pane-kexam">
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="sec">Try it: the scenario drill</h2>
+      <div class="plain-line"><b>Try this:</b> the questions below, shuffled, with the wrong answers taken from other questions on this page so they are plausible by construction.</div>
+      <div class="simplain"><div class="sp-row"><span class="sp-k">in real life</span><span>Flashcards: a question on one side, the answer on the other, and the wrong choices borrowed from neighbouring cards. The list underneath is the revision guide. Read it after the drill, not before, or you only recognise the answers instead of producing them.</span></div><div class="sp-row"><span class="sp-k">start by</span><span>press <b>next scenario</b> before reading the list below.</span></div><div class="sp-row"><span class="sp-k">words here</span><span class="sp-words"><span class="sp-w"><b>scenario</b> a short situation, the way a colleague or a panel would put it</span><span class="sp-w"><b>distractor</b> a wrong answer that is plausible because it is the right answer to a different question</span></span></div></div>
+      <div id="drillHost"></div>
+    </div>
+    <div class="card">
+      <h2 class="sec">When someone asks&hellip; the short answer</h2>
+      <div class="plain-line"><b>In plain English:</b> each line is a question as a colleague, a client or an interview panel would put it, then the answer that shows you have done it, then why the usual answer falls short.</div>
+      <div class="exam-line"><b>&ldquo;What is Kubernetes, in one sentence?&rdquo;</b> &rarr; A manager that runs containers across many computers and keeps the number you asked for running: restarting, replacing, scaling and updating them without a person. Docker makes the boxes; Kubernetes runs the port.</div>
+      <div class="exam-line"><b>&ldquo;How is it different from running Docker on a server?&rdquo;</b> &rarr; Docker runs a container on one machine and stops there. Kubernetes places containers across a cluster, restarts them when they die, moves them when a machine fails, scales them with load and rolls out new versions without downtime. Same box, with a port around it.</div>
+      <div class="exam-line"><b>&ldquo;Container or virtual machine?&rdquo;</b> &rarr; A container shares the computer&rsquo;s operating system and packs only the app: megabytes, starts in a second. A virtual machine is a whole pretend computer: gigabytes, starts in minutes. Containers give density and speed; virtual machines give stronger isolation.</div>
+      <div class="exam-line"><b>&ldquo;What is a pod?&rdquo;</b> &rarr; The smallest thing the cluster runs: one container, or a few that must share an address and a box. You rarely make pods by hand; a deployment makes and replaces them for you.</div>
+      <div class="exam-line"><b>&ldquo;What does a deployment do?&rdquo;</b> &rarr; It is your wish written down: this image, this many copies, updated this way. The cluster keeps reality matching it, and keeps the previous version so you can roll back with one command.</div>
+      <div class="exam-line"><b>&ldquo;Why do I need a service if the pods have addresses?&rdquo;</b> &rarr; Pod addresses change every time a pod is replaced. A service is one steady address in front of whichever pods are alive, found by their labels. Callers talk to the service and never learn a pod&rsquo;s address.</div>
+      <div class="exam-line"><b>&ldquo;How does the outside world reach the app?&rdquo;</b> &rarr; Through an ingress: one door into the cluster that holds the certificate and routes by site name and path to the right service. Behind it, a load balancer from the cloud takes the traffic to the nodes.</div>
+      <div class="exam-line"><b>&ldquo;How do I deploy a new version?&rdquo;</b> &rarr; Change the image tag in the file and apply it. The cluster replaces copies a few at a time, waiting for each new one to pass its readiness check, so the app never goes fully down. If it goes wrong, rollout undo.</div>
+      <div class="exam-line"><b>&ldquo;Where do passwords and settings go?&rdquo;</b> &rarr; Not in the image. Settings go in a config map and passwords in a secret, both handed to the pod when it starts, so one image runs in test and production with different envelopes.</div>
+      <div class="exam-line"><b>&ldquo;A pod says CrashLoopBackOff. What first?&rdquo;</b> &rarr; Read its logs. The app is starting and dying; the reason is nearly always in what it printed before it died, such as a missing setting or an unreachable database.</div>
+      <div class="exam-line"><b>&ldquo;A pod says Pending for ten minutes.&rdquo;</b> &rarr; Nothing had room for it. Describe the pod and read the events: not enough processor or memory on any node, or a volume that cannot be attached. Add a node or lower the request.</div>
+      <div class="exam-line"><b>&ldquo;When should we not use Kubernetes?&rdquo;</b> &rarr; One small app, nobody to run the cluster, or a deadline this week. Use a managed container service that takes one image and runs copies for you. A cluster earns its keep when many apps share it or you need fine control.</div>
+      <div class="exam-line"><b>&ldquo;What does the cloud run for us in a managed cluster?&rdquo;</b> &rarr; The control plane: the brain that stores your wishes and schedules pods. You still own the nodes, the deployments, the upgrades and the add-ons. Managed is not the same as serverless.</div>
+      <div class="exam-line"><b>&ldquo;How many nodes do we need?&rdquo;</b> &rarr; Add up what every copy requests, pack it onto nodes, then keep one node&rsquo;s worth of headroom so a node can fail without pods being thrown off. Fewer, larger nodes waste less; more, smaller nodes lose less when one dies.</div>
+      <div class="plain-line" style="margin-top:10px"><b>Words in these lines.</b> <b>Container</b>: an app packed in a box with everything it needs. <b>Image</b>: the baked copy a container runs from. <b>Cluster</b>: the group of computers Kubernetes manages as one. <b>Node</b>: one computer in it. <b>Pod</b>: the smallest thing the cluster runs. <b>Deployment</b>: your written wish for an image, a number of copies and how to update. <b>Service</b>: one steady address in front of pods. <b>Ingress</b>: the one door from the internet. <b>Control plane</b>: the cluster&rsquo;s brain. <b>Readiness check</b>: the test before a pod gets traffic. <b>Config map</b> and <b>secret</b>: settings and passwords handed to a pod. <b>Rollout undo</b>: the command that puts the previous version back.</div>
+    </div>
+  </section>
+
+  <footer class="lab-foot">
+    Built by <a href="https://prasannabrabourame.github.io/PrasannaBrabourame/" target="_blank" rel="noopener">Prasanna Brabourame</a>
+    &middot; <a href="index.html">learning guide</a> &middot; <a href="cheatsheet.html">cheatsheet</a> &middot; <a href="cloud.html">cloud lab</a> &middot; <a href="atlas.html">three-cloud atlas</a> &middot; <a href="fleet.html">fleet lab</a>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+const $=id=>document.getElementById(id);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt=n=>Math.round(n).toLocaleString('en-GB');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const shuffle=(arr,rnd)=>{const b=arr.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+
+/* ---------- a reusable sorter: one item at a time, pick an option, read why ---------- */
+function sorter(cfg){
+  const out=$(cfg.out), ctl=$(cfg.ctl), note=$(cfg.note); if(!out) return;
+  const rnd=mulberry32(cfg.seed||11); const Q=shuffle(cfg.items,rnd);
+  let cur=0,score=0,hist=[];
+  const labelOf=(it,k)=>((it.opts||cfg.options).find(o=>o.k===k)||{label:k}).label;
+  function render(){
+    if(cur>=Q.length){
+      out.innerHTML='<div class="ok"><b>'+score+' of '+Q.length+' on the first try.</b> '+cfg.done+'</div><div style="margin-top:10px">'+Q.map((q,i)=>'<div class="rv"><span style="color:'+(hist[i]?'var(--green)':'var(--red)')+'">'+(hist[i]?'&#10003;':'&#10007;')+'</span><span>'+(q.html?q.html:esc(q.s))+' <i>'+esc(q.ok.map(k=>labelOf(q,k)).join(' or '))+'</i></span></div>').join('')+'</div>';
+      ctl.innerHTML='<button class="seg" id="'+cfg.out+'Again" style="width:100%;font-size:12px">&#9654; shuffle and go again</button>';
+      $(cfg.out+'Again').onclick=()=>{cur=0;score=0;hist=[];note.innerHTML='';render();};
+      note.innerHTML='<div class="simnote"><b>The keeper.</b> '+cfg.keeper+'</div>'; return;
+    }
+    const it=Q[cur], opts=it.opts||cfg.options;
+    out.innerHTML='<div class="k" style="font-size:10.5px;color:var(--dim);margin-bottom:6px">'+(cfg.unit||'ITEM')+' '+(cur+1)+' OF '+Q.length+'</div>'+(it.html?it.html:'<div class="stmt">'+esc(it.s)+'</div>')+'<div class="k" style="font-size:11px;color:var(--muted);margin-top:8px">right so far: '+score+' of '+cur+'</div>';
+    ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">'+cfg.prompt+'</div><div class="segmented col">'+opts.map(o=>'<button class="seg" data-k="'+o.k+'">'+esc(o.label)+(o.desc?'<small>'+esc(o.desc)+'</small>':'')+'</button>').join('')+'</div>';
+    ctl.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{ const ok=it.ok.includes(b.dataset.k); if(ok) score++; hist.push(ok);
+      const names=it.ok.map(k=>labelOf(it,k)).join(' or ');
+      note.innerHTML=(ok?'<div class="ok"><b>Yes: '+esc(names)+'.</b> ':'<div class="lzbad"><b>Not that. It is '+esc(names)+'.</b> ')+esc(it.why)+'</div>'; cur++; render(); });
+  }
+  render();
+}
+
+/* ================= 1 · WHAT BREAKS AT 2AM ================= */
+sorter({out:'bkOut',ctl:'bkCtl',note:'bkNote',seed:17,unit:'SITUATION',prompt:'who deals with it?',
+ options:[{k:'one',label:'One Docker server: a person does',desc:'somebody is paged, logs in and does it by hand'},{k:'k8s',label:'Kubernetes handles it',desc:'the cluster notices and acts without anyone'},{k:'you',label:'Still your problem either way',desc:'no amount of cluster fixes this'}],
+ items:[
+  {s:'The app crashes at 2am because of a bug that only shows up once a week.',ok:['k8s'],why:'The cluster restarts a dead container within seconds, every time. The bug is still there, but the site is not down while you sleep.'},
+  {s:'The computer the app runs on loses its disk.',ok:['k8s'],why:'The cluster notices the node is gone and starts the same pods on other nodes. On one server there is nowhere else to go.'},
+  {s:'Monday morning brings ten times the usual traffic.',ok:['k8s'],why:'An autoscaler adds copies as the load rises and removes them after. On one server you add boxes by hand, if the machine has room.'},
+  {s:'A new version has to go out without the site going down.',ok:['k8s'],why:'A rolling update replaces copies a few at a time, each one checked before it takes traffic. On one server it is stop, swap, start, and hope.'},
+  {s:'The new version has a bug and must be undone in a hurry.',ok:['k8s'],why:'The cluster keeps the last version; rollout undo puts it back in under a minute. On one server you need to find the old image and repeat the dance.'},
+  {s:'The database the app talks to is down.',ok:['you'],why:'The cluster can restart your app all night; it cannot fix a database it does not manage. Dependencies are still yours.'},
+  {s:'The app has a memory leak and slowly eats the whole machine.',ok:['k8s','you'],why:'With a memory limit set, the cluster kills and restarts the pod before it takes the node down, which buys time. Finding the leak is still yours.'},
+  {s:'Nobody wants the product and traffic is zero.',ok:['you'],why:'A cluster runs an unwanted app beautifully. It cannot make anyone visit.'},
+  {s:'The certificate on the site expires.',ok:['you'],why:'Renewing certificates can be automated on a cluster, but somebody has to set that up. Out of the box, it expires the same way it does anywhere.'},
+  {s:'Two apps on the same machine fight over the same port.',ok:['k8s'],why:'Each pod gets its own address, so two apps can both listen on 8080 without meeting. On one server, one of them loses.'}],
+ done:'Ten situations sorted.',keeper:'Kubernetes removes the 2am work that is about keeping copies running, placing them and swapping versions. It does nothing about bugs, databases it does not own, or whether anyone wants the app.'});
+
+/* ================= 1 · NAME THE PART ================= */
+sorter({out:'npOut',ctl:'npCtl',note:'npNote',seed:23,unit:'SITUATION',prompt:'which part is this?',
+ options:[{k:'pod',label:'Pod'},{k:'node',label:'Node'},{k:'cluster',label:'Cluster'},{k:'cp',label:'Control plane'},{k:'dep',label:'Deployment'},{k:'svc',label:'Service'}],
+ items:[
+  {s:'You wrote "three copies of shop:1.4" in a file and handed it over; ten minutes later one copy died and a new one appeared.',ok:['dep'],why:'A deployment is the written wish, and keeping the number of copies true is exactly its job.'},
+  {s:'The smallest thing the cluster started for you: one container with its own address.',ok:['pod'],why:'A pod is the unit the cluster schedules. One container is the usual case; a few that must share a box is the other.'},
+  {s:'A computer was added to the group and new pods started landing on it.',ok:['node'],why:'A node is one computer in the cluster. Adding one adds room.'},
+  {s:'Other apps call "shop" at one address and never find out which copy answered.',ok:['svc'],why:'A service is the steady address in front of whichever pods are alive, found by their labels.'},
+  {s:'Something keeps a list of what you asked for and spends all day making the computers match it.',ok:['cp'],why:'The control plane stores the wishes, schedules pods and reacts when reality drifts. In a managed cluster the cloud provider operates it.'},
+  {s:'Twelve computers that you address as one thing when you deploy.',ok:['cluster'],why:'The cluster is the whole group. You never deploy to a computer; you deploy to the cluster and it chooses.'},
+  {s:'A copy was replaced and its address changed, but nothing calling it noticed.',ok:['svc'],why:'The service kept its address and simply updated the list of pods behind it.'},
+  {s:'You changed 1.4 to 1.5 in the file and the copies were swapped one at a time.',ok:['dep'],why:'The deployment owns the update strategy as well as the count.'},
+  {s:'A node died and its pods were started again elsewhere within a minute.',ok:['cp'],why:'The control plane saw the node stop reporting and rescheduled its pods. The deployment\'s wish never changed; the control plane enforced it.'},
+  {s:'Two containers that must share one address and one disk were started as one unit.',ok:['pod'],why:'That is the case a pod exists for: a small group of containers treated as one thing.'}],
+ done:'Ten situations named.',keeper:'A deployment is the wish, the control plane keeps it true, pods are what runs, nodes are where, a service is the steady address, and the cluster is all of it addressed as one.'});
+
+/* ================= 2 · CONTAINER OR VIRTUAL MACHINE ================= */
+sorter({out:'cvOut',ctl:'cvCtl',note:'cvNote',seed:29,unit:'STATEMENT',prompt:'true of which?',
+ options:[{k:'c',label:'A container'},{k:'vm',label:'A virtual machine'},{k:'both',label:'Both'}],
+ items:[
+  {s:'Starts in about a second.',ok:['c'],why:'A container is just a process in a box; there is no operating system to boot. A virtual machine boots one.'},
+  {s:'Has its own complete operating system inside.',ok:['vm'],why:'That is the definition of a virtual machine, and the reason it weighs gigabytes.'},
+  {s:'Keeps one app from seeing another app\'s files on the same computer.',ok:['both'],why:'Both isolate. The container does it with the operating system\'s walls; the virtual machine does it with a whole separate operating system.'},
+  {s:'Fifty of them fit comfortably on one ordinary server.',ok:['c'],why:'Sharing the kernel and packing only the app is what makes containers dense. Fifty virtual machines would need fifty operating systems\' worth of memory.'},
+  {s:'Can run Windows software on a Linux computer.',ok:['vm'],why:'A container shares the host\'s kernel, so it runs what the host runs. A virtual machine can boot a different operating system entirely.'},
+  {s:'Is built from a short recipe file.',ok:['c'],why:'A Dockerfile. Virtual machine images are usually made by installing an operating system and snapshotting it.'},
+  {s:'Runs the same on a laptop and in the cloud.',ok:['both'],why:'Both are portable. The container is the lighter way to get it, which is why clusters are built on containers.'},
+  {s:'Gives the strongest wall between two tenants who must never share a kernel.',ok:['vm'],why:'A shared kernel is a shared surface. When the wall must be hardware-strong, virtual machines win, and some clusters run each pod in a tiny one for that reason.'},
+  {s:'Is what a Kubernetes pod is made of.',ok:['c'],why:'Pods hold containers. The nodes they run on are very often virtual machines, which is the usual way the two meet.'},
+  {s:'Loses everything written inside it when it is thrown away, unless you attached storage.',ok:['both'],why:'Both are disposable by design. Data that matters lives on a volume or a disk that outlives the box.'}],
+ done:'Ten statements sorted.',keeper:'A container packs the app and shares the kernel: light, fast, dense. A virtual machine packs a whole computer: heavy, slow, strongly walled. Clusters run containers, usually on nodes that are virtual machines.'});
+
+/* ================= 2 · WHICH LINE OF THE RECIPE ================= */
+sorter({out:'dfOut',ctl:'dfCtl',note:'dfNote',seed:37,unit:'DESCRIPTION',prompt:'which line?',
+ options:[{k:'from',label:'FROM',desc:'start from this ready-made image'},{k:'copy',label:'COPY',desc:'put these files into the image'},{k:'run',label:'RUN',desc:'run a command while building'},{k:'expose',label:'EXPOSE',desc:'the door the app listens on'},{k:'cmd',label:'CMD',desc:'what to start when the container runs'}],
+ items:[
+  {s:'Begin with a slim Linux that already has Python installed, so you do not install it yourself.',ok:['from'],why:'FROM names the base image. Everything else is added on top of it.'},
+  {s:'Put the app\'s source code into the image at /app.',ok:['copy'],why:'COPY moves files from your folder into the image being built.'},
+  {s:'Install the libraries the app needs, while the image is being built.',ok:['run'],why:'RUN executes a command at build time and bakes the result into a layer.'},
+  {s:'Declare that the app will listen on port 8080.',ok:['expose'],why:'EXPOSE documents the door. It does not open anything by itself, but tools and people read it.'},
+  {s:'Say which program to start when someone runs the container.',ok:['cmd'],why:'CMD is the default command. It runs when the container starts, not when the image is built.'},
+  {s:'The line that, when changed, makes the whole rest of the recipe rebuild.',ok:['from'],why:'Layers stack. Change the base and every layer above it is rebuilt; change the last line and only that layer is.'},
+  {s:'The line that runs at build time, not at start time.',ok:['run'],why:'RUN is for building: install, compile, download. CMD is for starting. Mixing them up is the commonest Dockerfile mistake.'},
+  {s:'The line people put too early, so every code change reinstalls every library.',ok:['copy'],why:'Copy the dependency list and install first, then copy the code. Then a code change leaves the install layer untouched and the rebuild takes seconds.'}],
+ done:'Eight lines named.',keeper:'FROM a base, COPY files in, RUN the build steps, EXPOSE the door, CMD what to start. Order the lines so the things that change most come last.'});
+
+/* ================= 3 · MATCH THE JOB TO THE PART ================= */
+sorter({out:'mpOut',ctl:'mpCtl',note:'mpNote',seed:41,unit:'JOB',prompt:'which part does it?',
+ options:[{k:'ing',label:'Ingress'},{k:'cfg',label:'Config map'},{k:'sec',label:'Secret'},{k:'ns',label:'Namespace'},{k:'pv',label:'Persistent volume'},{k:'hpa',label:'Autoscaler'},{k:'ready',label:'Readiness check'}],
+ items:[
+  {s:'Send shop.example to the shop service and orders.example to the orders service, through one door with one certificate.',ok:['ing'],why:'Routing by site name and path at the edge is what an ingress is for.'},
+  {s:'Run the same image in test and production with a different database address.',ok:['cfg'],why:'A config map hands settings to the pod at start, so the image stays one image.'},
+  {s:'Give the pod the database password without writing it into the image or the file everyone can read.',ok:['sec'],why:'A secret is handed over the same way as a config map but stored and displayed more carefully.'},
+  {s:'Let the payments team and the marketing team share a cluster without seeing or exhausting each other\'s things.',ok:['ns'],why:'A namespace is a room with its own names and limits.'},
+  {s:'Keep the uploaded photos when the pod that stored them is replaced.',ok:['pv'],why:'A pod\'s own disk dies with it. A persistent volume outlives any pod.'},
+  {s:'Go from three copies to twelve when the processor is busy, and back down at night.',ok:['hpa'],why:'The autoscaler watches the numbers and changes the copy count.'},
+  {s:'Do not send traffic to a new copy until it has finished loading its data.',ok:['ready'],why:'The readiness check holds traffic back until the pod says it is ready. Without it, the first requests to a new copy fail.'},
+  {s:'Hold the certificate for the site in one place instead of in every copy.',ok:['ing'],why:'The ingress ends the encrypted connection, so the certificate lives there and the pods speak plain inside the cluster.'}],
+ done:'Eight jobs matched.',keeper:'Ingress is the door, config maps and secrets are the envelope, a namespace is a room, a volume is the warehouse, the autoscaler is more cranes, and the readiness check is the question before traffic.'});
+
+/* ================= 3 · SIZE THE CLUSTER ================= */
+(function(){
+  const out=$('szOut'), ctl=$('szCtl'), note=$('szNote'); if(!out) return;
+  const NODES=[{n:'small, 4 cores 16 GB',cpu:4,mem:16,cost:120},{n:'medium, 8 cores 32 GB',cpu:8,mem:32,cost:240},{n:'large, 16 cores 64 GB',cpu:16,mem:64,cost:480}];
+  ctl.innerHTML='<div class="lbl" style="margin-bottom:6px">the apps</div>'+
+    '<div class="sl"><label>apps</label><input type="range" id="szApps" min="1" max="12" value="4"><output id="szAppsV">4</output></div>'+
+    '<div class="sl"><label>copies per app</label><input type="range" id="szCopies" min="1" max="10" value="3"><output id="szCopiesV">3</output></div>'+
+    '<div class="sl"><label>cores per copy</label><input type="range" id="szCpu" min="1" max="16" value="2"><output id="szCpuV">0.5</output></div>'+
+    '<div class="sl"><label>memory per copy</label><input type="range" id="szMem" min="1" max="16" value="4"><output id="szMemV">1 GB</output></div>'+
+    '<div class="lbl" style="margin:10px 0 6px">the nodes</div><div class="segmented" id="szNode">'+NODES.map((n,i)=>'<button class="seg'+(i===1?' on':'')+'" data-v="'+i+'">'+n.n.split(',')[0]+'</button>').join('')+'</div>';
+  const q=id=>$(id);
+  function calc(){
+    const apps=+q('szApps').value, copies=+q('szCopies').value, cpu=+q('szCpu').value/4, mem=+q('szMem').value/4;
+    const node=NODES[+document.querySelector('#szNode .seg.on').dataset.v];
+    q('szAppsV').textContent=apps; q('szCopiesV').textContent=copies; q('szCpuV').textContent=cpu; q('szMemV').textContent=mem+' GB';
+    const pods=apps*copies, needCpu=pods*cpu, needMem=pods*mem;
+    const usable={cpu:node.cpu*0.9,mem:node.mem*0.9}; /* the node keeps a tenth for itself */
+    const perNode=Math.max(1,Math.floor(Math.min(usable.cpu/cpu,usable.mem/mem)));
+    const base=Math.ceil(pods/perNode), nodes=base+1;
+    const fill=Math.round(100*Math.max(needCpu/(base*usable.cpu),needMem/(base*usable.mem)));
+    const bound=needCpu/usable.cpu>=needMem/usable.mem?'processor':'memory';
+    out.innerHTML='<div class="meter"><div class="big">'+nodes+'<small>nodes, with headroom</small></div><div class="big">'+pods+'<small>pods to place</small></div><div class="big">'+perNode+'<small>pods per node</small></div><div class="big">~$'+fmt(nodes*node.cost)+'<small>a month, illustrative</small></div></div>'+
+      '<div class="pods">'+Array.from({length:nodes},(_,i)=>'<span style="display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line2);border-radius:7px;margin:0 4px 4px 0">'+Array.from({length:perNode},(_,j)=>'<i class="'+(i<base&&i*perNode+j<pods?'on':'')+'"></i>').join('')+'</span>').join('')+'</div>'+
+      '<div class="mini">each box is a node; green squares are pods placed; the last node is kept empty so any one node can fail</div>'+
+      '<div class="bar"><i style="width:'+fill+'%"></i></div><div class="mini">the full nodes are '+fill+'% used; the '+bound+' runs out first</div>';
+    note.innerHTML='<div class="simnote">'+(perNode===1?'<b>One pod per node.</b> Each copy asks for nearly a whole node. Either the request is too big or the node is too small; both waste the node\'s spare room.':fill<60?'<b>Half-empty nodes.</b> The packing leaves '+(100-fill)+'% of each full node idle. Try bigger copies, more of them, or smaller nodes until the squares fill the boxes.':'<b>Well packed.</b> The nodes are '+fill+'% full and one spare node covers a failure. This is the shape to aim for.')+' Fewer, larger nodes waste less; more, smaller nodes lose less when one dies.</div>';
+  }
+  ['szApps','szCopies','szCpu','szMem'].forEach(id=>q(id).addEventListener('input',calc));
+  $$('#szNode .seg').forEach(b=>b.onclick=()=>{ $$('#szNode .seg').forEach(x=>x.classList.toggle('on',x===b)); calc(); });
+  calc();
+})();
+
+/* ================= 4 · READ THE FILE ================= */
+sorter({out:'rfOut',ctl:'rfCtl',note:'rfNote',seed:43,unit:'WISH',prompt:'which line do you edit?',
+ options:[{k:'rep',label:'replicas: 3'},{k:'img',label:'image: registry.example/shop:1.4'},{k:'port',label:'containerPort: 8080'},{k:'name',label:'name: shop'},{k:'res',label:'resources: limits and requests',desc:'a block not shown above: how much processor and memory'},{k:'none',label:'None of these: it is a different file',desc:'a service, an ingress, a config map'}],
+ items:[
+  {s:'Run ten copies instead of three.',ok:['rep'],why:'replicas is the count. Change it and apply; the cluster starts seven more.'},
+  {s:'Roll out version 1.5.',ok:['img'],why:'The tag after the colon is the version. Changing it is the deploy; the cluster swaps copies a few at a time.'},
+  {s:'The app now listens on 3000 instead of 8080.',ok:['port'],why:'containerPort tells the cluster which door the app answers on. The service that points at it may need the same change.'},
+  {s:'Stop a pod from eating the whole node\'s memory.',ok:['res'],why:'A memory limit in the resources block. Above it the pod is killed and restarted, which protects the node.'},
+  {s:'Give the app a steady address other apps can call.',ok:['none'],why:'That is a service, its own file. The deployment only says what to run.'},
+  {s:'Point shop.example at this app from the internet.',ok:['none'],why:'An ingress, its own file, routes a site name to a service.'},
+  {s:'Put the new version back to the old one, fast.',ok:['img'],why:'Change the tag back and apply, or run rollout undo, which does exactly that for you.'},
+  {s:'Hand the app a different database address in production.',ok:['none'],why:'A config map, referenced from the pod template. The image and the deployment stay the same.'},
+  {s:'Make the cluster only place this pod where there is at least half a core free.',ok:['res'],why:'A request in the resources block. The cluster schedules by requests and polices by limits.'}],
+ done:'Nine wishes mapped to lines.',keeper:'replicas is how many, image is which version, containerPort is which door, resources is how much. Addresses, routing and settings are other files, on purpose, so each one can change alone.'});
+
+/* ================= 4 · THE ROLLING UPDATE DIAL ================= */
+(function(){
+  const out=$('ruOut'), ctl=$('ruCtl'), note=$('ruNote'); if(!out) return;
+  ctl.innerHTML='<div class="sl"><label>copies</label><input type="range" id="ruN" min="2" max="12" value="6"><output id="ruNV">6</output></div>'+
+    '<div class="sl"><label>extra allowed</label><input type="range" id="ruS" min="0" max="6" value="1"><output id="ruSV">1</output></div>'+
+    '<div class="sl"><label>may be missing</label><input type="range" id="ruU" min="0" max="6" value="1"><output id="ruUV">1</output></div>'+
+    '<div class="sl"><label>seconds to ready</label><input type="range" id="ruT" min="5" max="90" value="20"><output id="ruTV">20 s</output></div>'+
+    '<div class="btns"><button class="btn" id="ruGo">&#9654; run the update</button></div>';
+  const q=id=>$(id); let timer=null;
+  function read(){ const n=+q('ruN').value,s=+q('ruS').value,u=+q('ruU').value,t=+q('ruT').value; q('ruNV').textContent=n;q('ruSV').textContent=s;q('ruUV').textContent=u;q('ruTV').textContent=t+' s'; return {n,s,u,t}; }
+  function draw(old,neu,wait,n,label){
+    out.innerHTML='<div class="pods">'+Array.from({length:old},()=>'<i class="on" title="old, taking traffic"></i>').join('')+Array.from({length:neu},()=>'<i class="new" title="new, taking traffic"></i>').join('')+Array.from({length:wait},()=>'<i class="wait" title="new, not ready yet"></i>').join('')+'</div>'+
+      '<div class="mini">green: old copies taking traffic · teal: new copies taking traffic · amber: new copies starting</div><div style="margin-top:8px;font-size:13px">'+label+'</div>';
+  }
+  function plan(p){
+    /* round by round, the way the cluster does it: new pods that were starting become ready; old pods are stopped
+       while at least n-u stay available; new pods are started while the total stays within n+s */
+    const {n,s,u}=p; let old=n, ready=0, starting=0, steps=[], lowest=n, highest=n, guard=0;
+    while((old>0||starting>0)&&guard++<60){
+      ready+=starting; starting=0;
+      const stop=Math.min(old, Math.max(0, old+ready-(n-u))); old-=stop;
+      const start=Math.max(0, Math.min(n-ready, n+s-(old+ready))); starting=start;
+      if(old===0&&starting===0) break;
+      if(stop===0&&start===0) return null;
+      lowest=Math.min(lowest, old+ready); highest=Math.max(highest, old+ready+starting);
+      steps.push({old,neu:ready,wait:starting});
+    }
+    return {steps, lowest, highest, rounds:steps.length};
+  }
+  function run(){
+    if(timer) clearInterval(timer);
+    const p=read(), pl=plan(p);
+    if(!pl){ draw(p.n,0,0,p.n,'<b>It cannot move.</b> With no extra copy allowed and none allowed missing, there is no room to start a new one or stop an old one.'); note.innerHTML='<div class="simnote"><b>The keeper.</b> One of the two dials must be above zero, or the update has no room to breathe.</div>'; return; }
+    let i=0; const total=pl.rounds*p.t;
+    draw(p.n,0,0,p.n,'Starting. '+pl.rounds+' rounds of '+p.t+' s each, about '+fmt(total)+' s in all.');
+    timer=setInterval(()=>{
+      if(i>=pl.steps.length){ clearInterval(timer); draw(0,p.n,0,p.n,'<b>Done.</b> All '+p.n+' copies are the new version. Lowest capacity on the way: <b>'+pl.lowest+' of '+p.n+'</b>. Most pods at once: <b>'+pl.highest+'</b>. About <b>'+fmt(total)+' s</b>.');
+        note.innerHTML='<div class="simnote">'+(pl.lowest<p.n*0.6?'<b>That dipped a long way.</b> Allowing '+p.u+' missing out of '+p.n+' meant capacity fell to '+pl.lowest+'. Lower "may be missing" and raise "extra allowed" if you can afford the extra nodes for a few minutes.':pl.highest>p.n?'<b>Extra room cost nothing but a few minutes of a spare pod.</b> Capacity never fell below '+pl.lowest+' because new copies were started before old ones were stopped.':'<b>Steady.</b> No extra pods were needed and capacity stayed at '+pl.lowest+' of '+p.n+'.')+' The trade: more extra means faster and safer but needs spare room on the nodes; more missing means no spare room needed but a dip in capacity.</div>'; return; }
+      const st=pl.steps[i]; draw(st.old,st.neu,st.wait,p.n,'Round '+(i+1)+' of '+pl.rounds+': '+st.wait+' new '+(st.wait===1?'copy':'copies')+' starting, waiting '+p.t+' s for the readiness check.'); i++;
+    },900);
+  }
+  ['ruN','ruS','ruU','ruT'].forEach(id=>q(id).addEventListener('input',read));
+  q('ruGo').onclick=run; read(); draw(6,0,0,6,'Six old copies running. Press <b>run the update</b>.');
+})();
+
+/* ================= 5 · DOES THIS NEED KUBERNETES ================= */
+sorter({out:'nkOut',ctl:'nkCtl',note:'nkNote',seed:47,unit:'JOB',prompt:'the lowest rung that does the job',
+ options:[{k:'one',label:'One server with Docker',desc:'you restart and update it yourself'},{k:'mcs',label:'Managed container service',desc:'hand over one image; copies, scaling and updates are done for you'},{k:'k8s',label:'A Kubernetes cluster',desc:'many apps, fine control, your own operations'}],
+ items:[
+  {s:'A booking page for a village hall, used by about forty people a month.',ok:['one'],why:'One small app, tiny traffic, nobody on call. A server, or even cheaper, a managed container service at its free tier. A cluster would cost more than the hall.'},
+  {s:'A customer-facing web app that must stay up through deploys, with a team of three developers and no operations person.',ok:['mcs'],why:'Copies, rolling updates and scaling without anyone to run a cluster: exactly what a managed container service sells.'},
+  {s:'Forty internal services from six teams that call each other privately, with strict rules about which may talk to which.',ok:['k8s'],why:'Many apps sharing machines, private networking and policy between them: this is the cluster\'s home ground.'},
+  {s:'A nightly report that runs for twenty minutes and stops.',ok:['one','mcs'],why:'A batch job needs no cluster. A scheduled container on a managed service, or a timer on a server, does it.'},
+  {s:'The same platform must run in the company\'s own data centre and in two clouds, deployed the same way everywhere.',ok:['k8s'],why:'One way of working across clouds and on-premise is the strongest reason to accept the cluster\'s cost.'},
+  {s:'A prototype that three people will look at on Friday.',ok:['one'],why:'Friday is the deadline. Anything with a learning curve loses.'},
+  {s:'A model-serving fleet that needs specific graphics chips, careful placement and a scheduler you can tune.',ok:['k8s'],why:'Fine control over placement and hardware is what the cluster gives and the managed service hides.'},
+  {s:'A shop that is quiet all year and swamped for two weeks in December.',ok:['mcs'],why:'Paying per request with automatic scaling fits a spiky year. A cluster\'s nodes cost money in the quiet months.'},
+  {s:'An internal dashboard for the finance team, updated twice a year.',ok:['one'],why:'Rarely changed, few users, inside the company. A server is fine; a managed container service is fine too.'},
+  {s:'A company that already runs a cluster and wants to add one more small service.',ok:['k8s'],why:'Once the cluster exists and is run well, the next app is cheap to add. The cost was the first one.'}],
+ done:'Ten jobs placed on the ladder.',keeper:'One server while you can. A managed container service when you need copies and updates without ops. A cluster when many apps share it, you need fine control, or you must run the same way everywhere.'});
+
+/* ================= 5 · THE BILL, THREE WAYS ================= */
+(function(){
+  const out=$('blOut'), ctl=$('blCtl'), note=$('blNote'); if(!out) return;
+  ctl.innerHTML='<div class="sl"><label>traffic</label><input type="range" id="blT" min="0" max="10" value="2"><output id="blTV">quiet</output></div>'+
+    '<div class="sl"><label>apps you run</label><input type="range" id="blA" min="1" max="12" value="1"><output id="blAV">1</output></div>';
+  const q=id=>$(id);
+  function calc(){
+    const t=+q('blT').value, a=+q('blA').value; const words=['quiet','quiet','light','light','steady','steady','busy','busy','heavy','heavy','flat out'];
+    q('blTV').textContent=words[t]; q('blAV').textContent=a;
+    const reqM=[0.05,0.2,0.5,1,2,4,8,15,25,40,60][t]; /* millions of requests a month, illustrative */
+    const server=a*(t<4?60:t<7?120:t<9?240:480);          /* a bigger box as traffic grows, per app */
+    const managed=a*(8+reqM*18);                           /* a small floor plus per request */
+    const cluster=75+Math.max(2,Math.ceil(a*(0.4+reqM*0.08)))*110; /* control plane fee plus nodes shared by every app */
+    const rows=[['One server with Docker',server,'a machine per app, resized as traffic grows; you run it'],['Managed container service',managed,'a small floor plus a price per request; nothing to run'],['Kubernetes cluster',cluster,'a control plane fee plus nodes, shared by every app; you run the deployments']];
+    const win=rows.reduce((b,r)=>r[1]<b[1]?r:b,rows[0]);
+    out.innerHTML='<div class="tblwrap"><table class="tbl"><tr><th>Option</th><th>A month</th><th>What you pay for</th></tr>'+rows.map(r=>'<tr'+(r===win?' style="color:var(--green)"':'')+'><td>'+r[0]+(r===win?' &#10003;':'')+'</td><td class="v">~$'+fmt(r[1])+'</td><td>'+r[2]+'</td></tr>').join('')+'</table></div>'+
+      '<div class="bar"><i style="width:'+Math.min(100,Math.round(100*win[1]/Math.max(...rows.map(r=>r[1]))))+'%"></i></div><div class="mini">cheapest: '+win[0]+' at ~$'+fmt(win[1])+'; traffic about '+reqM+' million requests a month, '+a+' app'+(a>1?'s':'')+'</div>';
+    note.innerHTML='<div class="simnote">'+(a===1&&t<5?'<b>One quiet app.</b> The managed container service\'s per-request price is nearly free, and the cluster\'s fixed floor is paying for a port with one box in it.':a>=6?'<b>Many apps.</b> The cluster\'s floor is now shared '+a+' ways and its nodes are busy, so it wins. This is the shape a cluster is for.':t>=8?'<b>Heavy traffic.</b> Per-request pricing grows with every request; owned capacity, a server or nodes, grows in steps. At this volume owning wins.':'<b>In between.</b> The managed container service holds its own until either the app count or the traffic grows. Slide both and watch the lines cross.')+' The numbers are made up; the crossings are where real bills cross too.</div>';
+  }
+  ['blT','blA'].forEach(id=>q(id).addEventListener('input',calc)); calc();
+})();
+
+/* ================= 6 · READ THE SYMPTOM ================= */
+sorter({out:'syOut',ctl:'syCtl',note:'syNote',seed:53,unit:'WHAT YOU SAW',prompt:'what is the cause?',
+ options:[{k:'room',label:'No node has room',desc:'the request is bigger than any free slot'},{k:'img',label:'The image cannot be fetched',desc:'wrong name or tag, or no permission'},{k:'crash',label:'The app starts and dies',desc:'read its logs'},{k:'mem',label:'It used more memory than its limit',desc:'raise the limit or fix the leak'},{k:'ready',label:'The readiness check is failing',desc:'the pod runs but gets no traffic'},{k:'label',label:'The service\'s labels do not match the pods',desc:'the address has nobody behind it'}],
+ items:[
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   0/1   Pending   0   12m</code><br>and describe says: 0/3 nodes are available: insufficient memory.</div>',s:'Pending, insufficient memory',ok:['room'],why:'Pending with "insufficient" in the events is the scheduler saying no node has a slot that size. Add a node or lower the request.'},
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   0/1   ImagePullBackOff   0   3m</code><br>and the image is registry.example/shop:1.5-rc</div>',s:'ImagePullBackOff',ok:['img'],why:'The node asked the registry for that tag and was refused. Check the tag exists and the node has permission to pull.'},
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   0/1   CrashLoopBackOff   6   9m</code><br>six restarts in nine minutes.</div>',s:'CrashLoopBackOff',ok:['crash'],why:'Start, die, wait longer, repeat. The reason is in the logs of the last attempt; nearly always a missing setting or an unreachable dependency.'},
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   1/1   Running   3   30m</code><br>describe shows last state: Terminated, reason OOMKilled.</div>',s:'OOMKilled',ok:['mem'],why:'Running now, but restarted three times for using more than its memory limit. Raise the limit if the need is real; fix the leak if it is not.'},
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   0/1   Running   0   4m</code><br>running, but READY says 0/1 and the site shows errors.</div>',s:'Running but not ready',ok:['ready'],why:'The container is up but the readiness check has not passed, so no traffic is sent. Check what the check asks for and whether the app answers it.'},
+  {html:'<div class="stmt">All pods are Running and ready, but calling the service gives "connection refused", and <code>kubectl describe service shop</code> lists no pods behind it.</div>',s:'Service with nothing behind it',ok:['label'],why:'A service picks pods by labels. Nothing behind it means no pod matched its selector: a typo in the label on one side or the other.'},
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   0/1   Pending   0   2m</code><br>and describe says: persistent volume claim is not bound.</div>',s:'Pending, volume not bound',ok:['room'],why:'Also Pending: the pod needs storage that does not exist yet. Pending always means "cannot be placed", and the events say why.'},
+  {html:'<div class="stmt">The new version went out; a minute later every pod is CrashLoopBackOff and the old ones are gone.</div>',s:'Everything crashing after a deploy',ok:['crash'],why:'A bad version. Rollout undo first, read the logs second. The cluster kept the old version precisely for this.'},
+  {html:'<div class="stmt"><code>shop-7d9f-x2k   0/1   ErrImagePull   0   40s</code><br>the image name has a typo: regisrty.example.</div>',s:'ErrImagePull',ok:['img'],why:'The same family as ImagePullBackOff, before the backing off starts. A name that cannot be resolved is fetched from nowhere.'},
+  {html:'<div class="stmt">Pods restart every few minutes at exactly the moment the app finishes loading a large file at start-up.</div>',s:'Restart at the end of start-up',ok:['ready'],why:'A liveness check that fires before the app is ready, or a readiness check set as a liveness check. Give the liveness check a longer initial delay, and keep the two checks apart.'}],
+ done:'Ten symptoms read.',keeper:'Pending: no place. ImagePull: no image. CrashLoop: read the logs. OOMKilled: the memory limit. Running but not ready: the readiness check. Nothing behind the service: the labels. Put the last version back before you think.'});
+</script>
+
+<script src="assets/anatomy-kit.js"></script>
+<!-- walk-live:start -->
+<script src="assets/walk.js" defer></script>
+<script src="data/walks/k8s.js" defer></script>
+<!-- walk-live:end -->
+<!-- walk-live:start k8s-parts -->
+<script src="data/walks/k8s-parts.js" defer></script>
+<!-- walk-live:end k8s-parts -->
+<!-- walk-live:start k8s-deploy -->
+<script src="data/walks/k8s-deploy.js" defer></script>
+<!-- walk-live:end k8s-deploy -->
+<script src="assets/version.js"></script>
+<script src="assets/lab.js"></script>
+</body>
+</html>
