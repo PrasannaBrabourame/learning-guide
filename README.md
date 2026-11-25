@@ -52,6 +52,16 @@ hotseat.html      The hot seat: the questions AI engineering and
                   follow-up; an answer grader, an operable RAG pipeline, a
                   cut-the-bill cost meter, a cheaper-better-safer-faster
                   sorter, a model-migration stepper and the drill
+devops.html       DevOps lab: from release night to a change that ships itself
+                  (release night against one change at a time, true or a myth,
+                  name the part, twelve tool names and eight jobs, push a
+                  change and watch the pipeline, spend the pipeline's ten
+                  minutes, read the pipeline file, ship a version four ways,
+                  which way would you ship this, edit the file and read the
+                  plan, somebody clicked in production, a description or a
+                  list of steps, the four numbers, which evidence answers it,
+                  three isometric walkthroughs and a turntable figure) and
+                  the scenario drill
 k8s.html          Kubernetes lab: from one Docker server to a fleet that runs
                   itself (what breaks at 2am, name the part, container or
                   virtual machine, which line of the recipe, match the job to
@@ -268,7 +278,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 396 simulations across the twenty-seven labs. Every one carries a
+There are 414 simulations across the twenty-eight labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -351,7 +361,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-five lab pages are self-contained, but the chrome around the content
+The twenty-six lab pages are self-contained, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped

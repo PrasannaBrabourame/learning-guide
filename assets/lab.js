@@ -360,6 +360,7 @@
       ['vibe.html',      'Vibe coding: think it, build it, ship it'] ] },
     { name:'Cloud and architecture', labs:[
       ['cloud.html',            'How the cloud actually works'],
+      ['devops.html',           'DevOps: from release night to a change that ships itself'],
       ['k8s.html',              'Kubernetes: from one Docker server to a fleet that runs itself'],
       ['atlas.html',            'The three-cloud atlas: same jobs, three dictionaries'],
       ['design.html',           'Diagrams, a picture that argues'],
