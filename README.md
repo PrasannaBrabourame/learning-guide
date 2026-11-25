@@ -87,8 +87,8 @@ agentbuild.html   Agents-building-agents lab: spec-driven development with a
 adk.html          ADK lab: agents, tools and tool schemas, session state,
                   callbacks and plugins, orchestration and delegation,
                   grounding and MCP, the Agent Sandbox, skills, deployment
-frames.html       Agent-frameworks lab: eight ways to build the same
-                  support-ticket agent (LangGraph's drawn graph with
+frames.html       Agent-frameworks lab: eight ways to build an agent,
+                  starting from one support ticket (LangGraph's drawn graph with
                   checkpoints and resume, CrewAI's cast of roles,
                   Strands' model-driven loop, ADK's kit, the Hermes-style
                   self-editor, Smolagents' code-as-action, AG2/AutoGen's
@@ -351,7 +351,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-six labs are self-contained pages, but the chrome around the content
+The twenty-five lab pages are self-contained, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped

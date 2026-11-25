@@ -15,7 +15,7 @@
     title: "Deploy an app: from the recipe to the rollback",
     summary: "Pack the app into an image, push it to a registry, write down what you want in one file, hand it to the cluster, open the door, scale it, update it, and put the old version back when the new one is bad.",
     plain: "deploying to a cluster is not a list of commands to run on a server. It is: bake the app into an image, put the image on a shelf the cluster can reach, write what you want in a file (which image, how many copies, which door), and hand the file over with one command. The cluster works out the steps. Scaling is a number in the file. An update is a version in the file. A rollback is one command.",
-    reallife: "Ordering from a catalogue instead of building furniture yourself. You write the order: this item, three of them, deliver to this door. The warehouse works out the picking, packing and vans. Change the order and they work out the difference.",
+    reallife: "Shipping through a port instead of sailing the cargo yourself. You pack the box once and leave it at the depot. You pin one standing order on the board: this box, three of them on the move, through this gate. The harbour master works out which ships. Change the order and the port works out the difference.",
     startby: "Press Next to take one app from a Dockerfile to a rollback. Arrow keys work too.",
     terms: [
       ["control plane", "the brain of the cluster: it keeps the list of what you asked for and makes the nodes match it"],
@@ -84,7 +84,7 @@
       },
       {
         short: "Update", chapter: "technique", title: "Update: change a version",
-        body: ["Version 1.5 is built and pushed. Change the tag in the file, apply. The control plane starts one new pod, waits for its readiness check to pass, then stops one old pod, and repeats.", "At every moment at least eight copies take traffic. Nobody saw a blank page."],
+        body: ["Version 1.5 is built and pushed. Change the tag in the file, apply. The control plane starts one new pod, waits for its readiness check to pass, then stops one old pod, and repeats.", "At every moment at least nine copies take traffic. Nobody saw a blank page."],
         changes: ["~ image: shop:1.4 → shop:1.5", "~ Pods replaced one at a time"],
         metrics: { where: { v: "live", tone: "green" }, copies: { v: 9, tone: "green" }, version: "1.4 → 1.5", cmd: "kubectl apply" },
         scene: running([[{ text: "3 × shop 1.5", tone: "blue" }], [{ text: "2 × 1.5, 1 × 1.4", tone: "amber" }], [{ text: "3 × shop 1.4", tone: "green" }]], (s) => { s.ents.users = Object.assign({}, users, { n: 5 }); s.ents.svc = svc; s.ents.reg = Object.assign({}, reg, { tags: [{ text: "shop:1.4 · shop:1.5", tone: "green" }] }); s.links.u = L("users", "svc", { via: [["users", "svc"]] }); s.links.s2 = L("svc", "n2", { heads: "end" }); s.flows = [{ route: ["u"], bounce: true, rate: 0.8 }, { route: ["p1"], kind: "write", rate: 0.4 }, { route: ["w2"], kind: "ping", rate: 0.5 }]; }),

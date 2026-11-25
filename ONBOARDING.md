@@ -13,11 +13,11 @@ Deployed to GitHub Pages: <https://prasannabrabourame.github.io/learning-guide>.
 
 Two kinds of content, one site:
 
-- **The topic bank** (`data/topics.json`) — 304 interview topics, each with a
+- **The topic bank** (`data/topics.json`): 304 interview topics, each with a
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered on the dashboard and browse view
   (`index.html` + `assets/app.js`).
-- **The labs** (`*.html`): 26 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`): 25 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -132,6 +132,17 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
+- **Every picture tells its own lab's story.** A pass over all 25 lab pages
+  found that most walkthroughs and several machine figures, authored in
+  batches after their labs, told invented stories (customer messages in a
+  lab about a class of learners, a refund agent in a lab about an expense
+  agent) with numbers that disagreed with the simulations beside them. Each
+  walk and figure now uses its lab's own scenario and computed numbers; about
+  30 simulations whose "start by" named a control that does not exist, or
+  whose verdict contradicted the numbers on screen, were fixed; wrong-sense
+  glossary entries copied between labs were replaced. Every first tab now
+  opens with a three-step "where to begin" path (walk, machine, first
+  simulation), built by `lab.js`, and the track line names the lab before.
 - **Kubernetes lab.** `k8s.html`: containers against virtual machines, the parts
   of a cluster added when their problem appears, deploying an app from the
   recipe to a rollback, when a cluster is worth its cost, and reading the pod

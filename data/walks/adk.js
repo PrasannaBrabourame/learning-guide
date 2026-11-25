@@ -30,6 +30,7 @@
       ["grounding", "making the model answer from your own documents rather than from memory, so it can quote the real policy"],
       ["sub-agent", "a second agent with a narrower job, which the first one hands work to"],
       ["runtime", "the managed place an agent runs: it starts it, scales it and keeps each conversation apart"],
+      ["agent loop", "read the situation, ask the model, call a tool, feed the result back, repeat until there is an answer"],
     ],
     metrics: [{ k: "parts", label: "Parts fitted" }, { k: "right", label: "Answered correctly" }, { k: "where", label: "Where it runs" }],
     legend: [{ kind: "req", label: "a request" }, { kind: "res", label: "a reply" }, { kind: "bad", label: "a wrong turn" }, { kind: "write", label: "a note saved" }],
@@ -43,15 +44,15 @@
     steps: [
       {
         short: "Just a model", chapter: "problem", title: "A model on its own can only talk",
-        body: ["A customer asks <em>where is my order?</em> The model writes a lovely reply about how orders usually ship. It cannot look anything up, so the reply is confident and useless.", "A model answers from what it already knows. To act, it needs hands."],
+        body: ["A customer asks <em>where is order A-4417?</em> The model writes a lovely reply about how orders usually ship. It cannot look anything up, so the reply is confident and useless.", "A model answers from what it already knows. To act, it needs hands."],
         callout: { kind: "idea", text: "The difference between a chatbot and an agent is not cleverness. It is whether it can call something and act on the result." },
         metrics: { parts: 1, right: { v: "no", tone: "red" }, where: "a laptop" },
-        scene: { ents: { user: Object.assign({}, user, { tags: [{ text: "where is my order?", tone: "violet" }] }), model: Object.assign({}, model, { x: -5, y: -4, tags: [{ text: "orders usually ship in 3 days", tone: "amber" }] }) }, links: { u: L("user", "model") }, flows: [{ route: ["u"], bounce: true, rate: 0.4 }] },
+        scene: { ents: { user: Object.assign({}, user, { tags: [{ text: "where is order A-4417?", tone: "violet" }] }), model: Object.assign({}, model, { x: -5, y: -4, tags: [{ text: "orders usually ship in 3 days", tone: "amber" }] }) }, links: { u: L("user", "model") }, flows: [{ route: ["u"], bounce: true, rate: 0.4 }] },
       },
       {
         short: "The loop", chapter: "technique", title: "Wrap it in a loop with tools",
         body: ["Put an agent around the model and hang three tools on it: look up an order, start a refund, send an email. Now the loop runs: read the request, ask the model what to do, call the tool it names, feed the result back, go round again.", "The customer asks the same question. The model says <em>look up the order</em>, the agent calls that tool, and the real answer comes back."],
-        changes: ["+ The agent loop", "+ Three tools"],
+        changes: ["+ The agent loop, with three tools"],
         metrics: { parts: 2, right: { v: "yes", tone: "green" }, where: "a laptop" },
         scene: base(),
       },
@@ -75,7 +76,7 @@
         callout: { kind: "tip", text: "Keep the notepad per conversation and per user. One shared notepad is how customer A's order gets refunded to customer B." },
         changes: ["+ Session state", "~ The order number carried between turns"],
         metrics: { parts: 3, right: { v: "yes", tone: "green" }, where: "a laptop" },
-        scene: (s) => { s.ents.user = user; s.ents.agent = agent; s.ents.session = session; s.links.s = L("agent", "session", { heads: "both", label: "order 4471", labelAt: 0.55 }); s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["s"], bounce: true, kind: "write", back: "res", rate: 0.4 }, { route: ["b"], bounce: true, rate: 0.35 }]; return s; },
+        scene: (s) => { s.ents.user = user; s.ents.agent = agent; s.ents.session = session; s.links.s = L("agent", "session", { heads: "both", label: "order A-4417", labelAt: 0.55 }); s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["s"], bounce: true, kind: "write", back: "res", rate: 0.4 }, { route: ["b"], bounce: true, rate: 0.35 }]; return s; },
       },
       {
         short: "The policy", chapter: "technique", title: "Grounding: answer from the real policy",
@@ -94,7 +95,7 @@
       },
       {
         short: "Somewhere safe", chapter: "solution", title: "Run it somewhere safe",
-        body: ["It all works on a laptop. Customers cannot use a laptop. Deploy the agent to a managed runtime: it starts the agent, keeps every conversation apart from every other, scales when the queue grows, and records each step.", "The code is the same. What changed is who looks after it at 3am."],
+        body: ["It all works on a laptop. Customers cannot use a laptop. Deploy the agent to a managed runtime (in this lab, Agent Runtime): it starts the agent, keeps every conversation apart from every other, scales when the queue grows, and records each step.", "The code is the same. What changed is who looks after it at 3am."],
         changes: ["+ Managed runtime", "~ Each conversation kept apart", "~ Every step recorded"],
         metrics: { parts: 6, right: { v: "yes", tone: "green" }, where: { v: "managed runtime", tone: "green" } },
         scene: (s) => { s.ents = Object.assign({ runtime }, s.ents); s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["a"], bounce: true, rate: 0.35 }, { route: ["h"], bounce: true, rate: 0.25 }]; return s; },

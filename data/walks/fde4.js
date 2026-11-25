@@ -13,7 +13,7 @@
   const L = (from, to, extra) => Object.assign({ from, to, heads: "both" }, extra);
   const live = () => ({
     ents: { staff, app, model, drive, tickets, hr },
-    links: { u: L("staff", "app"), m: L("app", "model"), d: L("app", "drive", { via: [["app", "drive"]], label: "live, as this person" }), t: L("app", "tickets"), h: L("app", "hr", { via: [["app", "hr"]] }) },
+    links: { u: L("staff", "app"), m: L("app", "model"), d: L("app", "drive", { label: "live, as this person" }), t: L("app", "tickets"), h: L("app", "hr", { via: [["app", "hr"]] }) },
     flows: [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["d"], bounce: true, rate: 0.35 }, { route: ["t"], bounce: true, rate: 0.3 }],
   });
   return {
@@ -55,10 +55,10 @@
       },
       {
         short: "Copy it?", chapter: "problem", title: "The tempting shortcut: copy everything in",
-        body: ["The quick way to make the drive searchable is to copy every file into the app's own store. It works on Monday. By Friday a contract has been updated, and the app still quotes the old version.", "Worse: a file one person may not see was copied into a store everyone searches."],
-        changes: ["+ A copy of the drive", "~ Stale by Friday", "~ Permissions lost in the copy"],
+        body: ["The quick way to make the drive searchable is to copy every file into the app's own store, once a night. It works on day one. Then a contract is updated at ten in the morning, and until tonight's copy runs the app still quotes the old version.", "Worse: the drive's list of who may read what has to be copied too, and it goes stale the same way. Take someone off a file on the drive, and the copy still shows it to them until the next run."],
+        changes: ["+ A copy of the drive", "~ Stale until the next copy", "~ Permissions copied, and stale too"],
         metrics: { sources: 1, copies: { v: 1, tone: "red" }, fenced: { v: "none", tone: "red" } },
-        scene: { ents: { staff, app, model, drive, copy: Object.assign({}, copy, { state: "hot", tags: [{ text: "stale · no permissions", tone: "red" }] }) }, links: { u: L("staff", "app"), m: L("app", "model"), c: L("drive", "copy", { heads: "end", via: [["copy", "drive"]], style: "dashed", label: "copied nightly" }), r: L("app", "copy") }, flows: [{ route: ["c"], kind: "write", rate: 0.5 }, { route: ["r"], bounce: true, back: "bad", rate: 0.35 }] },
+        scene: { ents: { staff, app, model, drive, copy: Object.assign({}, copy, { state: "hot", tags: [{ text: "stale · old permissions", tone: "red" }] }) }, links: { u: L("staff", "app"), m: L("app", "model"), c: L("drive", "copy", { heads: "end", via: [["copy", "drive"]], style: "dashed", label: "copied nightly" }), r: L("app", "copy") }, flows: [{ route: ["c"], kind: "write", rate: 0.5 }, { route: ["r"], bounce: true, back: "bad", rate: 0.35 }] },
       },
       {
         short: "Live", chapter: "technique", title: "Federation: read it where it lives",
@@ -66,7 +66,7 @@
         callout: { kind: "idea", text: "A copy has to be kept fresh and kept safe. A live link is fresh and safe by definition, because it is the real thing." },
         changes: ["- The copy", "+ Shared drive, plugged in live"],
         metrics: { sources: 1, copies: { v: 0, tone: "green" }, fenced: { v: "none", tone: "red" } },
-        scene: { ents: { staff, app, model, drive }, links: { u: L("staff", "app"), m: L("app", "model"), d: L("app", "drive", { via: [["app", "drive"]], label: "live" }) }, flows: [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["d"], bounce: true, rate: 0.4 }] },
+        scene: { ents: { staff, app, model, drive }, links: { u: L("staff", "app"), m: L("app", "model"), d: L("app", "drive", { label: "live" }) }, flows: [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["d"], bounce: true, rate: 0.4 }] },
       },
       {
         short: "As you", chapter: "technique", title: "Every answer carries your permissions",
@@ -80,7 +80,7 @@
         body: ["Permissions only mean something if the app knows who is asking. Everyone signs in through the company's own sign-in service, the same one that opens their laptop and email.", "No separate passwords for the app, and when someone leaves, their access ends everywhere at once."],
         changes: ["+ Company sign-in"],
         metrics: { sources: 2, copies: { v: 0, tone: "green" }, fenced: { v: 1, tone: "amber" } },
-        scene: (s) => { s.ents.staff = staff; s.ents.idp = idp; s.links.i = L("staff", "idp", { style: "dashed", label: "who are you?" }); s.flows = [{ route: ["i"], bounce: true, kind: "ping", rate: 0.35 }, { route: ["u"], bounce: true, rate: 0.3 }]; return s; },
+        scene: (s) => { s.ents.staff = staff; s.ents.idp = idp; s.links.i = L("staff", "idp", { style: "dashed", label: "who are you?", labelAt: 0.3 }); s.flows = [{ route: ["i"], bounce: true, kind: "ping", rate: 0.35 }, { route: ["u"], bounce: true, rate: 0.3 }]; return s; },
       },
       {
         short: "Locked", chapter: "technique", title: "Fence two: some data never reaches the model",
@@ -95,11 +95,11 @@
         body: ["A team wants the app to use their own tool server. Fine, once its address is on the allow-list. Until then the app refuses to connect, however nicely the model asks.", "The list is short and reviewed. Everything not on it is unreachable, which is what keeps a hijacked request from calling out."],
         changes: ["+ A team's tool server, once allow-listed", "+ Allow-list of destinations"],
         metrics: { sources: 4, copies: { v: 0, tone: "green" }, fenced: { v: 3, tone: "green" } },
-        scene: (s) => { s.ents.hr = hr; s.links.h = L("app", "hr", { via: [["app", "hr"]], style: "off" }); s.ents.team = Object.assign({}, team, { tags: [{ text: "on the allow-list", tone: "green" }] }); s.links.w = L("app", "team", { via: [["app", "team"]], style: "green" }); s.flows = [{ route: ["w"], bounce: true, rate: 0.35 }, { route: ["u"], bounce: true, rate: 0.3 }]; return s; },
+        scene: (s) => { s.ents.hr = Object.assign({}, hr, { tags: [{ text: "content policy", tone: "muted" }] }); s.links.h = L("app", "hr", { via: [["app", "hr"]], style: "off" }); s.ents.team = Object.assign({}, team, { tags: [{ text: "on the allow-list", tone: "green" }] }); s.links.w = L("app", "team", { via: [["app", "team"]], style: "green" }); s.flows = [{ route: ["w"], bounce: true, rate: 0.35 }, { route: ["u"], bounce: true, rate: 0.3 }]; return s; },
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",
-        recap: ["One <b>front door</b> for everyone, instead of an assistant per system.", "<b>Federation</b>: read each source live, where it lives. Copies go stale and lose permissions.", "Every request is made <b>as the person asking</b>; the app never widens access.", "Fences: company <b>sign-in</b>, a <b>content policy</b> on sensitive sources, an <b>allow-list</b> of destinations."],
+        recap: ["One <b>front door</b> for everyone, instead of an assistant per system.", "<b>Federation</b>: read each source live, where it lives. Copies go stale, and so do the permission lists copied with them.", "Every request is made <b>as the person asking</b>; the app never widens access.", "Fences: company <b>sign-in</b>, a <b>content policy</b> on sensitive sources, an <b>allow-list</b> of destinations."],
         callout: { kind: "next", text: "The rest of day four follows the life of one query, screens every word, draws the perimeter, and shows what to do when it goes wrong." },
         metrics: { sources: 4, copies: { v: 0, tone: "green" }, fenced: { v: 3, tone: "green" } },
         scene: (s) => { s.ents.team = team; s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["d"], bounce: true, rate: 0.3 }, { route: ["t"], bounce: true, rate: 0.3 }, { route: ["w"], bounce: true, rate: 0.25 }]; return s; },

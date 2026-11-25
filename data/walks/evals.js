@@ -17,7 +17,7 @@
   return {
     title: "Is the new version better? One run cannot tell you",
     summary: "Change a prompt, run the test cases through the old and new versions, let a judge score them, and watch one run point the wrong way before five runs settle it.",
-    plain: "you change a prompt and want to know if it got better. Ordinary software gives the same answer every time, so one test settles it. An agent gives a different answer each run, so one run is a coin toss. This walk sends the same test cases through the old and new versions, scores them with a judge, shows the first run pointing the wrong way, then runs enough times to trust the result, and closes the loop by changing the prompt again.",
+    plain: "you change a prompt and want to know if it got better. Ordinary software gives the same answer every time, so one test settles it. An agent gives a different answer each run, so one run is a coin toss. This walk sends the same test cases through the old and new versions and scores them with a judge. It shows the first run pointing the wrong way, runs enough times to trust the result, then closes the loop by changing the prompt again.",
     reallife: "Deciding whether a new recipe is better by cooking it once. One tasting on one evening tells you about that evening. Cook both recipes five times for the same panel and you learn something about the recipes.",
     startby: "Press Next to send the test cases through both versions, score them, and watch the verdict change as the runs add up. Arrow keys work too.",
     terms: [
@@ -29,7 +29,7 @@
       ["rubric", "the written scoring guide the judge follows: what a 5 looks like, what a 1 looks like"],
       ["hill climbing", "change one thing, measure, keep it if the score rose, repeat"],
     ],
-    metrics: [{ k: "runs", label: "Runs each" }, { k: "old", label: "Old version" }, { k: "new", label: "New version" }, { k: "verdict", label: "Verdict" }],
+    metrics: [{ k: "runs", label: "Runs each" }, { k: "old", label: "Baseline" }, { k: "new", label: "Candidate" }, { k: "verdict", label: "Verdict" }],
     legend: [{ kind: "req", label: "a test case" }, { kind: "res", label: "an answer to score" }, { kind: "write", label: "a score" }, { kind: "ping", label: "a human check" }],
     goals: [
       { text: "Why one run of an agent proves nothing", step: 3 },
@@ -40,14 +40,14 @@
     steps: [
       {
         short: "A change", chapter: "problem", title: "You changed the prompt. Better or worse?",
-        body: ["You rewrote the agent's instructions to be friendlier. It feels better. Feelings are not a release process.", "You have twenty test cases with known good answers. Run them through the old version and the new one, and compare."],
+        body: ["You rewrote the agent's instructions to be friendlier. It feels better. Feelings are not a release process.", "You have twenty test cases with known good answers. Run them through the old version, your baseline, and the new one, the candidate, and compare."],
         callout: { kind: "idea", text: "A test set is a fixed ruler. Without one, every comparison is between two memories." },
         metrics: { runs: 0, old: null, new: null, verdict: null },
         scene: { ents: { cases, old, neu: Object.assign({}, neu, { tags: [{ text: "new prompt", tone: "amber" }] }) }, links: {}, flows: [] },
       },
       {
         short: "Score it", chapter: "technique", title: "A judge scores every answer",
-        body: ["Forty answers is too many to read by hand every time. A judge model reads each answer against a rubric and gives a score from 1 to 5.", "The rubric is the point: <em>a 5 answers the question, cites the policy, and says nothing untrue.</em> Without it the judge just reacts."],
+        body: ["Forty answers is too many to read by hand every time. A judge model reads each answer against a rubric and gives a score from 1 to 5.", "The rubric is the point: <em>a 5 answers the question, cites the policy, and says nothing untrue.</em> Without it the judge just reacts.", "Each average below is shown as a share of the top mark, so 1.00 would mean a 5 on every case."],
         changes: ["+ A judge with a written rubric"],
         metrics: { runs: 0, old: null, new: null, verdict: null },
         scene: base(),
@@ -62,10 +62,10 @@
       },
       {
         short: "The judge", chapter: "technique", title: "Is the judge any good?",
-        body: ["Before trusting the scores, check the judge against a person. Take thirty answers a person has already scored and see how often the judge agrees.", "If the judge agrees with the person most of the time, its scores mean something. If it does not, fix the rubric before running anything else."],
+        body: ["Before trusting the scores, check the judge against a person. Take thirty answers a person has already scored and see how often the judge agrees.", "Here it agrees on 27 of the 30, nine times in ten, so its scores mean something. If it agreed far less often, you would fix the rubric before running anything else."],
         changes: ["+ Thirty answers scored by a person", "~ Judge agreement checked"],
         metrics: { runs: 1, old: "0.70", new: { v: "0.58", tone: "red" }, verdict: { v: "worse?", tone: "red" } },
-        scene: (s) => { s.ents.human = human; s.links.h = L("judge", "human", { style: "dashed", label: "agrees 27 of 30" }); s.flows = [{ route: ["h"], bounce: true, kind: "ping", rate: 0.4 }]; return s; },
+        scene: (s) => { s.ents.human = human; s.links.h = L("judge", "human", { style: "dashed", label: "agrees 27 of 30", labelAt: 0.3 }); s.flows = [{ route: ["h"], bounce: true, kind: "ping", rate: 0.4 }]; return s; },
       },
       {
         short: "Five runs", chapter: "solution", title: "Five runs each, and the verdict settles",
@@ -84,17 +84,17 @@
       },
       {
         short: "Live", chapter: "tradeoff", title: "The test set is not the world",
-        body: ["Twenty cases cannot cover what real users ask. Once a version ships, keep scoring a sample of live conversations with the same judge, and add the surprising ones to the test set.", "Offline scores tell you a change is safe to try. Live scores tell you whether it worked."],
+        body: ["Twenty cases cannot cover what real users ask. Once a version ships, keep scoring a sample of live conversations with the same judge, and add the surprising ones to the test set.", "Here the baseline scored 0.78 on the test cases and 0.74 on live conversations: the gap is the questions your set never asked.", "Scores on the test set tell you a change is safe to try. Live scores tell you whether it worked."],
         callout: { kind: "idea", text: "Every unexpected real question is a free new test case. The set should grow with the product." },
         changes: ["+ A sample of live conversations scored", "~ New cases added to the set"],
-        metrics: { runs: 5, old: "0.78", new: "live: 0.74", verdict: "watching" },
+        metrics: { runs: 5, old: "live 0.74", new: "next", verdict: "watching" },
         scene: (s) => { s.ents.prod = prod; s.links.p = L("prod", "judge", { heads: "end", via: [["prod", "judge"]], style: "dashed", label: "a sample", labelAt: 0.62 }); s.links.q = L("prod", "cases", { heads: "end", via: [["prod", "cases"]], style: "off", label: "new cases", labelAt: 0.12 }); s.flows = [{ route: ["p"], kind: "res", rate: 0.4 }, { route: ["e"], kind: "write", rate: 0.4 }]; return s; },
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",
         recap: ["Keep a fixed set of <b>test cases</b> and run every change against it.", "A <b>judge</b> with a <b>rubric</b> scores the answers; check the judge against <b>people</b> first.", "<b>One run proves nothing</b>; five runs each, averaged, and the verdict holds.", "Then <b>loop</b>: change one thing, measure, keep or drop.", "Keep scoring <b>live</b> conversations and grow the test set from them."],
         callout: { kind: "next", text: "The rest of this lab covers metrics and methods, rubrics, trajectories, offline and online evaluation, hill climbing, latency and cost, and model upgrades." },
-        metrics: { runs: 5, old: "0.78", new: "live: 0.74", verdict: "watching" },
+        metrics: { runs: 5, old: "live 0.74", new: "next", verdict: "watching" },
       },
     ],
   };

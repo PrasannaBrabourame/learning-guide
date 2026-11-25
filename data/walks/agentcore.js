@@ -15,7 +15,7 @@
   return {
     title: "From a laptop demo to an agent you would let near a customer",
     summary: "The same agent, fitted with the managed parts a production agent needs: a sealed place to run, memory, one door to its tools, an identity, a record of every step and a sandbox for code.",
-    plain: "getting an agent to work once on your laptop is a weekend. Getting one you would let near customers needs the same list every time: somewhere safe to run, memory, one door to its tools, a way to prove who it is, a record of what it did, and a safe place to run code. This walk adds each one and shows the failure it prevents.",
+    plain: "getting an agent to work once on your laptop is a weekend. Getting one you would let near customers needs parts the demo never had: somewhere safe to run, memory, one door to its tools, a way to prove who it is, a record of what it did, and a safe place to run code. This walk adds each one and shows the failure it prevents.",
     reallife: "A food stall that works at one market becomes a restaurant. The cooking is the same. What you add is a kitchen that passes inspection, a booking book, one supplier entrance, staff badges, a till that records every sale, and a separate prep room for the dangerous jobs.",
     terms: [
       ["runtime", "the managed place an agent runs: it starts it, scales it and keeps each conversation apart"],
@@ -32,7 +32,7 @@
     goals: [
       { text: "Why one sealed box per session matters", step: 3 },
       { text: "Short-term versus long-term memory", step: 4 },
-      { text: "Why the agent should never hold its own passwords", step: 6 },
+      { text: "Why the agent should never hold its own passwords", step: 5 },
       { text: "What a trace gives you that logs do not", step: 7 },
       { text: "Where model-written code may run", step: 8 },
     ],
@@ -86,7 +86,7 @@
         body: ["A customer complains the agent promised a refund. Did it? Every request now leaves a trace: what the model was shown, what it decided, which tools were called, what came back.", "You can replay the exact conversation and see where it went wrong, instead of guessing from a log line."],
         changes: ["+ Trace of every step", "~ Any conversation can be replayed"],
         metrics: { users: "many", kept: { v: "yes", tone: "green" }, proof: { v: "yes", tone: "green" } },
-        scene: (s) => { s.ents.agent = agent; s.ents.obs = obs; s.links.o = L("gateway", "obs", { heads: "end", label: "step by step", labelAt: 0.5 }); s.links.oa = L("agent", "obs", { heads: "end", via: [["agent", "obs"]], style: "dashed" }); s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["o"], kind: "write", rate: 0.5 }, { route: ["oa"], kind: "write", rate: 0.4 }]; return s; },
+        scene: (s) => { s.ents.agent = agent; s.ents.obs = obs; s.links.o = L("gateway", "obs", { heads: "end", label: "step by step", labelAt: 0.5 }); s.links.oa = L("agent", "obs", { heads: "end", style: "dashed" }); s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["o"], kind: "write", rate: 0.5 }, { route: ["oa"], kind: "write", rate: 0.4 }]; return s; },
       },
       {
         short: "Sandbox", chapter: "solution", title: "A sandbox for the risky jobs",
@@ -94,12 +94,12 @@
         callout: { kind: "warn", text: "Code the model wrote is untrusted code. Treat it exactly as you would a script a stranger emailed you." },
         changes: ["+ Code sandbox", "+ A managed browser, kept apart"],
         metrics: { users: "many", kept: { v: "yes", tone: "green" }, proof: { v: "yes", tone: "green" } },
-        scene: (s) => { s.ents.sandbox = sandbox; s.links.c = L("gateway", "sandbox", { via: [["gateway", "sandbox"]], label: "code in, result out", labelAt: 0.75 }); s.flows = [{ route: ["c"], bounce: true, kind: "heavy", rate: 0.3 }, { route: ["o"], kind: "write", rate: 0.4 }]; return s; },
+        scene: (s) => { s.ents.sandbox = sandbox; s.links.c = L("gateway", "sandbox", { label: "code in, result out", labelAt: 0.6 }); s.flows = [{ route: ["c"], bounce: true, kind: "heavy", rate: 0.3 }, { route: ["o"], kind: "write", rate: 0.4 }]; return s; },
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",
         recap: ["A <b>runtime</b> gives every session its own sealed box.", "<b>Memory</b> has two shelves: this chat, and this person.", "A <b>gateway</b> is the one door to every tool, and holds the passwords.", "An <b>identity</b> token says who the agent is and who it acts for, and expires.", "A <b>trace</b> lets you replay any conversation; a <b>sandbox</b> runs untrusted code apart."],
-        callout: { kind: "next", text: "The rest of this lab pulls each module out of the rack in turn, then runs a worked case and the exam angle." },
+        callout: { kind: "next", text: "The simulation below adds two more parts: evaluations, which prove a change made it better, and policy, which blocks forbidden actions. The tabs after it take each part in turn, then a worked case and the exam angle." },
         metrics: { users: "many", kept: { v: "yes", tone: "green" }, proof: { v: "yes", tone: "green" } },
         scene: (s) => { s.flows = [{ route: ["u"], bounce: true, rate: 0.3 }, { route: ["g", "g2"], bounce: true, rate: 0.35 }, { route: ["o"], kind: "write", rate: 0.4 }]; return s; },
       },
