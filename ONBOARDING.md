@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **27 hands-on labs**, **396 in-browser simulations**,
+topics. **304 topics**, **28 hands-on labs**, **414 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -17,7 +17,7 @@ Two kinds of content, one site:
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered on the dashboard and browse view
   (`index.html` + `assets/app.js`).
-- **The labs** (`*.html`): 25 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`): 26 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -46,7 +46,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    pairs, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, k8s, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, devops, k8s, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -132,6 +132,14 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
+- **DevOps lab.** `devops.html`: DevOps from scratch in plain words, as step 2
+  of the cloud track. Release night against one change at a time, the parts
+  used to build and publish (repository, pipeline, package, registry,
+  environments), the pipeline up close, four ways to ship and the way back,
+  what infrastructure as code is (the file, plan and apply, drift), and the
+  four numbers. Fourteen simulations and the drill, three isometric
+  walkthroughs and a turntable figure whose puck only travels forwards. The
+  shop's version 1.4 ships here and the Kubernetes lab picks it up.
 - **Every picture tells its own lab's story.** A pass over all 25 lab pages
   found that most walkthroughs and several machine figures, authored in
   batches after their labs, told invented stories (customer messages in a
