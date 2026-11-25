@@ -18,7 +18,7 @@
     title: "One Docker server at 2am, then a cluster that looks after itself",
     summary: "Start with your app in a container on one server, watch what wakes you up, then hand the same container to a cluster and see it restart, re-place, scale and update the app without you.",
     plain: "your app runs in a container on one server. It works until the container crashes, the server dies, or Monday brings ten times the traffic, and each of those is a person out of bed. Kubernetes is the manager that takes those jobs: you tell it \"keep three copies running\" and it keeps three running, on whichever computers have room, whatever happens. This walk runs the same container both ways.",
-    reallife: "One shopkeeper who does everything, against a shopping centre with a management company. The management company reopens a flooded unit, finds a new unit when one burns down, and opens more tills on a busy Saturday. The shopkeeper still decides what to sell.",
+    reallife: "One boat you load and sail yourself, against a port that runs itself. The port reloads a box that falls in the water, moves the boxes off a ship that is sinking, and brings in more ships when the queue of boxes grows. You still decide what goes in the box.",
     startby: "Press Next to watch one server fail three ways, then hand the same container to a cluster. Arrow keys work too.",
     terms: [
       ["container", "your app packed in a box with everything it needs to run, so it runs the same on any computer"],
@@ -49,7 +49,7 @@
       },
       {
         short: "It crashes", chapter: "problem", title: "2am: the container crashes",
-        body: ["A bug that shows up once a week fires at 2am. The container dies. The server is fine, the container is simply not running, and every request fails.", "Someone's phone buzzes. They log in, type the start command again, and go back to bed."],
+        body: ["A bug that shows up once a week fires at 2am. The container dies. The server is fine, the container is simply not running, and every request fails.", "Someone's phone buzzes. They log in, type the start command again, and go back to bed. The site was down for twenty minutes."],
         changes: ["- The container", "~ A person restarted it"],
         metrics: { copies: { v: 0, tone: "red" }, up: { v: "no, 20 minutes", tone: "red" }, who: { v: "a person", tone: "red" } },
         scene: { ents: { users, server: Object.assign({}, server, { state: "dead", tags: [{ text: "container exited", tone: "red" }] }), you }, links: { u: L("users", "server", { style: "red" }), y: L("you", "server", { style: "dashed", label: "restart it by hand" }) }, flows: [{ route: ["u"], kind: "bad", rate: 0.6, fail: 0.9 }] },
@@ -71,7 +71,7 @@
       },
       {
         short: "A cluster", chapter: "technique", title: "Hand the same container to a cluster",
-        body: ["A cluster is three or more computers, the nodes, and a control plane: the brain that keeps a list of what you asked for. You hand it the same container image and one wish: <em>keep three copies of shop:1.4 running.</em>", "The control plane places one copy on each node. A front door shares the traffic. You did not say which node; it chose."],
+        body: ["A cluster is a group of computers, the nodes, here three of them, and a control plane: the brain that keeps a list of what you asked for. You hand it the same container image and one wish: <em>keep three copies of shop:1.4 running.</em>", "The control plane places one copy on each node. A front door shares the traffic. You did not say which node; it chose."],
         changes: ["+ Three nodes and a control plane", "+ Your wish: three copies", "+ A front door sharing the load"],
         metrics: { copies: { v: 3, tone: "green" }, up: { v: "yes", tone: "green" }, who: "nobody needed" },
         scene: fleet([podTags(1), podTags(1), podTags(1)]),

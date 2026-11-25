@@ -122,15 +122,15 @@
       },
       {
         short: "Count fences", chapter: "solution", title: "Count the fences between a stranger and the database",
-        body: ["A stranger's request has to pass the web firewall, be accepted by the load balancer, match the web server's security group, cross the private subnet's ACL, match the app server's group, and then the database's group, which only answers the app server.", "Six fences, each stopping a different thing. None of them is the model's judgement or the app's good behaviour; they hold whatever the code does."],
+        body: ["A stranger's request meets them from the outside in. The web firewall reads it; the load balancer, the only thing with a public address, accepts it; the VPC wall and the route tables leave it no other way in. The private subnet's ACL checks it at the edge. Then the security groups: the web server's, the app server's, and the database's, which only answers the app server.", "Six fences, the six this walk added, each stopping a different thing. None of them depends on the app's code behaving well; they hold whatever the code does."],
         callout: { kind: "idea", text: "When something is reachable that should not be, walk the fences in this order and find the one that is open. Usually it is a route or a security group rule someone added in a hurry." },
         metrics: { in: { v: "no", tone: "green" }, out: { v: "yes, through the NAT", tone: "green" }, fences: { v: 6, tone: "green" }, addr: "65,536" },
-        scene: (s) => { s.ents.waf = waf; s.ents.rt = routes(["1 web firewall", "2 load balancer", "3 web server group", "4 private subnet ACL", "5 app server group", "6 database group"], "the fences, in order"); s.flows = [{ route: ["i", "f", "l"], bounce: true, rate: 0.35 }, { route: ["w2", "a", "d"], bounce: true, rate: 0.3 }]; return s; },
+        scene: (s) => { s.ents.waf = waf; s.ents.lb = Object.assign({}, lb, { x: 8, y: -11 }); s.ents.rt = routes(["1 web firewall", "2 load balancer", "3 the VPC wall", "4 route tables", "5 private subnet ACL", "6 security groups"], "six fences, outside in"); s.flows = [{ route: ["i", "f", "l"], bounce: true, rate: 0.35 }, { route: ["w2", "a", "d"], bounce: true, rate: 0.3 }]; return s; },
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",
         recap: ["A <b>VPC</b> is a fenced plot with its own <b>CIDR</b> range; nothing is reachable until you open something.", "<b>Subnets</b> are rooms: a slice of addresses plus a <b>route table</b>. A route to the <b>internet gateway</b> is what makes one public.", "A <b>NAT gateway</b> is a one-way door for private machines that must call out.", "A <b>security group</b> is the key list on each machine (allow only, remembers conversations); a <b>network ACL</b> is the guard at the subnet edge (allow and deny, checks each way).", "The <b>load balancer</b> is the only public address; the <b>web firewall</b> reads the words. Six fences before the database."],
-        callout: { kind: "next", text: "The rest of this tab sizes the subnets, audits what sits in the public one, and asks how many networks an estate really needs. The NGINX tab walks the two kinds of load balancer." },
+        callout: { kind: "next", text: "The cards below audit what sits in the public subnet and size the subnets; the one above asks how many networks an estate really needs. The NGINX tab walks the two kinds of load balancer." },
         metrics: { in: { v: "no", tone: "green" }, out: { v: "yes, through the NAT", tone: "green" }, fences: { v: 6, tone: "green" }, addr: "65,536" },
       },
     ],

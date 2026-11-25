@@ -9,13 +9,13 @@
   const svc = { type: "block", x: 2, y: -1, label: "Service: shop", glyph: "addr", tint: "teal", s: 0.85 };
   const ing = { type: "block", x: -14, y: 2, label: "Ingress", glyph: "door", tint: "teal", s: 0.85 };
   const cfg = { type: "db", x: 0, y: 12, label: "Config map + secret", tint: "amber", s: 0.9 };
-  const pv = { type: "db", x: 26, y: 14, label: "Persistent volume", tint: "slate" };
+  const pv = { type: "db", x: 31, y: 10, label: "Persistent volume", tint: "slate" };
   const L = (from, to, extra) => Object.assign({ from, to, heads: "both" }, extra);
   return {
     title: "The parts of a cluster, each added when its problem appears",
     summary: "Start with one pod on one node and meet the problems in order: the address keeps changing, the outside world needs a door, settings are baked in, data vanishes, two teams collide. Each part is added when its problem shows up.",
     plain: "nobody learns the parts of Kubernetes from the list. You learn them by meeting the problem each one solves. A pod is the box; a node is where it runs; a deployment is your written wish. Then: the pod's address changed, so you add a service. The internet needs a door, so you add an ingress. The password was baked into the image, so you add a secret. The disk vanished with the pod, so you add a volume. Two teams collided, so you add namespaces.",
-    reallife: "Setting up a market. First a stall. Then a sign, because the stall moves. Then one gate for the public. Then a locked cash box instead of money in the goods. Then a storeroom that is not the stall. Then rows, so two traders do not share a pitch.",
+    reallife: "Growing a port one problem at a time. Boxes move between ships, so callers get one phone number for the quay instead of a slot number. Lorries get one gate. The papers ride in an envelope taped to the box, not packed inside it. Goods that must outlast any box go in the warehouse. Each customer gets a fenced zone of its own.",
     startby: "Press Next to meet each problem and the part that answers it. Arrow keys work too.",
     terms: [
       ["control plane", "the brain of the cluster: it keeps the list of what you asked for and makes the nodes match it"],
@@ -30,7 +30,7 @@
       ["namespace", "a named room inside one cluster, with its own limits, so teams do not tread on each other"],
     ],
     metrics: [{ k: "parts", label: "Parts in play" }, { k: "problem", label: "The problem just met" }, { k: "fix", label: "The part that answers it" }],
-    legend: [{ kind: "req", label: "a request" }, { kind: "res", label: "a reply" }, { kind: "bad", label: "a request to a stale address" }, { kind: "write", label: "settings handed over" }],
+    legend: [{ kind: "req", label: "a request" }, { kind: "res", label: "a reply" }, { kind: "bad", label: "a request to an old address" }, { kind: "write", label: "settings handed over" }],
     goals: [
       { text: "Pod, node, deployment: the box, the ship, the wish", step: 2 },
       { text: "Why a service exists: pod addresses change", step: 3 },
@@ -41,7 +41,7 @@
     steps: [
       {
         short: "A pod", chapter: "technique", title: "A pod on a node",
-        body: ["The smallest thing the cluster runs is a pod: your container, with its own address, on a node. You almost never make one by hand; you write a deployment, <em>two copies of shop:1.4</em>, and the control plane makes the pods.", "Two pods, one per node. Each has an address of its own."],
+        body: ["The smallest thing the cluster runs is a pod: your container, with its own address, on a node. You almost never make one by hand; you write a deployment, <em>two copies of shop:1.4</em>, and the control plane makes the pods.", "This picture keeps it small: two nodes, two pods, one per node. Each pod has an address of its own."],
         metrics: { parts: "pod, node, control plane, deployment", problem: null, fix: null },
         scene: { ents: { cluster, cp, n1, n2, p1: pod(13, -9, "Pod shop-a1", [{ text: "10.1.0.7", tone: "blue" }]), p2: pod(20, 4, "Pod shop-b4", [{ text: "10.1.1.3", tone: "blue" }]) }, links: { w1: L("cp", "p1", { style: "dashed", heads: "end" }), w2: L("cp", "p2", { style: "dashed", heads: "end", via: [["cp", "p2"]] }) }, flows: [{ route: ["w1"], kind: "ping", rate: 0.3 }, { route: ["w2"], kind: "ping", rate: 0.3 }] },
       },
@@ -62,7 +62,7 @@
       },
       {
         short: "The door", chapter: "technique", title: "An ingress: the one door from the internet",
-        body: ["Users on the internet cannot reach a service's address; it lives inside the cluster. An ingress is the one door: it holds the site's certificate and routes by site name and path. <em>shop.example</em> goes to the shop service, <em>/orders</em> to another.", "One certificate, one public address, many services behind it."],
+        body: ["Users on the internet cannot reach a service's address; it lives inside the cluster. An ingress is the one door: it holds the site's certificate, the proof that puts the padlock in the browser, and routes by site name and path. <em>shop.example</em> goes to the shop service, <em>/orders</em> to another.", "One certificate, one public address, many services behind it."],
         changes: ["+ Ingress, holding the certificate", "+ shop.example → service shop"],
         metrics: { parts: "+ ingress", problem: "the internet needs a door", fix: { v: "an ingress", tone: "green" } },
         scene: (s) => { s.ents.users = users; s.ents.ing = Object.assign({}, ing, { tags: [{ text: "shop.example → shop", tone: "blue" }] }); s.links.u = L("users", "ing"); s.links.i = L("ing", "svc"); s.flows = [{ route: ["u", "i"], bounce: true, rate: 0.5 }, { route: ["s1"], rate: 0.3 }, { route: ["s2"], rate: 0.3 }]; return s; },
@@ -80,7 +80,7 @@
         body: ["Take the settings out of the image. A config map holds the database address and is handed to the pod when it starts; a secret holds the password and is stored and shown more carefully. One image, two envelopes.", "And the photos users uploaded vanished when a pod was replaced, because a pod's disk dies with it. A persistent volume outlives any pod; the pods write there."],
         changes: ["+ Config map and secret, handed over at start", "+ Persistent volume for the uploads", "~ One image for test and production"],
         metrics: { parts: "+ config map, secret, volume", problem: "settings in the image · data lost", fix: { v: "an envelope and a warehouse", tone: "green" } },
-        scene: (s) => { s.ents.p1.tags = [{ text: "reads the envelope", tone: "green" }]; s.ents.p2.tags = [{ text: "reads the envelope", tone: "green" }]; s.ents.cfg = cfg; s.ents.pv = pv; s.links.c1 = L("cfg", "p1", { heads: "end", style: "dashed", via: [["p1", "cfg"]] }); s.links.c2 = L("cfg", "p2", { heads: "end", style: "dashed" }); s.links.v = L("p2", "pv", { heads: "end", via: [["pv", "p2"]], label: "uploads" }); s.flows = [{ route: ["c1"], kind: "write", rate: 0.3 }, { route: ["c2"], kind: "write", rate: 0.3 }, { route: ["v"], kind: "write", rate: 0.3 }, { route: ["u", "i"], bounce: true, rate: 0.4 }]; return s; },
+        scene: (s) => { s.ents.p1.tags = [{ text: "reads the envelope", tone: "green" }]; s.ents.p2.tags = [{ text: "reads the envelope", tone: "green" }]; s.ents.cfg = cfg; s.ents.pv = pv; s.links.c1 = L("cfg", "p1", { heads: "end", style: "dashed", via: [["p1", "cfg"]] }); s.links.c2 = L("cfg", "p2", { heads: "end", style: "dashed" }); s.links.v = L("p2", "pv", { heads: "end", via: [["pv", "p2"]], label: "uploads", labelAt: 0.85 }); s.flows = [{ route: ["c1"], kind: "write", rate: 0.3 }, { route: ["c2"], kind: "write", rate: 0.3 }, { route: ["v"], kind: "write", rate: 0.3 }, { route: ["u", "i"], bounce: true, rate: 0.4 }]; return s; },
       },
       {
         short: "Two teams", chapter: "technique", title: "Namespaces: rooms for teams",
@@ -88,7 +88,7 @@
         callout: { kind: "idea", text: "A cluster shared by teams needs rooms before it needs anything else. Retrofitting them is painful." },
         changes: ["+ Namespace shop, namespace payments", "+ Limits per room"],
         metrics: { parts: "+ namespaces", problem: "two teams collide", fix: { v: "rooms with limits", tone: "green" } },
-        scene: (s) => { s.ents.cluster = Object.assign({}, cluster, { label: "namespace shop" }); s.ents.pay = { type: "zone", x: 8, y: 12, w: 12, d: 8, label: "namespace payments", tint: "rose", labelAt: "left" }; s.ents.pp = pod(14, 16, "Pod pay-x2", [{ text: "limited to 2 GB", tone: "amber" }]); return s; },
+        scene: (s) => { s.ents.cluster = Object.assign({}, cluster, { label: "the cluster · namespace shop" }); s.ents.pay = { type: "zone", x: 8, y: 12, w: 12, d: 8, label: "namespace payments", tint: "rose", labelAt: "left" }; s.ents.pp = pod(14, 16, "Pod pay-x2", [{ text: "limited to 2 GB", tone: "amber" }]); return s; },
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",

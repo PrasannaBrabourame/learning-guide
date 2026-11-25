@@ -179,6 +179,42 @@
     if(n) t.insertAdjacentHTML('beforeend','<span class="tcount">'+n+'</span>');
   });
 
+  /* --- the way in: every first tab holds a walkthrough, a machine figure and
+     simulations, but in a different order on every page (on some the walk is
+     the sixth card), so a newcomer could not tell where to begin. Three steps at
+     the top of the first tab, gentlest first, plus how to read a simulation's
+     on-ramp. Built from what the tab holds, so a lab without a figure gets two. */
+  (function(){
+    const p=panes[0]; if(!p) return;
+    const walk=p.querySelector('.walk[data-walk]'), fig=p.querySelector('.iso[data-anatomy]');
+    const sim=[...p.querySelectorAll('.card.issim')].find(c=>!c.querySelector('.walk')&&!c.querySelector('#drillHost'));
+    if(!walk&&!fig) return;
+    const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    const head=el=>{ const h=el.closest('.card').querySelector('h2.sec');
+      return h?h.textContent.replace(/^(walk it through|the machine behind this lab|try it)\s*[:,]\s*/i,'').trim():''; };
+    const steps=[];
+    if(walk) steps.push({el:walk, focus:walk, b:'Walk it through', s:head(walk)});
+    if(fig){ const hint=fig.querySelector('[data-corner="hint"]'), t=fig.querySelector('[data-corner="title"]');
+      steps.push({el:fig, focus:fig.querySelector('.iso-stage'), b:'Play with the machine',
+        s:(t?t.textContent.trim():head(fig))+(hint?' · '+hint.textContent.trim().toLowerCase():'')}); }
+    if(sim) steps.push({el:sim, b:'Try the first simulation', s:head(sim)});
+    const nav=document.createElement('nav'); nav.className='startpath'; nav.setAttribute('aria-label','Where to begin');
+    nav.innerHTML='<h2>New here? Take this tab in '+(steps.length===3?'three':'two')+' steps</h2><ol>'
+      +steps.map((x,i)=>'<li><button type="button" data-i="'+i+'"><i>'+(i+1)+'</i><span><b>'+x.b+'</b><span>'+esc(x.s)+'</span></span></button></li>').join('')
+      +'</ol><p>Every simulation opens with three rows: <b>in real life</b> compares it with something everyday, '
+      +'<b>start by</b> names the first thing to press, and <b>words here</b> explains every term on that screen.</p>';
+    nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      const x=steps[+b.dataset.i], card=x.el.closest('.card')||x.el;
+      window.scrollTo({top:card.getBoundingClientRect().top+window.scrollY-84, behavior:'smooth'});
+      if(x.focus&&x.focus.focus) x.focus.focus({preventScroll:true});
+    }));
+    p.insertBefore(nav, p.firstChild);
+    /* the walk's data file can load after this script (k8s loads lab.js without defer) */
+    const count=()=>{ const w=walk&&(window.WALKS||{})[walk.dataset.walk], s=nav.querySelector('button[data-i="0"] span span');
+      if(w&&w.steps&&s&&!s.dataset.n){ s.dataset.n=w.steps.length; s.textContent+=' · '+w.steps.length+' steps, press Next'; } };
+    count(); document.addEventListener('DOMContentLoaded',count);
+  })();
+
   /* --- wrap the panes so a rail can sit beside them --- */
   const first=panes[0]; if(!first) return;
   const grid=document.createElement('div'); grid.className='labgrid';
@@ -309,7 +345,7 @@
   const TRACKS = [
     { name:'Build, run and govern an agent', labs:[
       ['adk.html',       'ADK, building an agent that behaves'],
-      ['frames.html',    'Pick your frame: five ways to build the same agent'],
+      ['frames.html',    'Pick your frame: eight ways to build an agent'],
       ['agentcore.html', 'AgentCore. An agent you can trust'],
       ['agentbuild.html','Agents building agents'],
       ['evals.html',     'Evaluation, how do you know it got better?'],
@@ -380,8 +416,9 @@
     for (const t of TRACKS) {
       const i = t.labs.findIndex(([h]) => h === here);
       if (i < 0) continue;
-      const nxt = t.labs[i + 1];
+      const prv = t.labs[i - 1], nxt = t.labs[i + 1];
       line.innerHTML = `<span class="tkname">${t.name}</span> · lab ${i + 1} of ${t.labs.length}`
+        + (prv ? ` · after: <a href="${prv[0]}">${prv[1]}</a>` : ' · first in this track')
         + (nxt ? ` · next: <a href="${nxt[0]}">${nxt[1]}</a>` : ' · last in this track');
       break;
     }

@@ -75,7 +75,7 @@
         short: "Method", chapter: "solution", title: "Read across first, then read the small print",
         body: ["The method for any new cloud, or any new service: name the job, find the service with that job, then read its small print against the one you know.", "Most of the time the translation is enough. The rest of the time the small print is the whole answer, and you knew to look."],
         metrics: { cloud: "any", fn: "translate", bucket: "translate", queue: "then check the print" },
-        scene: (() => { const s = stack(zone("any cloud", "slate"), fn("A function"), bucket("A bucket"), queue("A queue"), warehouse("A warehouse")); s.ents.user = Object.assign({}, user, { tags: [{ text: "name the job → find it → read the print", tone: "blue" }] }); return s; })(),
+        scene: (() => { const s = stack(zone("any cloud", "slate"), fn("A function"), bucket("A bucket"), queue("A queue"), warehouse("A warehouse")); s.ents.user = Object.assign({}, user, { tags: [{ text: "name the job → find it → read the print", tone: "blue", dx: 70 }] }); return s; })(),
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",
