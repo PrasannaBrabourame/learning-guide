@@ -60,8 +60,7 @@ devops.html       DevOps lab: from release night to a change that ships itself
                   which way would you ship this, edit the file and read the
                   plan, somebody clicked in production, a description or a
                   list of steps, the four numbers, which evidence answers it,
-                  three isometric walkthroughs and a turntable figure) and
-                  the scenario drill
+                  three isometric walkthroughs) and the scenario drill
 k8s.html          Kubernetes lab: from one Docker server to a fleet that runs
                   itself (what breaks at 2am, name the part, container or
                   virtual machine, which line of the recipe, match the job to
@@ -254,14 +253,12 @@ assets/lab.js     Behaviour shared by every lab page, theme toggle,
                   dashboard),
                   tab deep links, the scenario drill, the navigation rail,
                   the labs menu and the track line
-assets/anatomy-kit.js The isometric figure kit (MIT, from the open-source
-                  "anatomy" skill) wrapped in one function, plus a small live
-                  runtime: tour, pointer, keyboard, offscreen stop, reduced
-                  motion. Each lab's Start-here tab carries one figure, a real
-                  machine whose working is the lab's core idea, injected between
-                  anatomy markers; the generators live in the gitignored
-                  .claude/tools/figures, so edit there and re-inject
-assets/anatomy.css The figure styles, light by default and dark with the lab
+assets/anatomy-kit.js The isometric drawing kit (MIT, from the open-source
+                  "anatomy" skill) wrapped in one function. The step-by-step
+                  walkthroughs draw their scenes with it. Each lab once also
+                  carried a "machine" figure built with it; those were removed
+                  as not helping a learner, and the walkthroughs stayed
+assets/anatomy.css The kit's styles, light by default and dark with the lab
 assets/illusions.js One optical illusion per topic category, drawn as inline SVG
                   in the family colour, with the line that says why it fits;
                   small on the dashboard tiles, large in the browse view

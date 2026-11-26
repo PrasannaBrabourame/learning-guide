@@ -96,7 +96,7 @@
       },
       {
         short: "Recap", chapter: "recap", title: "Recap",
-        recap: ["Decide the <b>sign-in</b> first; every permission check rests on it.", "Let the data pick the lane: Google sources mean Google's sign-in, Microsoft 365 means <b>federation</b>. Give programs a <b>workload identity</b>.", "Connect each source through a <b>connector</b>, copied with its reader lists or asked live; read everything <b>as the person asking</b>.", "<b>Screen</b> every question and answer, both directions.", "Adoption needs a <b>sponsor</b>, <b>champions</b> and weekly measurement, not announcements."],
+        recap: ["Decide the <b>sign-in</b> first; every permission check rests on it.", "Let the data pick the sign-in: Google sources mean Google's own, Microsoft 365 means <b>federation</b>. Give programs a <b>workload identity</b>.", "Connect each source through a <b>connector</b>, copied with its reader lists or asked live; read everything <b>as the person asking</b>.", "<b>Screen</b> every question and answer, both directions.", "Adoption needs a <b>sponsor</b>, <b>champions</b> and weekly measurement, not announcements."],
         callout: { kind: "next", text: "The rest of this lab covers provisioning, networking, where the data lives, agents, search quality, tuning and governance, and change management." },
         metrics: { signin: { v: "Google + job identity", tone: "green" }, sources: 4, screen: { v: "yes", tone: "green" }, use: { v: "300", tone: "green" } },
       },
