@@ -236,6 +236,15 @@ fde4.html         FDE bootcamp lab, day four: the front door (which layer
                   custom-portal authorisation flow, connector or tool server
                   with a registration lint, which method), read the trace,
                   and the scenario drill
+claude.html       Claude lab: a brilliant new colleague, and how to work with one
+                  (the 4D framework for AI fluency: delegation, description,
+                  discernment, diligence; Claude Code part by part; the API
+                  line by line; workflow and agent patterns; tools, MCP and
+                  the context budget; trust and cost. Build the brief, check
+                  the draft, the session's context meter, who remembers the
+                  conversation, one agent or a team, pack the window, which
+                  model for this job, ten sorters, three isometric
+                  walkthroughs) and the scenario drill
 vibe.html         Vibe coding lab: think it, build it, ship it (developer
                   or builder, name the idea, the six-layer prompt builder,
                   label the layer, find the missing layer, which tool to open
@@ -281,7 +290,7 @@ cheatsheet.html   Revision cheatsheet: every lab's must-remember points
 data/topics.json  The 304 topics as plain JSON (incl. per-topic difficulty)
 ```
 
-There are 414 simulations across the twenty-eight labs. Every one carries a
+There are 435 simulations across the twenty-nine labs. Every one carries a
 plain-English on-ramp above its controls: an everyday analogy for the mechanism, one concrete first action,
 and a short glossary of only the jargon that appears on that screen. The
 glossary is per-simulation rather than per-page, because someone lost in
@@ -364,7 +373,7 @@ Data, styling, and behaviour are split into separate files so each can be
 edited and diffed independently, e.g. adding a topic only touches
 `data/topics.json`.
 
-The twenty-six lab pages are self-contained, but the chrome around the content
+The twenty-seven lab pages are self-contained, but the chrome around the content
 is not copied into each one: it lives in `assets/lab.css` and `assets/lab.js`,
 which every lab links. That split exists because the copies drifted, a callout
 that needed a size rule needed thirteen separate patches, and one lab shipped
