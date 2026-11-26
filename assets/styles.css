@@ -265,7 +265,7 @@ html{scroll-behavior:auto}
 }
 @media print{
 body{background:white;color:black}
-.topbar,#dash,.aurora,.actions,.copy,.reveal,#readbar,#resume,#toast,#palette,#flashcards,.tools,.bhead .btn{display:none!important}
+.topbar,.bank #dash,.aurora,.actions,.copy,.reveal,#readbar,#resume,#toast,#palette,#flashcards,.tools,.bhead .btn{display:none!important}
 #browse[hidden]{display:block!important}
 main{padding:0;max-width:none}
 .card{box-shadow:none;break-inside:avoid;margin-bottom:12px;border-top-color:transparent}
@@ -306,7 +306,7 @@ h1,h2.dtitle,.dwelcome h1,.btitle h2{font-family:var(--display);font-weight:500;
   background:linear-gradient(90deg,var(--accent),var(--accent2))}
 .labcell:hover .lab,.labcell:hover .ltopics{border-color:var(--accent)}
 .lab:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-/* related-topics strip: opens the browse view filtered to this lab's categories */
+/* related-topics strip: opens the Q&A bank (qa.html) filtered to this lab's categories */
 .ltopics{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
   padding:10px 20px;border:1px solid var(--line);border-radius:0 0 16px 16px;
   background:var(--soft);color:var(--muted);cursor:pointer;text-align:left;
@@ -367,7 +367,6 @@ h1,h2.dtitle,.dwelcome h1,.btitle h2{font-family:var(--display);font-weight:500;
   --brand-g1:#4285f4;--brand-g2:#ea4335;--brand-g3:#fbbc04;--brand-g4:#34a853}
 [data-theme=dark]{--brand-aws:#ffab2e;--brand-awstext:#e8e4dc;--brand-az:#4fa9e8;--brand-az2:#8ecdf5;
   --brand-g1:#7cabf7;--brand-g2:#f28b82;--brand-g3:#fdd663;--brand-g4:#81c995}
-@media print{.labs{display:none}}
 
 a.brand:hover .bname b{color:var(--accent)}
 a.brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:10px}
@@ -387,6 +386,20 @@ a.brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
 .labpop a small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:1px}
 .labpopsep{margin:8px 4px 4px;padding-top:8px;border-top:1px solid var(--line);
   font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+/* The menu scrolls inside the window instead of running off the bottom edge, where
+   its lower rows could not be reached; on a narrow screen it opens across the bar
+   instead of off its left edge. The Q&A bank (qa.html) borrows the same menu and
+   marks the row for the page you are on. */
+.labpop{max-height:calc(100vh - 76px);max-height:calc(100dvh - 76px);overflow-y:auto;overscroll-behavior:contain}
+.labpop a[aria-current=page]{background:var(--soft)}
+.labpop a[aria-current=page] b{color:var(--accent)}
+/* a deep link into the bank opens a list: qa.html holds the categories back until app.js has drawn it */
+.deep #dash{display:none}
+@media(max-width:900px){
+  .labmenu{position:static}
+  .labpop{left:clamp(14px,3vw,28px);right:clamp(14px,3vw,28px);top:auto;margin-top:8px;
+    max-height:calc(100vh - 130px);max-height:calc(100dvh - 130px)}
+}
 
 /* ============ motion ============ */
 @media (prefers-reduced-motion: reduce){

@@ -15,8 +15,8 @@ Two kinds of content, one site:
 
 - **The topic bank** (`data/topics.json`): 304 interview topics, each with a
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
-  red flags, and a one-line memory aid. Rendered on the dashboard and browse view
-  (`index.html` + `assets/app.js`).
+  red flags, and a one-line memory aid. Rendered in the Q&A bank
+  (`qa.html` + `assets/app.js`); the home page shows only how many each lab covers.
 - **The labs** (`*.html`): 26 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
@@ -27,17 +27,19 @@ Plus `cheatsheet.html`: the whole guide distilled onto one printable page.
 ## Layout
 
 ```
-index.html         Dashboard, browse view, quiz and flashcard modes
+index.html         The home page: hero and the three tracks of lab cards
+qa.html            The Q&A bank: the 304 topics, browse view, quiz and flashcards
 assets/anatomy-kit.js The isometric drawing kit (MIT); the walkthroughs in
                    `assets/walk.js` draw their scenes with it
 assets/anatomy.css The kit's styles, following the lab's light or dark theme
 assets/illusions.js One optical illusion per topic category (inline SVG, family
                    colour, both themes) with a caption tying it to the content
-assets/app.js      Dashboard logic: rendering, search/filter, progress,
+assets/app.js      Runs on the home page and the Q&A bank, each part only where
+                   its elements exist: rendering, search/filter, progress,
                    bookmarks, the Reset control
 assets/lab.js      Shared lab chrome (theme, tabs, find, labs menu, bookmarks)
 assets/lab.css     Shared lab styling and theme tokens
-assets/styles.css  Dashboard styling
+assets/styles.css  Styling for the home page and the Q&A bank
 data/topics.json   The 304 topics as plain JSON
 data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    jobs with pros and cons, the change log, the look-alike
@@ -92,7 +94,7 @@ Every sim follows the same shape so the guide reads as one system:
 
 - **A topic**: append to `data/topics.json` (keep its 2-space indent; append by
   string surgery, do not reformat the whole file), then bump the hardcoded
-  counts (hero, search placeholder, README) and confirm the lab-to-category
+  counts (hero, search placeholder, `qa.html`, README) and confirm the lab-to-category
   card count still computes.
 - **A simulation**: add a card (with its `.simplain`) into the lab's tab
   template and an IIFE after it. Verify every quantitative claim in Node
@@ -130,6 +132,14 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
+- **The Q&A bank.** The 304 question-and-answer topics left the bottom of the
+  home page for a page of their own, `qa.html`: difficulty and category
+  tiles, browse view, search, quiz and flashcards. The home page keeps the
+  hero and the lab cards, pixel for pixel above where the topics were. Its
+  topic buttons, search, Jump and each card's related-topics count now open
+  the bank, and the old `index.html#lab=<key>` links are passed on. `app.js`
+  runs on both pages, guarded. The labs menu now scrolls inside the window;
+  its lower rows had been out of reach on the home page.
 - **The machine figures are gone.** Every lab's first tab used to carry an
   isometric "machine behind this lab" figure. Seen in the labs, they did not
   help a learner: an unlabelled machine with numbered badges explains
@@ -291,6 +301,6 @@ The most recent arc of work, newest first:
 2. Open the **training lab** and step a network training live; open the
    **frames lab** and crash a LangGraph run, then resume from its checkpoint.
 3. Open the **cheatsheet**, press **Test yourself**, and drag the roofline.
-4. Read one topic end to end in the browse view to see the six-part shape.
+4. Read one topic end to end in the Q&A bank to see the six-part shape.
 5. Skim `assets/lab.js` to see how a lab page gets its shared chrome from one
    file.

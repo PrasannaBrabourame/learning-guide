@@ -15,7 +15,7 @@ Each topic is broken down into:
 Every topic carries a `difficulty` of **Low** (recall/definition), **Medium**
 (mechanics or comparison), **High** (production design and judgement) or
 **Complex** (multi-system trade-offs under ambiguity). Filter by level from
-the toolbar, or click a level on the dashboard to drill straight into it.
+the toolbar, or click a level in the Q&A bank to drill straight into it.
 Each badge shows its label as text, so the level never depends on colour
 alone; all eight badge colours clear WCAG AA contrast in both themes.
 
@@ -26,14 +26,18 @@ one hue each, 41 hues are not visually distinguishable, 9 are, and the
 colour then carries meaning. Tiles remain sorted alphabetically. Each category also carries an
 optical illusion chosen for the idea it teaches (the Kanizsa triangle for
 retrieval-augmented generation, because the triangle you see is not drawn),
-drawn inline in the family colour; open the category and the browse view
-shows it large with the one line that says why it fits.
+drawn inline in the family colour on its tile in the Q&A bank; open the
+category and the browse view shows it large with the one line that says why
+it fits.
 
 ## Files
 
 ```
-index.html        Page shell, topbar, dashboard, and browse-view markup
-assets/styles.css Styling (light/dark theme, aurora backdrop, tiles, print)
+index.html        The home page: top bar, hero and the three tracks of lab cards
+qa.html           The Q&A bank: the 304 topics, with the difficulty and
+                  category tiles, browse view, search, quiz and flashcards
+assets/styles.css Styling for both pages (light/dark theme, aurora backdrop,
+                  tiles, print)
 assets/fonts/     Self-hosted Inter and Newsreader subsets (woff2, 352 KB)
 assets/favicon.svg An inline SVG favicon (the node-graph mark, brand teal),
                   with favicon.png and apple-touch-icon.png fallbacks;
@@ -261,8 +265,10 @@ assets/anatomy-kit.js The isometric drawing kit (MIT, from the open-source
 assets/anatomy.css The kit's styles, light by default and dark with the lab
 assets/illusions.js One optical illusion per topic category, drawn as inline SVG
                   in the family colour, with the line that says why it fits;
-                  small on the dashboard tiles, large in the browse view
-assets/app.js     Dashboard + browse views, rendering, search/filter, quiz
+                  small on the Q&A bank's tiles, large in the browse view
+assets/app.js     Runs on both pages, each part only where its elements exist.
+                  Home page: counters, heat map, bookmarks and the related-
+                  topics counts. Q&A bank: rendering, search/filter, quiz
                   mode, flashcard drills, jump-to-topic palette,
                   progress rings + streak tracking, starred bookmarks and a reset control, lab-to-topic mapping
 cheatsheet.html   Revision cheatsheet: every lab's must-remember points
@@ -343,13 +349,13 @@ somebody deciding whether to open it. The detail lives in the lab; the card only
 has to be scannable alongside eighteen others.
 
 Each hands-on lab card carries a **related-topics** strip showing how many of
-the 304 topics that lab actually covers, 50 for the Cloud lab, 37 for
-Evaluation, 33 for the diagram lab. Clicking it opens the browse view filtered
-to just those, rather than the whole pile. The map from lab to categories lives
+the 304 topics that lab actually covers. Clicking it opens the Q&A bank
+filtered to just those, rather than the whole pile. The map from lab to categories lives
 in `assets/app.js` (`LABS`); the counts are computed from `data/topics.json` at
 load, so adding a topic updates the right card by itself. Every lab page has a
 matching **▤ related topics** chip that links back to its own reading, and the
-view is shareable as `index.html#lab=<key>`.
+view is shareable as `qa.html#lab=<key>`. The old address,
+`index.html#lab=<key>`, still works: the home page passes it on.
 
 Categories a lab only brushes against are deliberately left out, a link that
 returns half the site is the problem it was meant to fix.
@@ -377,7 +383,7 @@ honestly shows `local dev build`.
 
 ## View locally
 
-The page fetches `data/topics.json`, which browsers block over `file://`,
+Both pages fetch `data/topics.json`, which browsers block over `file://`,
 so serve the folder over HTTP:
 
 ```bash
