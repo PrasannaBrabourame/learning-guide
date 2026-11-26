@@ -1,7 +1,7 @@
 /* Walkthrough: the threshold, told with the lab's own class of twenty. The screener scores every
    learner; you choose the line above which you flag. Scores are the ranked-list tab's: Mira 0.91,
    Ben 0.88, Kai 0.86, Lena 0.79, Tara 0.71 ... Noor 0.44, the other eight below 0.40. Four learners
-   (Mira, Ben, Lena, Noor) really need reading support. The figure uses the same scores and lines. */
+   (Mira, Ben, Lena, Noor) really need reading support. */
 (window.WALKS = window.WALKS || {}).metrics = (function () {
   const cases = { type: "queue", x: -18, y: 0, label: "Twenty learners", n: 7, dir: [0, 1] };
   const model = { type: "model", x: -5, y: 0, label: "The screener", glyph: "AI", tint: "violet" };

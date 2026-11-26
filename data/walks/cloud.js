@@ -114,7 +114,7 @@
       {
         short: "Recap", chapter: "recap", title: "Recap",
         recap: ["A request stops at the <b>address book</b>, the <b>front door</b>, a <b>server</b> and a <b>database</b>, then comes back.", "A <b>public subnet</b> needs a route to the <b>internet gateway</b>; a private one deliberately has none.", "A <b>security group</b> refuses at the server's door; the server never sees the request.", "A <b>certificate</b> for the wrong name fails the handshake before anything is sent.", "Work <b>up the stack</b>: the lowest broken layer is the one to fix."],
-        callout: { kind: "next", text: "The simulation at the top of this tab switches off the shortcuts this walk left out. The next tab names the seven layers you just climbed, and the Service translator compares what each cloud calls these parts." },
+        callout: { kind: "next", text: "The simulation at the top of this tab switches off the shortcuts this walk left out. The next tab names all seven layers of the stack you just climbed, and the Service translator compares what each cloud calls these parts." },
         metrics: { hop: "back on your phone", ms: "155 ms", fail: "nothing" },
         scene: () => { const s = full(); s.ents.web = web; return s; },
       },
