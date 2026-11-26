@@ -2,7 +2,9 @@
 fetch("data/topics.json")
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json() })
   .then(init)
-  .catch(() => {
+  .catch(err => {
+    /* this also catches anything init() throws, so say what it was */
+    console.error(err);
     document.body.innerHTML = `<div class="bootfail"><h1>Couldn't load topic data</h1>
 <p>This page fetches <code>data/topics.json</code>, which browsers block when the file is opened directly from disk.</p>
 <p>Serve the folder over HTTP instead:</p><pre>python3 -m http.server 8000</pre>
@@ -27,10 +29,21 @@ function init(topics) {
   const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` };
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ============ one file, two pages ============
+     The Q&A bank (qa.html) holds the topic views: the category tiles, the
+     browse list and the flashcards. The home page (index.html) holds the labs
+     and shows the same progress, read from the same browser storage, and
+     hands every topic action across to the bank. `bank` says which page this
+     is; each part below runs only where its elements exist. */
+  const bank = !!$("#browse");
+  const toBank = hash => { location.href = "qa.html" + (hash ? "#" + hash : "") };
+  const put = (sel, text) => { const el = $(sel); if (el) el.textContent = text };
+
   /* topic counts come from the data, never from hard-coded markup */
   $("#msearch").placeholder = `Search ${topics.length} topics…`;
   const dsubEl = document.querySelector(".dsub");
   if (dsubEl) dsubEl.textContent = dsubEl.textContent.replace(/^\d+/, topics.length);
+  if (bank) document.title = document.title.replace(/\d+(?= questions)/, topics.length);
 
   /* ============ categories: semantic colour families ============
      One hue per domain family rather than a unique hue per category, 
@@ -81,7 +94,7 @@ function init(topics) {
     fde3: { name: "The FDE bootcamp, day three", hue: 24, cats: ["Evaluation & Metrics", "LLMOps", "FinOps", "Testing & Quality", "Agentic AI", "AI Agents", "Agent Frameworks & Runtimes", "Production Readiness", "Production Operations", "Observability", "Security", "GCP"] },
     vibe: { name: "Vibe coding", hue: 152, cats: ["AI & GenAI", "Large Language Models", "AI Agents", "Agentic AI", "Model Context Protocol", "Full-Stack Engineering", "Deployment", "Software Development"] },
     fde4: { name: "The FDE bootcamp, day four", hue: 200, cats: ["Security", "AI Governance", "GCP", "Cloud Architecture", "Software Architecture", "Production Readiness", "Production Operations", "Observability", "Multi-Tenancy", "Retrieval-Augmented Generation", "Model Context Protocol", "API & Backend", "Data & Integration", "Agentic AI", "AI Agents"] },
-    peakweek: { name: "Peak Week \u2014 one agent end to end", hue: 320, cats: ["Agent Frameworks & Runtimes", "AI Agents", "Agentic AI", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "GCP"] },
+    peakweek: { name: "Peak Week, one agent end to end", hue: 320, cats: ["Agent Frameworks & Runtimes", "AI Agents", "Agentic AI", "Evaluation & Metrics", "LLMOps", "Security", "Production Readiness", "GCP"] },
     gpu: { name: "The machine underneath", hue: 280, cats: ["Large Language Models", "Deep Learning & Neural Networks", "Performance", "LLMOps", "Math, Probability & Statistics"] },
     train: { name: "Wrong, then less wrong", hue: 280, cats: ["Deep Learning & Neural Networks", "Classical Machine Learning", "Math, Probability & Statistics"] },
   classic: { name: "Before the network", hue: 280, cats: ["Classical Machine Learning", "Math, Probability & Statistics", "Deep Learning & Neural Networks"] },
@@ -121,7 +134,7 @@ function init(topics) {
   /* ============ render cards ============ */
   const cards = $("#cards");
   const num = new Map(topics.map((t, i) => [t.id, String(i + 1).padStart(2, "0")]));
-  cards.innerHTML = topics.map((t, i) => `<article class="card" id="${t.id}" data-cat="${esc(t.category)}" data-diff="${diffOf(t)}" style="--hue:${catHue.get(t.category)}">
+  if (cards) cards.innerHTML = topics.map((t, i) => `<article class="card" id="${t.id}" data-cat="${esc(t.category)}" data-diff="${diffOf(t)}" style="--hue:${catHue.get(t.category)}">
 <header class="head" tabindex="0" aria-expanded="false"><div class="num">${String(i + 1).padStart(2, "0")}</div><div><h2>${esc(t.title)}</h2><p>${esc(t.category)}${diffBadge(t)}</p></div><div class="actions"><button class="star${starred.has(t.id) ? " on" : ""}" data-id="${t.id}" title="Star for review" aria-pressed="${starred.has(t.id)}">★</button><input class="check" type="checkbox" data-id="${t.id}" ${studied.has(t.id) ? "checked" : ""} title="Mark studied"><button class="chev" aria-label="Expand">⌄</button></div></header>
 <div class="body"><div class="bwrap"><div class="question">${t.question}</div><button class="btn reveal">Reveal answer</button><div class="grid">
 <section class="box full"><h3>🧠 Technical answer</h3>${list(t.technical)}</section>
@@ -133,13 +146,14 @@ function init(topics) {
 <section class="box full memo"><h3>📌 One-line memory aid</h3><p><b>${t.memory}</b></p></section>
 </div></div></div></article>`).join("");
 
-  /* ============ views: dashboard <-> browse ============ */
+  /* ============ views: dashboard <-> browse (the Q&A bank) ============ */
   const dash = $("#dash"), browse = $("#browse");
   let currentCat = null;
+  const dropHash = () => history.replaceState(null, "", location.pathname + location.search);
   function showDash() {
-    // drop a #lab= deep link on the way out, so reloading does not bounce
-    // straight back into the lab's list the reader just left
-    if (/^#lab=/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search);
+    // drop a #lab= or #all deep link on the way out, so reloading does not bounce
+    // straight back into the list the reader just left
+    if (/^#(lab=|all$)/.test(location.hash)) dropHash();
     browse.hidden = true; dash.hidden = false;
     const art = $("#bart"); if (art) { art.hidden = true; art.innerHTML = ""; }
     diffSel.value = "all"; stateSel.value = "all"; ms.value = "";
@@ -175,10 +189,12 @@ function init(topics) {
     filter();
     scrollTo(0, 0);
   }
-  $("#back").onclick = showDash;
-  $("#browseall").onclick = () => showBrowse(null);
+  if (bank) {
+    $("#back").onclick = showDash;
+    $("#browseall").onclick = () => showBrowse(null);
+  }
 
-  /* ============ lab cards -> their own topics ============
+  /* ============ lab cards (home page) -> their own topics, in the bank ============
      Counts are read from the data, never typed into the markup, so a topic
      added to data/topics.json shows up on the right card by itself. */
   document.querySelectorAll(".ltopics").forEach(b => {
@@ -186,19 +202,40 @@ function init(topics) {
     const c = b.querySelector(".ltc");
     if (c) c.textContent = `${n} topic${n === 1 ? "" : "s"}`;
     b.setAttribute("aria-label", `Browse the ${n} topics behind ${LABS[k] ? LABS[k].name : k}`);
-    b.onclick = () => { location.hash = `lab=${k}`; showBrowse(k) };
+    b.onclick = () => toBank(`lab=${k}`);
   });
-  /* a lab page can link straight back at its own reading: index.html#lab=evals */
+  /* ============ deep links into the bank ============
+     The home page and every lab page send readers here with a hash:
+       #lab=<key>    the topics behind one lab       #all     every topic
+       #q=<words>    a search carried across         #flash   flashcards, straight away
+       #topic=<id>   one topic, opened               #print   every topic, then the print dialog
+     #lab and #all describe a view, so they stay in the address until the reader
+     goes back to the categories. The rest are one-shot: they are dropped as soon
+     as they are read, so a reload does not reopen the flashcards or the printer. */
   function openFromHash() {
-    const m = /^#lab=([a-z0-9]+)$/.exec(location.hash);
-    if (m && LABS[m[1]]) { showBrowse(m[1]); return true; }
+    const h = location.hash.slice(1), eq = h.indexOf("=");
+    const key = eq < 0 ? h : h.slice(0, eq);
+    let val = eq < 0 ? "" : h.slice(eq + 1);
+    try { val = decodeURIComponent(val) } catch { }
+    if (key === "lab" && Object.prototype.hasOwnProperty.call(LABS, val)) { showBrowse(val); return true }
+    if (key === "all") { showBrowse(null); return true }
+    if (key === "q" && val.trim()) {
+      dropHash(); ms.value = val; showBrowse(null);
+      ms.focus(); try { ms.setSelectionRange(val.length, val.length) } catch { }
+      return true;
+    }
+    if (key === "topic" && byId.has(val)) { dropHash(); jumpTo(val); return true }
+    if (key === "flash") { dropHash(); showDash(); fcOpen(); return true }
+    if (key === "print") { dropHash(); printAll(); return true }
     return false;
   }
-  addEventListener("hashchange", openFromHash);
+  /* an emptied hash (Back, or the menu's own link to this page) means the categories again */
+  if (bank) addEventListener("hashchange", () => { if (!openFromHash() && !location.hash) showDash() });
 
   /* ============ dashboard tiles ============ */
   const tiles = $("#tiles");
   function renderTiles() {
+    if (!tiles) return;
     tiles.innerHTML = categories.map(c => {
       const items = byCat.get(c), done = items.filter(t => studied.has(t.id)).length, pct = done / items.length;
       // difficulty mix bar: proportional segments so a tile shows how hard the category is
@@ -209,11 +246,12 @@ function init(topics) {
 <span class="tinfo"><b>${esc(c)}</b><small>${done}/${items.length} studied${done === items.length ? " ✓" : ""}</small><span class="tmix">${mix}</span></span>${window.ILLUSIONS && ILLUSIONS.has(c) ? `<span class="tart">${ILLUSIONS.svg(c, false)}</span>` : ""}</button>`;
     }).join("");
   }
-  tiles.onclick = e => { const t = e.target.closest(".tile"); if (t) showBrowse(t.dataset.cat) };
+  if (tiles) tiles.onclick = e => { const t = e.target.closest(".tile"); if (t) showBrowse(t.dataset.cat) };
 
   /* ============ dashboard legends: difficulty (clickable) + colour families ============ */
   function renderLegends() {
     const dl = $("#dlegend");
+    if (!dl) return;
     dl.innerHTML = DIFFS.map(d => {
       const items = topics.filter(t => diffOf(t) === d);
       const done = items.filter(t => studied.has(t.id)).length;
@@ -222,13 +260,14 @@ function init(topics) {
     $("#flegend").innerHTML = FAMILIES.filter(([, , cats]) => cats.some(c => byCat.has(c)))
       .map(([fam, hue]) => `<span class="fchip" style="--hue:${hue}"><i></i>${esc(fam)}</span>`).join("");
   }
-  $("#dlegend").onclick = e => {
+  if (bank) $("#dlegend").onclick = e => {
     const b = e.target.closest(".dchip"); if (!b) return;
     diffSel.value = b.dataset.diff; showBrowse(null);   // drill straight into that level
   };
 
-  /* ============ counters + topbar ============ */
+  /* ============ counters + topbar (both pages) ============ */
   function animateCount(el, to) {
+    if (!el) return;
     if (reduced || to < 6) { el.textContent = to; return }
     const t0 = performance.now();
     (function tick(now) {
@@ -250,11 +289,12 @@ function init(topics) {
     const catsDone = categories.filter(c => byCat.get(c).every(t => studied.has(t.id))).length;
     const streak = calcStreak();
     if (animate) { animateCount($("#c-studied"), studied.size); animateCount($("#c-starred"), starred.size); animateCount($("#c-cats"), catsDone); }
-    else { $("#c-studied").textContent = studied.size; $("#c-starred").textContent = starred.size; $("#c-cats").textContent = catsDone; }
-    $("#c-streak").textContent = streak;
-    $("#tstreak").textContent = `🔥 ${streak}`;
-    $("#oring").innerHTML = ring(studied.size / topics.length) + `<b>${Math.round(studied.size / topics.length * 100)}%</b>`;
-    if (!dash.hidden) { renderTiles(); renderLegends() }
+    else { put("#c-studied", studied.size); put("#c-starred", starred.size); put("#c-cats", catsDone); }
+    put("#c-streak", streak);
+    put("#tstreak", `🔥 ${streak}`);
+    const oring = $("#oring");
+    if (oring) oring.innerHTML = ring(studied.size / topics.length) + `<b>${Math.round(studied.size / topics.length * 100)}%</b>`;
+    if (bank && !dash.hidden) { renderTiles(); renderLegends() }
   }
 
   /* ============ milestones + studied ============ */
@@ -315,7 +355,7 @@ function init(topics) {
     }
     hm.innerHTML = html;
     const streak = calcStreak();
-    $("#streaktext").textContent = streak ? `🔥 ${streak}-day streak, keep it alive` : "Study a topic to start a streak";
+    put("#streaktext", streak ? `🔥 ${streak}-day streak, keep it alive` : "Study a topic to start a streak");
   }
 
   /* ============ card interactions ============ */
@@ -359,13 +399,26 @@ function init(topics) {
     $("#empty").style.display = n ? "none" : "block";
     $("#bcount").textContent = `${n} topic${n === 1 ? "" : "s"}`;
   }
-  ms.oninput = () => { if (browse.hidden) showBrowse(null); else filter() };
-  stateSel.onchange = filter; diffSel.onchange = filter;
+  if (bank) {
+    ms.oninput = () => { if (browse.hidden) showBrowse(null); else filter() };
+    stateSel.onchange = filter; diffSel.onchange = filter;
+  } else {
+    /* home page: the search box stays in the top bar and carries the words across
+       to the bank, at once on Enter, otherwise after a short pause in the typing.
+       Leaving the box cancels the pause, so a click elsewhere is never hijacked. */
+    let carryTimer = 0;
+    const carry = () => { clearTimeout(carryTimer); const q = ms.value.trim(); if (q) toBank(`q=${encodeURIComponent(q)}`) };
+    ms.oninput = () => { clearTimeout(carryTimer); carryTimer = setTimeout(carry, 700) };
+    ms.onkeydown = e => { if (e.key === "Enter") carry() };
+    ms.onblur = () => clearTimeout(carryTimer);
+  }
 
   /* ============ toolbar ============ */
-  $("#expand").onclick = () => document.querySelectorAll(".card:not([hidden])").forEach(c => { c.classList.add("open"); c.querySelector(".head").setAttribute("aria-expanded", "true") });
-  $("#collapse").onclick = () => document.querySelectorAll(".card").forEach(c => { c.classList.remove("open"); c.querySelector(".head").setAttribute("aria-expanded", "false") });
-  $("#quiz").onclick = e => { document.body.classList.toggle("quiz"); document.querySelectorAll(".card").forEach(c => c.classList.remove("revealed")); e.target.textContent = document.body.classList.contains("quiz") ? "Exit quiz mode" : "Quiz mode" };
+  if (bank) {
+    $("#expand").onclick = () => document.querySelectorAll(".card:not([hidden])").forEach(c => { c.classList.add("open"); c.querySelector(".head").setAttribute("aria-expanded", "true") });
+    $("#collapse").onclick = () => document.querySelectorAll(".card").forEach(c => { c.classList.remove("open"); c.querySelector(".head").setAttribute("aria-expanded", "false") });
+    $("#quiz").onclick = e => { document.body.classList.toggle("quiz"); document.querySelectorAll(".card").forEach(c => c.classList.remove("revealed")); e.target.textContent = document.body.classList.contains("quiz") ? "Exit quiz mode" : "Quiz mode" };
+  }
   /* the version line: stamped at deploy, "dev" on a local checkout */
   if (typeof GUIDE_VERSION !== "undefined") {
     const vf = document.querySelector(".foot");
@@ -374,6 +427,20 @@ function init(topics) {
       (GUIDE_VERSION.v === "dev" ? "local dev build" : "version " + GUIDE_VERSION.v +
        (GUIDE_VERSION.sha ? " \u00b7 " + GUIDE_VERSION.sha : "")) + "</span>");
   }
+  /* The bank borrows the home page's Labs menu instead of keeping a second copy, so
+     the list of labs and their tab and simulation counts are written in one place.
+     Until it arrives, or if it cannot be fetched, the page's own short menu stands in. */
+  const labsPop = $("#labsPop");
+  if (labsPop && labsPop.dataset.from) fetch(labsPop.dataset.from)
+    .then(r => r.ok ? r.text() : "")
+    .then(html => {
+      const src = html && new DOMParser().parseFromString(html, "text/html").getElementById("labsPop");
+      if (!src || !src.querySelector("a")) return;
+      labsPop.innerHTML = src.innerHTML;
+      const here = (location.pathname.split("/").pop() || "index.html");
+      labsPop.querySelectorAll("a").forEach(a => { if (a.getAttribute("href") === here) a.setAttribute("aria-current", "page") });
+    })
+    .catch(() => { });
   if (store.get("study-theme", "light") === "dark") { document.documentElement.dataset.theme = "dark"; $("#theme").textContent = "☀️" }
   /* crossfade rather than hard-cut: the class enables colour transitions on
      everything for the duration of the switch (see styles.css) */
@@ -382,21 +449,26 @@ function init(topics) {
     const root = document.documentElement, d = root.dataset.theme === "dark";
     if (!reduced) { root.classList.add("theme-fade"); clearTimeout(themeFadeT); themeFadeT = setTimeout(() => root.classList.remove("theme-fade"), 400); }
     root.dataset.theme = d ? "light" : "dark"; store.set("study-theme", d ? "light" : "dark"); $("#theme").textContent = d ? "🌙" : "☀️" };
-  $("#print").onclick = () => { showBrowse(null); ms.value = ""; stateSel.value = "all"; filter(); setTimeout(() => window.print(), 60) };
+  /* print means every topic, so it happens in the bank; the home page's button goes there first */
+  function printAll() { showBrowse(null); ms.value = ""; stateSel.value = "all"; filter(); setTimeout(() => window.print(), 60) }
+  $("#print").onclick = () => bank ? printAll() : toBank("print");
 
   /* ============ track last-read topic ============ */
   let booted = false; setTimeout(() => booted = true, 1500);
-  const observer = new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting && booted && !browse.hidden) store.set("study-last", e.target.id);
-  }), { rootMargin: "-30% 0px -65% 0px" });
-  document.querySelectorAll(".card").forEach(c => observer.observe(c));
+  if (bank) {
+    const observer = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting && booted && !browse.hidden) store.set("study-last", e.target.id);
+    }), { rootMargin: "-30% 0px -65% 0px" });
+    document.querySelectorAll(".card").forEach(c => observer.observe(c));
+  }
 
   /* ============ reading progress bar ============ */
   const readbar = $("#readbar");
   addEventListener("scroll", () => { readbar.style.width = `${scrollY / (document.body.scrollHeight - innerHeight || 1) * 100}%` }, { passive: true });
 
-  /* ============ jump to topic ============ */
+  /* ============ jump to topic (from the home page: across to the bank) ============ */
   function jumpTo(id) {
+    if (!bank) { toBank(`topic=${encodeURIComponent(id)}`); return }
     const card = document.getElementById(id); if (!card) return;
     if (browse.hidden) showBrowse(byId.get(id).category);
     if (card.hidden) { ms.value = ""; stateSel.value = "all"; showBrowse(null); }
@@ -451,13 +523,13 @@ function init(topics) {
   pal.onclick = e => { if (e.target === pal) palClose() };
   $("#palbtn").onclick = palOpen;
 
-  /* ============ flashcard mode ============ */
+  /* ============ flashcard mode (the bank; on the home page it is built but never attached) ============ */
   const fc = document.createElement("div"); fc.id = "flashcards"; fc.hidden = true;
   fc.innerHTML = `<div class="fctop"><span class="fccount"></span><span class="fcspacer"></span><button class="btn fcshuffle">🔀 Shuffle</button><button class="btn fcexit">✕ Exit (esc)</button></div>
 <div class="fccard" role="dialog" aria-modal="true"><div class="fcmeta"><span class="fccat"></span><span class="fcdiff"></span></div><h2 class="fctitle"></h2><p class="fcq"></p>
 <div class="fcanswer" hidden><div class="box layman"><h3>💡 In layman terms</h3><p class="fclay"></p></div><div class="box"><h3>🧠 Technical answer</h3><div class="fctech"></div></div><div class="box memo"><h3>📌 Memory aid</h3><p class="fcmem"></p></div></div></div>
 <div class="fcctl"><button class="btn primary fcreveal">Reveal (space)</button><span class="fcjudge" hidden><button class="btn fcagain">↻ Again (a)</button><button class="btn fcgot">✓ Got it (g)</button><button class="btn fcskip">Skip →</button></span></div>`;
-  document.body.appendChild(fc);
+  if (bank) document.body.appendChild(fc);
   let deck = [], fcMissed = [], fcDone = 0, fcGot = 0;
   const $fc = s => fc.querySelector(s);
   function fcRender() {
@@ -500,8 +572,7 @@ function init(topics) {
     const t = deck.shift(); deck.push(t); if (!fcMissed.includes(t)) fcMissed.push(t); fcRender();
   };
   $fc(".fcshuffle").onclick = () => { for (let i = deck.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0;[deck[i], deck[j]] = [deck[j], deck[i]] } fcRender(); toast("Deck shuffled") };
-  $("#flash").onclick = fcOpen;
-  $("#flash2").onclick = fcOpen;
+  if (bank) { $("#flash").onclick = fcOpen; $("#flash2").onclick = fcOpen; }
 
   /* ============ dialog keys (no global shortcuts; only open dialogs listen) ============ */
   addEventListener("keydown", e => {
@@ -525,7 +596,7 @@ function init(topics) {
     host.hidden = false;
     const chips = items.map(b => {
       const href = b.tab ? `${b.lab}#pane-${b.tab}` : b.lab;
-      const kind = b.tab ? "sim" : "lab";
+      const kind = b.tab ? "sim" : "whole";
       return `<a class="bmchip ${kind}" href="${esc(href)}" title="${esc(b.label)}"><i>${b.tab ? "\u25C8" : "\u25A2"}</i><span>${esc(b.label)}</span></a>`;
     }).join("");
     host.innerHTML = `<div class="bmhead"><b>\u2605 Bookmarked</b><span class="bmcount">${items.length}</span><span class="bmspacer"></span><button class="bmclear" id="bmClearAll" type="button">Clear bookmarks</button></div><div class="bmchips">${chips}</div>`;
@@ -552,7 +623,11 @@ function init(topics) {
   };
 
   renderHeatmap(); renderLabBookmarks();
-  /* a lab's "related topics" link arrives as #lab=<key>; read it before showDash(),
-     which deliberately strips that hash and so used to swallow every deep link */
-  if (!openFromHash()) showDash();
+  /* The home page only has its counters to fill. In the bank, a deep link such as a
+     lab's "related topics" arrives as #lab=<key>; read it before showDash(), which
+     deliberately strips that hash and so used to swallow every deep link */
+  if (!bank) updateCounters(true);
+  else if (!openFromHash()) showDash();
+  else updateCounters(false);   // a deep link skips showDash(), which is what fills the top bar's streak and ring
+  document.documentElement.classList.remove("deep");   // qa.html held the categories back for a deep link; the right view is drawn now
 }

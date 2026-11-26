@@ -387,6 +387,7 @@
   const cheatRow = `<div class="lmgrp"><h4>Revision</h4><div class="lmlist">`
     + `<a href="cheatsheet.html"${here==='cheatsheet.html'?' class="here" aria-current="page"':''}><i>&#9636;</i><span>Cheatsheet: the whole guide on one page</span></a>`
     + `<a href="hotseat.html"${here==='hotseat.html'?' class="here" aria-current="page"':''}><i>&#9673;</i><span>The hot seat: the questions a panel actually asks</span></a>`
+    + `<a href="qa.html"><i>?</i><span>The Q&amp;A bank: questions with plain and technical answers</span></a>`
     + `</div></div>`;
   menu.innerHTML = cheatRow + TRACKS.map(t => {
     const items = t.labs.map(([href, title], i) => {
