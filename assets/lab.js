@@ -357,7 +357,8 @@
       ['fde2.html',      'The FDE bootcamp, day two: govern it, prove it, run it at scale'],
       ['fde3.html',      'The FDE bootcamp, day three: judge it, climb it, pay for it'],
       ['fde4.html',      'The FDE bootcamp, day four: federate it, fence it, plug it in'],
-      ['vibe.html',      'Vibe coding: think it, build it, ship it'] ] },
+      ['vibe.html',      'Vibe coding: think it, build it, ship it'],
+      ['claude.html',    'Claude: a brilliant new colleague, and how to work with one'] ] },
     { name:'Cloud and architecture', labs:[
       ['cloud.html',            'How the cloud actually works'],
       ['devops.html',           'DevOps: from release night to a change that ships itself'],

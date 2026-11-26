@@ -1,7 +1,7 @@
 # Onboarding: the Learning Guide
 
 A static, self-contained learning guide for Technical Lead and AI Engineer
-topics. **304 topics**, **28 hands-on labs**, **414 in-browser simulations**,
+topics. **304 topics**, **29 hands-on labs**, **435 in-browser simulations**,
 and a revision cheatsheet, served straight from the folder: no build step, no
 dependencies, no external requests.
 
@@ -17,7 +17,7 @@ Two kinds of content, one site:
   technical answer, a plain-English take, use cases, a worked example, follow-ups,
   red flags, and a one-line memory aid. Rendered in the Q&A bank
   (`qa.html` + `assets/app.js`); the home page shows only how many each lab covers.
-- **The labs** (`*.html`): 26 self-contained pages, each a tabbed set of
+- **The labs** (`*.html`): 27 self-contained pages, each a tabbed set of
   interactive simulations you can operate and break on purpose. They share their
   chrome through `assets/lab.css` and `assets/lab.js` (header, tabs, theme,
   section-find, labs menu, version footer, bookmark control).
@@ -46,7 +46,7 @@ data/services.json The three-cloud atlas data: 786 services, 175 cross-cloud
                    pairs, the acronym dictionary
 cheatsheet.html    Revision cheatsheet: filter, Test-yourself recall, and a
                    Mental-models band of technical diagrams + a roofline sim
-<lab>.html         One lab each (cloud, devops, k8s, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
+<lab>.html         One lab each (cloud, devops, k8s, claude, atlas, hotseat, fde1, fde2, fde3, fde4, vibe, gpu, train, classic, llm, serving,
                    fleet, adk, frames, agentcore, agentbuild, evals, metrics,
                    govern, gemini, peakweek, design)
 ```
@@ -132,6 +132,15 @@ honestly shows "local dev build".
 
 The most recent arc of work, newest first:
 
+- **Claude lab.** `claude.html`, the last lab of the build track: the 4D
+  framework for AI fluency (delegation, description, discernment, diligence,
+  three parts each), Claude as a developer uses it (Claude Code part by part,
+  then a request to the API line by line) and as an architect designs with it
+  (workflows against agents, tools and MCP, the context budget, trust and
+  cost). One story throughout, the shop's team of three, and one picture: a
+  brilliant new colleague on their first day. Seventeen simulations and the
+  drill, seven of them operable, and three isometric walkthroughs. It names
+  no prices, version numbers or window sizes, because those date.
 - **The Q&A bank.** The 304 question-and-answer topics left the bottom of the
   home page for a page of their own, `qa.html`: difficulty and category
   tiles, browse view, search, quiz and flashcards. The home page keeps the
